@@ -1,8 +1,14 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const UsuarioController = require('./controllers/UsuarioController');
+const fs = require('fs');
 
-const createWindow = () => {
+async function getStore() {
+    const { default: Store } = await import('electron-store');
+    return new Store();
+}
+
+const createWindow = async () => {
     const win = new BrowserWindow({
         width: 800,
         height: 600,
@@ -13,22 +19,57 @@ const createWindow = () => {
         }
     });
 
-    win.loadFile('views/login/login.html');
-}
+    win.loadFile('views/login/login.html'); // Vista de inicio por defecto (login)
 
+    // Verificar si hay un usuario almacenado en electron-store
+    const store = await getStore();
+    const usuarioGuardado = store.get('usuario');
+
+    if (usuarioGuardado) {
+        // Si existe un usuario almacenado, cambiar a la vista del dashboard
+        win.loadFile('views/dashboard/dashboard.html').then(() => {
+            win.webContents.send('datos-usuario', usuarioGuardado); // Enviar los datos cuando carga la vista
+        });
+
+        // Volver a enviar los datos del usuario cuando se recargue la página
+        win.webContents.on('did-finish-load', () => {
+            win.webContents.send('datos-usuario', usuarioGuardado); // Volver a enviar al recargar
+        });
+    }
+};
 ipcMain.on('login', async (event, { username, password }) => {
-  const controller = new UsuarioController();
-  const result = await controller.login(username, password);
-  event.reply('login-result', result);
+    const controller = new UsuarioController();
+    const result = await controller.login(username, password);
+    event.reply('login-result', result);
 });
 
-ipcMain.on('cambiar-vista', (event, view) => {
-  const mainWindow = BrowserWindow.getFocusedWindow(); // Obtén la ventana activa
-  if (mainWindow) {
-      mainWindow.loadFile(`views/dashboard/${view}`).catch(err => console.error('Error al cargar el archivo:', err)); // Carga la nueva vista
-  }
+ipcMain.on('cambiar-vista', async (event, result) => {
+    const mainWindow = BrowserWindow.getFocusedWindow(); // Obtén la ventana activa
+    if (mainWindow) {
+        mainWindow.loadFile(`views/dashboard/${result.view}`)
+          .then(async () => {
+              // Después de cargar la nueva vista, guarda el usuario
+              const store = await getStore();
+              store.set('usuario', result.usuario);
+
+              // Envía los datos de usuario al renderizado
+              mainWindow.webContents.send('datos-usuario', store.get('usuario'));
+          })
+          .catch(err => console.error('Error al cargar el archivo:', err)); // Manejar error al cargar archivo
+    }
 });
 
+ipcMain.on('leer-html', (event, filePath) => {
+    const fullPath = path.join(__dirname, filePath); // Construir la ruta completa del archivo
+    fs.readFile(fullPath, 'utf-8', (err, data) => {
+        if (err) {
+            console.error('Error al leer el archivo HTML:', err);
+            return;
+        }
+        // Enviar el contenido HTML de vuelta al proceso de renderizado
+        event.sender.send('html-cargado', data);
+    });
+});
 
 app.whenReady().then(() => {
     createWindow();

@@ -1,12 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com">
+    <title>Sistema de Gestión de Inventario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
 </head>
-<body>
-    <h1>Lograste acceder, crack.</h1>
+
+<body onload="showUserData()">
+    <header>
+        <div>Inicio</div>
+        <div class="logo">LOGO</div>
+    </header>
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="user-info">
+                <span class="material-icons user-icon">account_circle</span>
+                <span class="user-name" id="user-name"></span>
+                <span class="user-role" id="user-role"></span>
+            </div>
+            <div class="menu-item" onclick="toggleSubmenu('more-options')">
+                <div class="menu-item-header">
+                    <span>Ver más opciones</span>
+                    <span class="material-icons" id="more-options-arrow">arrow_drop_down</span>
+                </div>
+                <div class="submenu" id="more-options">
+                    <button class="menu-item more-option-buttons">Perfil</button>
+                    <button class="menu-item more-option-buttons">Configuración</button>
+                    <button class="menu-item more-option-buttons">Cerrar Sesión</button>
+                </div>
+            </div>
+            <button class="menu-item">Administrar usuarios</button>
+            <button class="menu-item">Administrar inventario</button>
+            <button class="menu-item">Administrar facturas</button>
+            <button class="menu-item">Administrar salida de productos</button>
+            <button class="menu-item">Administrar comprobantes de pago</button>
+        </div>
+    </div>
+    <script src="../../public/js/dashboard-js/dashboard.js"></script>
 </body>
+
 </html>

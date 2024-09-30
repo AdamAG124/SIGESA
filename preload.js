@@ -5,5 +5,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
     sendLogin: (username, password) => ipcRenderer.send('login', { username, password }),
     onLoginResult: (callback) => ipcRenderer.on('login-result', (event, result) => callback(result)),
-    sendView: (view) => ipcRenderer.send('cambiar-vista', view)
+    sendView: (result) => ipcRenderer.send('cambiar-vista', result),
+    receiveUserData: (callback) => ipcRenderer.on('datos-usuario', (event, user) => callback(user)),
+    
+    // Función para solicitar el HTML y recibir la respuesta
+    loadHTML: (filePath) => ipcRenderer.send('leer-html', filePath),
+    onHTMLLoaded: (callback) => ipcRenderer.on('html-cargado', (event, data) => callback(data))
 });

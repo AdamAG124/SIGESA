@@ -18,8 +18,8 @@ function validarInicioSesion() {
             mostrarToastConfirmacion(result.message);
             // Enviar un mensaje al proceso principal para cambiar la vista
             setTimeout(() => {
-                window.api.sendView(result.view);
-            }, 5000); // Tiempo de espera antes de la redirección
+                window.api.sendView(result);
+            }, 2000); // Tiempo de espera antes de la redirección
         } else {
             // Mostrar alerta de error
             mostrarToastError(result.message);
@@ -53,5 +53,15 @@ function mostrarToastConfirmacion(titulo) {
     Toast.fire({
         icon: 'success',
         title: titulo
+    });
+}
+
+// renderer.js
+function adjuntarHTML() {
+    const filePath = 'views/dashboard/holaxd.html';  // La ruta relativa del archivo HTML
+    window.api.loadHTML(filePath);  // Solicita cargar el archivo HTML
+    // Recibir el contenido del archivo HTML y adjuntarlo a innerHTML
+    window.api.onHTMLLoaded((data) => {
+        document.getElementById('holaxd').innerHTML = data;
     });
 }

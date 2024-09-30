@@ -13,28 +13,28 @@ class Roles {
     }
 
     // Getters
-    get idRole() {
+    getIdRole() {
         return this.#id_role;
     }
 
-    get roleName() {
+    getRoleName() {
         return this.#role_name;
     }
 
-    get roleDescription() {
+    getRoleDescription() {
         return this.#role_description;
     }
 
     // Setters
-    set idRole(value) {
+    setIdRole(value) {
         this.#id_role = value;
     }
 
-    set roleName(value) {
+    setRoleName(value) {
         this.#role_name = value;
     }
 
-    set roleDescription(value) {
+    setRoleDescription(value) {
         this.#role_description = value;
     }
 }
