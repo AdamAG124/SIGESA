@@ -43,10 +43,31 @@ ipcMain.on('login', async (event, { username, password }) => {
     event.reply('login-result', result);
 });
 
+ipcMain.on('logout', async (event) => {
+    try {
+        // Elimina los datos del usuario almacenados en store
+        const store = await getStore();
+        store.delete('usuario');
+
+        // Si la eliminación es exitosa, enviamos un JSON con éxito
+        event.reply('logout-response', {
+            success: true,
+            message: 'Sesión cerrada con éxito.',
+            view: 'login/login.html'
+        });
+    } catch (error) {
+        // En caso de que ocurra algún error, enviamos un JSON con el error
+        event.reply('logout-response', {
+            success: false,
+            message: 'Error al cerrar la sesión. ' + error.message
+        });
+    }
+});
+
 ipcMain.on('cambiar-vista', async (event, result) => {
     const mainWindow = BrowserWindow.getFocusedWindow(); // Obtén la ventana activa
     if (mainWindow) {
-        mainWindow.loadFile(`views/dashboard/${result.view}`)
+        mainWindow.loadFile(`views/${result.view}`)
           .then(async () => {
               // Después de cargar la nueva vista, guarda el usuario
               const store = await getStore();
@@ -60,7 +81,7 @@ ipcMain.on('cambiar-vista', async (event, result) => {
 });
 
 ipcMain.on('leer-html', (event, filePath) => {
-    const fullPath = path.join(__dirname, filePath); // Construir la ruta completa del archivo
+    const fullPath = path.join(__dirname, 'views', filePath); // Construir la ruta completa del archivo
     fs.readFile(fullPath, 'utf-8', (err, data) => {
         if (err) {
             console.error('Error al leer el archivo HTML:', err);

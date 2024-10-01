@@ -1,0 +1,81 @@
+<div class="content-header">
+    <h1 class="content-title">Administrar Usuarios</h1>
+    <button class="add-user-btn" title="Agregar Nuevo Usuario">
+        <span class="material-icons">person_add</span>
+    </button>
+</div>
+<div class="search-bar">
+    <input type="text" placeholder="Buscar usuarios...">
+</div>
+<div class="filters">
+    <select>
+        <option>10 por página</option>
+        <option>25 por página</option>
+        <option>50 por página</option>
+    </select>
+    <select>
+        <option value="">Filtrar por tipo</option>
+        <option value="admin">Administrador</option>
+        <option value="user">Usuario</option>
+        <option value="guest">Invitado</option>
+    </select>
+    <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Nombre de Usuario</th>
+            <th>Tipo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Juan Pérez</td>
+            <td>juanperez</td>
+            <td>Administrador</td>
+            <td class="action-icons">
+                <div class="tooltip">
+                    <span class="material-icons">edit</span>
+                    <span class="tooltiptext">Editar usuario</span>
+                </div>
+                <div class="tooltip">
+                    <span class="material-icons">delete</span>
+                    <span class="tooltiptext">Eliminar usuario</span>
+                </div>
+                <div class="tooltip">
+                    <span class="material-icons">info</span>
+                    <span class="tooltiptext">Ver detalles</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>María López</td>
+            <td>marialopez</td>
+            <td>Usuario</td>
+            <td class="action-icons">
+                <div class="tooltip">
+                    <span class="material-icons">edit</span>
+                    <span class="tooltiptext">Editar usuario</span>
+                </div>
+                <div class="tooltip">
+                    <span class="material-icons">delete</span>
+                    <span class="tooltiptext">Eliminar usuario</span>
+                </div>
+                <div class="tooltip">
+                    <span class="material-icons">info</span>
+                    <span class="tooltiptext">Ver detalles</span>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<div class="pagination">
+    <button><span class="material-icons">first_page</span></button>
+    <button><span class="material-icons">navigate_before</span></button>
+    <span>1</span>
+    <button><span class="material-icons">navigate_next</span></button>
+    <button><span class="material-icons">last_page</span></button>
+</div>
+</div>

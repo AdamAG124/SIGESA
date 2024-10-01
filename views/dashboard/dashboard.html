@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+    <script src="../../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
 </head>
 
 <body onload="showUserData()">
@@ -30,14 +31,17 @@
                 <div class="submenu" id="more-options">
                     <button class="menu-item more-option-buttons">Perfil</button>
                     <button class="menu-item more-option-buttons">Configuración</button>
-                    <button class="menu-item more-option-buttons">Cerrar Sesión</button>
+                    <button class="menu-item more-option-buttons" onclick="logout()">Cerrar Sesión</button>
                 </div>
             </div>
-            <button class="menu-item">Administrar usuarios</button>
+            <button class="menu-item" onclick="adjuntarHTML('/usuarios/usuarios-admin.html')">Administrar usuarios</button>
             <button class="menu-item">Administrar inventario</button>
             <button class="menu-item">Administrar facturas</button>
             <button class="menu-item">Administrar salida de productos</button>
             <button class="menu-item">Administrar comprobantes de pago</button>
+        </div>
+        <div id="inner-div" class="main-content">
+
         </div>
     </div>
     <script src="../../public/js/dashboard-js/dashboard.js"></script>

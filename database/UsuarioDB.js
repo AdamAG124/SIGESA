@@ -58,7 +58,7 @@ class UsuarioDB {
                         return {
                             success: false,
                             message: 'Usuario inactivo.',
-                            view: 'login.html'
+                            view: 'login/login.html'
                         };
                     }
     
@@ -66,7 +66,7 @@ class UsuarioDB {
                     return {
                         success: true,
                         message: 'Inicio de sesión exitoso.',
-                        view: 'dashboard.html',
+                        view: 'dashboard/dashboard.html',
                         usuario: {
                             idUsuario: usuario.getIdUsuario(),
                             nombreUsuario: usuario.getNombreUsuario(),
@@ -83,21 +83,21 @@ class UsuarioDB {
                     return {
                         success: false,
                         message: 'Contraseña incorrecta.',
-                        view: 'login.html'
+                        view: 'login/login.html'
                     };
                 }
             } else {
                 return {
                     success: false,
                     message: 'Usuario no encontrado.',
-                    view: 'login.html'
+                    view: 'login/login.html'
                 };
             }
         } catch (error) {
             return {
                 success: false,
                 message: 'Error en la consulta a la base de datos: ' + error.message,
-                view: 'login.html'
+                view: 'login/login.html'
             };
         } finally {
             if (connection) {
