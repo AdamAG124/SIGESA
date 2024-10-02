@@ -56,7 +56,9 @@
             <div class="password-container">
                 <input type="password" id="newPassword" name="newPassword" required>
                 <span class="toggle-password">
-                    <i id="toggleNewPasswordIcon" class="fa fa-eye-slash" onclick="togglePasswordVisibility('newPassword', 'toggleNewPasswordIcon')"></i> <!-- Ojo cerrado -->
+                    <i id="toggleNewPasswordIcon" class="fa fa-eye-slash"
+                        onclick="togglePasswordVisibility('newPassword', 'toggleNewPasswordIcon')"></i>
+                    <!-- Ojo cerrado -->
                 </span>
             </div>
 
@@ -64,9 +66,14 @@
             <div class="password-container">
                 <input type="password" id="confirmPassword" name="confirmPassword" required>
                 <span class="toggle-password">
-                    <i id="toggleConfirmPasswordIcon" class="fa fa-eye-slash" onclick="togglePasswordVisibility('confirmPassword', 'toggleConfirmPasswordIcon')"></i> <!-- Ojo cerrado -->
+                    <i id="toggleConfirmPasswordIcon" class="fa fa-eye-slash"
+                        onclick="togglePasswordVisibility('confirmPassword', 'toggleConfirmPasswordIcon')"></i>
+                    <!-- Ojo cerrado -->
                 </span>
             </div>
+
+            <!-- Aquí se mostrará el mensaje de error si las contraseñas no coinciden -->
+            <p id="passwordError" style="color: red; display: none;">Las contraseñas no coinciden</p>
 
             <label for="roleName">Rol:</label>
             <select id="roleName" name="roleName" required>
@@ -74,12 +81,11 @@
                 <!-- Opciones de roles se llenarán aquí -->
             </select>
 
-            <button type="submit">Guardar Cambios</button>
+            <button type="button" onclick="enviarEdicionUsuario()">Guardar Cambios</button>
         </form>
     </div>
 </div>
 
 
+<script src="../../public/js/dashboard-js/usuario.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-

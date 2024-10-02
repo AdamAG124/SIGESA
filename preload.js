@@ -24,4 +24,9 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('listar-roles'); // Enviar el evento al proceso principal
         ipcRenderer.on('cargar-roles', (event, roles) => callback(roles)); // Recibir la respuesta
     }
+
+    obtenerRoles: (callback) => {
+        ipcRenderer.send('editar-usuario'); // Enviar el evento al proceso principal
+        ipcRenderer.on('usario-editar-response', (event, response) => callback(response)); // Recibir la respuesta
+    }
 });
