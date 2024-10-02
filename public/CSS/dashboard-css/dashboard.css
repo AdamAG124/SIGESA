@@ -255,3 +255,101 @@ select {
     visibility: visible;
     opacity: 1;
 }
+
+.modal {
+    display: none; /* Oculto por defecto */
+    position: fixed; /* Fijo en la pantalla */
+    z-index: 1; /* Por encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Alto completo */
+    overflow: auto; /* Habilitar el desplazamiento si es necesario */
+    background-color: rgba(0, 0, 0, 0.4); /* Fondo oscuro con opacidad */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* 10% desde la parte superior y centrado */
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 8px; /* Bordes redondeados */
+    width: 400px; /* Ancho del modal */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Sombra para profundidad */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+h2 {
+    text-align: center; /* Centrar el título */
+}
+
+form {
+    display: flex;
+    flex-direction: column; /* Colocar los inputs uno debajo del otro */
+    gap: 10px; /* Espaciado entre los inputs */
+}
+
+input[type="text"], input[type="password"] {
+    padding: 10px;
+    border: 2px solid #ccc; /* Color de borde inicial */
+    border-radius: 5px; /* Bordes redondeados para los inputs */
+    transition: border-color 0.3s; /* Transición suave al cambiar de borde */
+    width: 100%; /* Asegura que el input siempre use el 100% del espacio disponible */
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    border-color: #8a2be2; /* Color de borde al hacer clic */
+    outline: none; /* Quitar el contorno */
+}
+
+/* Asegura que ambos tipos, text y password, compartan el mismo padding cuando están en .password-container */
+.password-container input[type="text"], .password-container input[type="password"] {
+    width: 100%; /* Mantiene el input al 100% del espacio disponible */
+    padding-right: 40px; /* Añadir espacio suficiente para el icono */
+}
+
+button[type="submit"] {
+    padding: 10px;
+    background-color: #007bff; /* Color del botón similar a Bootstrap primary */
+    color: white; /* Texto blanco */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados para el botón */
+    cursor: pointer; /* Cambiar el cursor a pointer */
+    font-size: 16px; /* Tamaño del texto */
+    transition: background-color 0.3s; /* Transición suave para el color de fondo */
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3; /* Color al pasar el mouse sobre el botón */
+}
+
+.password-container {
+    position: relative;
+    display: flex; /* Asegura que el input y el icono se alineen juntos */
+    align-items: center;
+    width: 100%;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px; /* Coloca el icono justo dentro del borde derecho del input */
+    cursor: pointer;
+}
+
+.fa {
+    font-size: 16px;
+    color: #333;
+}

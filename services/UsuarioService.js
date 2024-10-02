@@ -17,6 +17,10 @@ class UsuarioService {
         }
         return await this.#usuarioDB.validarUsuario(username, password);
     }
+
+    async obtenerUsuarios(){
+        return await this.#usuarioDB.obtenerUsuarios();
+    }
 }
 
 // Exportar la clase

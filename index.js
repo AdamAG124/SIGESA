@@ -1,7 +1,10 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const UsuarioController = require('./controllers/UsuarioController');
+const RolesController = require('./controllers/RolesController');
 const fs = require('fs');
+
+let mainWindow;  // Declarar mainWindow a nivel global
 
 async function getStore() {
     const { default: Store } = await import('electron-store');
@@ -9,7 +12,7 @@ async function getStore() {
 }
 
 const createWindow = async () => {
-    const win = new BrowserWindow({
+    mainWindow = new BrowserWindow({  // Asignar la ventana creada a mainWindow
         width: 800,
         height: 600,
         webPreferences: {
@@ -19,7 +22,7 @@ const createWindow = async () => {
         }
     });
 
-    win.loadFile('views/login/login.html'); // Vista de inicio por defecto (login)
+    mainWindow.loadFile('views/login/login.html'); // Vista de inicio por defecto (login)
 
     // Verificar si hay un usuario almacenado en electron-store
     const store = await getStore();
@@ -27,16 +30,17 @@ const createWindow = async () => {
 
     if (usuarioGuardado) {
         // Si existe un usuario almacenado, cambiar a la vista del dashboard
-        win.loadFile('views/dashboard/dashboard.html').then(() => {
-            win.webContents.send('datos-usuario', usuarioGuardado); // Enviar los datos cuando carga la vista
+        mainWindow.loadFile('views/dashboard/dashboard.html').then(() => {
+            mainWindow.webContents.send('datos-usuario', usuarioGuardado); // Enviar los datos cuando carga la vista
         });
 
         // Volver a enviar los datos del usuario cuando se recargue la página
-        win.webContents.on('did-finish-load', () => {
-            win.webContents.send('datos-usuario', usuarioGuardado); // Volver a enviar al recargar
+        mainWindow.webContents.on('did-finish-load', () => {
+            mainWindow.webContents.send('datos-usuario', usuarioGuardado); // Volver a enviar al recargar
         });
     }
 };
+
 ipcMain.on('login', async (event, { username, password }) => {
     const controller = new UsuarioController();
     const result = await controller.login(username, password);
@@ -65,7 +69,6 @@ ipcMain.on('logout', async (event) => {
 });
 
 ipcMain.on('cambiar-vista', async (event, result) => {
-    const mainWindow = BrowserWindow.getFocusedWindow(); // Obtén la ventana activa
     if (mainWindow) {
         mainWindow.loadFile(`views/${result.view}`)
           .then(async () => {
@@ -91,6 +94,49 @@ ipcMain.on('leer-html', (event, filePath) => {
         event.sender.send('html-cargado', data);
     });
 });
+
+ipcMain.on('listar-usuarios', async (event) => {
+    const controller = new UsuarioController();
+    const usuarios = await controller.listarUsuarios(); // Asegúrate de que listarUsuarios es asíncrono
+    // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
+    const usuariosSimplificados = usuarios.map(usuario => {
+        //console.log(usuario.getRole().getIdRole());
+        return {
+            idUsuario: usuario.getIdUsuario(),
+            nombreUsuario: usuario.getNombreUsuario(),
+            nombreColaborador: usuario.getIdColaborador().getNombre(),
+            primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
+            segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
+            role: usuario.getRole().getIdRole(),
+            roleName: usuario.getRole().getRoleName(),
+            nombreUsuario: usuario.getNombreUsuario(),
+            estado: usuario.getEstado()
+        };
+    });
+    //alert(usuarios.getNombreUsuario());
+    if (mainWindow) {  // Verifica que mainWindow esté definido
+        mainWindow.webContents.send('cargar-usuarios', usuariosSimplificados); // Enviar los usuarios de vuelta al frontend
+    }
+});
+
+ipcMain.on('listar-roles', async (event) => {
+    const rolesController = new RolesController(); // Asegúrate de tener acceso a la clase RolesDB
+    const roles = await rolesController.getRoles(); // Asegúrate de que listarRoles es asíncrono
+
+    // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
+    const rolesSimplificados = roles.map(rol => {
+        return {
+            idRole: rol.getIdRole(),
+            roleName: rol.getRoleName(),
+            roleDescription: rol.getRoleDescription()
+        };
+    });
+
+    if (mainWindow) {  // Verifica que mainWindow esté definido
+        mainWindow.webContents.send('cargar-roles', rolesSimplificados); // Enviar los roles de vuelta al frontend
+    }
+});
+
 
 app.whenReady().then(() => {
     createWindow();

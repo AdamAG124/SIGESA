@@ -27,48 +27,12 @@
             <th>Nombre</th>
             <th>Nombre de Usuario</th>
             <th>Tipo</th>
+            <th>Estado</th>
             <th>Acciones</th>
         </tr>
     </thead>
-    <tbody>
-        <tr>
-            <td>Juan Pérez</td>
-            <td>juanperez</td>
-            <td>Administrador</td>
-            <td class="action-icons">
-                <div class="tooltip">
-                    <span class="material-icons">edit</span>
-                    <span class="tooltiptext">Editar usuario</span>
-                </div>
-                <div class="tooltip">
-                    <span class="material-icons">delete</span>
-                    <span class="tooltiptext">Eliminar usuario</span>
-                </div>
-                <div class="tooltip">
-                    <span class="material-icons">info</span>
-                    <span class="tooltiptext">Ver detalles</span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td>María López</td>
-            <td>marialopez</td>
-            <td>Usuario</td>
-            <td class="action-icons">
-                <div class="tooltip">
-                    <span class="material-icons">edit</span>
-                    <span class="tooltiptext">Editar usuario</span>
-                </div>
-                <div class="tooltip">
-                    <span class="material-icons">delete</span>
-                    <span class="tooltiptext">Eliminar usuario</span>
-                </div>
-                <div class="tooltip">
-                    <span class="material-icons">info</span>
-                    <span class="tooltiptext">Ver detalles</span>
-                </div>
-            </td>
-        </tr>
+    <tbody id="usuarios-body">
+
     </tbody>
 </table>
 <div class="pagination">
@@ -79,3 +43,43 @@
     <button><span class="material-icons">last_page</span></button>
 </div>
 </div>
+<!-- Modal para editar usuario -->
+<div id="editarUsuarioModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal()">&times;</span>
+        <h2>Editar Usuario</h2>
+        <form id="editarUsuarioForm" class="editar-usuario-form">
+            <label for="nombreUsuario">Nombre de Usuario:</label>
+            <input type="text" id="nombreUsuario" name="nombreUsuario" required>
+
+            <label for="newPassword">Nueva Contraseña:</label>
+            <div class="password-container">
+                <input type="password" id="newPassword" name="newPassword" required>
+                <span class="toggle-password">
+                    <i id="toggleNewPasswordIcon" class="fa fa-eye-slash" onclick="togglePasswordVisibility('newPassword', 'toggleNewPasswordIcon')"></i> <!-- Ojo cerrado -->
+                </span>
+            </div>
+
+            <label for="confirmPassword">Confirmar Nueva Contraseña:</label>
+            <div class="password-container">
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                <span class="toggle-password">
+                    <i id="toggleConfirmPasswordIcon" class="fa fa-eye-slash" onclick="togglePasswordVisibility('confirmPassword', 'toggleConfirmPasswordIcon')"></i> <!-- Ojo cerrado -->
+                </span>
+            </div>
+
+            <label for="roleName">Rol:</label>
+            <select id="roleName" name="roleName" required>
+                <option value="">Seleccione un rol</option>
+                <!-- Opciones de roles se llenarán aquí -->
+            </select>
+
+            <button type="submit">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+

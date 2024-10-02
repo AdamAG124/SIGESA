@@ -106,6 +106,62 @@ class UsuarioDB {
         }
     }    
 
+    async obtenerUsuarios() {
+        const db = new ConectarDB();
+        let connection;
+    
+        try {
+            connection = await db.conectar();
+    
+            // Consultar todos los usuarios
+            const [rows] = await connection.query(`
+                SELECT 
+                    u.id_Usuario,
+                    u.nombreUsuario,
+                    u.idRol,
+                    c.nombre,
+                    c.primerApellido,
+                    c.segundoApellido,
+                    r.role_name,
+                    u.estado
+                FROM 
+                    ${this.#table} u
+                INNER JOIN
+                    colaborador c ON u.idColaborador = c.id_colaborador
+                INNER JOIN
+                    roles r ON u.idRol = r.id_role
+            `);
+    
+            // Crear un array para almacenar los objetos Usuario
+            const usuarios = rows.map(usuarioDB => {
+                const usuario = new Usuario();
+    
+                // Setear la información en el objeto Usuario
+                usuario.setIdUsuario(usuarioDB.id_Usuario);
+                usuario.setNombreUsuario(usuarioDB.nombreUsuario);
+                usuario.getIdColaborador().setNombre(usuarioDB.nombre);
+                usuario.getIdColaborador().setPrimerApellido(usuarioDB.primerApellido);
+                usuario.getIdColaborador().setSegundoApellido(usuarioDB.segundoApellido);
+                usuario.getRole().setIdRole(usuarioDB.idRol);
+                usuario.getRole().setRoleName(usuarioDB.role_name);
+                usuario.setEstado(usuarioDB.estado);
+    
+                return usuario;
+            });
+    
+            return usuarios; // Retornar solo el array de objetos Usuario
+    
+        } catch (error) {
+            console.error('Error en la consulta a la base de datos:', error.message);
+            return []; // Retornar un array vacío en caso de error
+        } finally {
+            if (connection) {
+                await connection.end(); // Asegúrate de cerrar la conexión
+            }
+        }
+    }
+    
+
 }
 
 // Exportar la clase

@@ -10,6 +10,10 @@ class UsuarioController {
     async login(username, password) {
         return await this.#usuarioService.validarUsuario(username, password);
     }
+
+    async listarUsuarios(){
+        return await this.#usuarioService.obtenerUsuarios();
+    }
 }
 
 module.exports = UsuarioController;
