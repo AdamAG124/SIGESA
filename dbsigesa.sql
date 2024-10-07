@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-09-2024 a las 03:47:21
--- Versión del servidor: 8.4.2
--- Versión de PHP: 8.2.4
+-- Tiempo de generación: 08-10-2024 a las 00:25:16
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,9 +28,9 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `categoriaproducto` (
-  `id_categoria` int NOT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `descripcion` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_categoria` int(11) NOT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -41,19 +41,19 @@ CREATE TABLE `categoriaproducto` (
 --
 
 CREATE TABLE `colaborador` (
-  `id_colaborador` int NOT NULL,
-  `idDepartamento` int DEFAULT NULL,
-  `idPuesto` int DEFAULT NULL,
-  `segundoApellido` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_colaborador` int(11) NOT NULL,
+  `idDepartamento` int(11) DEFAULT NULL,
+  `idPuesto` int(11) DEFAULT NULL,
+  `segundoApellido` varchar(255) DEFAULT NULL,
   `fechaNacimiento` date DEFAULT NULL,
-  `numTelefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `numTelefono` varchar(20) DEFAULT NULL,
   `fechaIngreso` date DEFAULT NULL,
   `fechaSalida` date DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL,
-  `correo` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `cedula` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `primerApellido` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `correo` varchar(255) DEFAULT NULL,
+  `cedula` varchar(20) DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `primerApellido` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -70,10 +70,10 @@ INSERT INTO `colaborador` (`id_colaborador`, `idDepartamento`, `idPuesto`, `segu
 --
 
 CREATE TABLE `comprobantepago` (
-  `id_comprobantePago` int NOT NULL,
-  `idEntidadFinanciera` int DEFAULT NULL,
+  `id_comprobantePago` int(11) NOT NULL,
+  `idEntidadFinanciera` int(11) DEFAULT NULL,
   `fechaPago` date DEFAULT NULL,
-  `numero` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `numero` varchar(255) DEFAULT NULL,
   `monto` double DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -85,11 +85,11 @@ CREATE TABLE `comprobantepago` (
 --
 
 CREATE TABLE `cuentabancaria` (
-  `id_cuentaBancaria` int NOT NULL,
-  `idEntidadFinanciera` int DEFAULT NULL,
-  `banco` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `numero` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `divisa` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_cuentaBancaria` int(11) NOT NULL,
+  `idEntidadFinanciera` int(11) DEFAULT NULL,
+  `banco` varchar(255) DEFAULT NULL,
+  `numero` varchar(255) DEFAULT NULL,
+  `divisa` varchar(10) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -100,9 +100,9 @@ CREATE TABLE `cuentabancaria` (
 --
 
 CREATE TABLE `departamento` (
-  `id_departamento` int NOT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `descripcion` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_departamento` int(11) NOT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -120,9 +120,9 @@ INSERT INTO `departamento` (`id_departamento`, `nombre`, `descripcion`, `estado`
 --
 
 CREATE TABLE `entidadfinanciera` (
-  `id_entidadFinanciera` int NOT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `tipo` varchar(25) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_entidadFinanciera` int(11) NOT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `tipo` varchar(25) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -133,12 +133,12 @@ CREATE TABLE `entidadfinanciera` (
 --
 
 CREATE TABLE `factura` (
-  `id_factura` int NOT NULL,
-  `idProveedor` int DEFAULT NULL,
-  `idComprobante` int DEFAULT NULL,
-  `numeroFactura` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_factura` int(11) NOT NULL,
+  `idProveedor` int(11) DEFAULT NULL,
+  `idComprobante` int(11) DEFAULT NULL,
+  `numeroFactura` varchar(255) DEFAULT NULL,
   `fechaFactura` date DEFAULT NULL,
-  `detallesAdicionales` text COLLATE utf8mb4_unicode_ci,
+  `detallesAdicionales` text DEFAULT NULL,
   `impuesto` double DEFAULT NULL,
   `descuento` double DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
@@ -151,13 +151,13 @@ CREATE TABLE `factura` (
 --
 
 CREATE TABLE `facturaproducto` (
-  `id_facturaProducto` int NOT NULL,
-  `idFactura` int DEFAULT NULL,
-  `idProducto` int DEFAULT NULL,
+  `id_facturaProducto` int(11) NOT NULL,
+  `idFactura` int(11) DEFAULT NULL,
+  `idProducto` int(11) DEFAULT NULL,
   `cantidadAnterior` double DEFAULT NULL,
   `cantidadEntrando` double DEFAULT NULL,
   `precioNueva` double DEFAULT NULL,
-  `id_usuario` int DEFAULT NULL,
+  `id_usuario` int(11) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -168,12 +168,12 @@ CREATE TABLE `facturaproducto` (
 --
 
 CREATE TABLE `producto` (
-  `id_producto` int NOT NULL,
-  `idCategoria` int DEFAULT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `descripcion` text COLLATE utf8mb4_unicode_ci,
+  `id_producto` int(11) NOT NULL,
+  `idCategoria` int(11) DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `descripcion` text DEFAULT NULL,
   `cantidad` double DEFAULT NULL,
-  `unidadMedicion` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `unidadMedicion` varchar(50) NOT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -184,12 +184,12 @@ CREATE TABLE `producto` (
 --
 
 CREATE TABLE `proveedor` (
-  `id_Proveedor` int NOT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `provincia` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `canton` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `distrito` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `direccion` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_Proveedor` int(11) NOT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `provincia` varchar(255) DEFAULT NULL,
+  `canton` varchar(255) DEFAULT NULL,
+  `distrito` varchar(255) DEFAULT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -200,9 +200,9 @@ CREATE TABLE `proveedor` (
 --
 
 CREATE TABLE `puestotrabajo` (
-  `id_puestoTrabajo` int NOT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `descripcion` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_puestoTrabajo` int(11) NOT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -220,10 +220,18 @@ INSERT INTO `puestotrabajo` (`id_puestoTrabajo`, `nombre`, `descripcion`, `estad
 --
 
 CREATE TABLE `roles` (
-  `id_role` int NOT NULL,
-  `role_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role_description` text COLLATE utf8mb4_unicode_ci NOT NULL
+  `id_role` int(11) NOT NULL,
+  `role_name` varchar(50) NOT NULL,
+  `role_description` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id_role`, `role_name`, `role_description`) VALUES
+(1, 'Administrador', 'Este rol le da acceso completo a las configuraciones del sistema al usuario'),
+(2, 'Empleado', 'Este rol le da acceso limitado a las configuraciones del sistema al usuario');
 
 -- --------------------------------------------------------
 
@@ -232,11 +240,11 @@ CREATE TABLE `roles` (
 --
 
 CREATE TABLE `salida` (
-  `id_salida` int NOT NULL,
-  `colaboradorSacando` int DEFAULT NULL,
-  `colaboradorRecibiendo` int DEFAULT NULL,
+  `id_salida` int(11) NOT NULL,
+  `colaboradorSacando` int(11) DEFAULT NULL,
+  `colaboradorRecibiendo` int(11) DEFAULT NULL,
   `fechaSalida` datetime DEFAULT NULL,
-  `id_usuario` int DEFAULT NULL,
+  `id_usuario` int(11) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -247,9 +255,9 @@ CREATE TABLE `salida` (
 --
 
 CREATE TABLE `salidaproducto` (
-  `id_salidaProducto` int NOT NULL,
-  `id_Producto` int DEFAULT NULL,
-  `id_Salida` int DEFAULT NULL,
+  `id_salidaProducto` int(11) NOT NULL,
+  `id_Producto` int(11) DEFAULT NULL,
+  `id_Salida` int(11) DEFAULT NULL,
   `cantidadAnterior` double DEFAULT NULL,
   `cantidadSaliendo` double DEFAULT NULL,
   `cantidadNueva` double DEFAULT NULL,
@@ -263,13 +271,20 @@ CREATE TABLE `salidaproducto` (
 --
 
 CREATE TABLE `usuario` (
-  `id_Usuario` int NOT NULL,
-  `idColaborador` int DEFAULT NULL,
-  `nombreUsuario` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `idRol` int DEFAULT NULL,
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id_Usuario` int(11) NOT NULL,
+  `idColaborador` int(11) DEFAULT NULL,
+  `nombreUsuario` varchar(255) DEFAULT NULL,
+  `idRol` int(11) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `usuario`
+--
+
+INSERT INTO `usuario` (`id_Usuario`, `idColaborador`, `nombreUsuario`, `idRol`, `password`, `estado`) VALUES
+(1, 1, 'AdamAG124', 1, '$2b$12$Tb3t7ULvw.yISJnCQfClw.o.8GoHnBfBx1KUuogcx1xSckgBHmQei', 1);
 
 --
 -- Índices para tablas volcadas
@@ -390,91 +405,91 @@ ALTER TABLE `usuario`
 -- AUTO_INCREMENT de la tabla `categoriaproducto`
 --
 ALTER TABLE `categoriaproducto`
-  MODIFY `id_categoria` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_categoria` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `colaborador`
 --
 ALTER TABLE `colaborador`
-  MODIFY `id_colaborador` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_colaborador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `comprobantepago`
 --
 ALTER TABLE `comprobantepago`
-  MODIFY `id_comprobantePago` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_comprobantePago` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `cuentabancaria`
 --
 ALTER TABLE `cuentabancaria`
-  MODIFY `id_cuentaBancaria` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_cuentaBancaria` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `departamento`
 --
 ALTER TABLE `departamento`
-  MODIFY `id_departamento` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_departamento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `entidadfinanciera`
 --
 ALTER TABLE `entidadfinanciera`
-  MODIFY `id_entidadFinanciera` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_entidadFinanciera` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `factura`
 --
 ALTER TABLE `factura`
-  MODIFY `id_factura` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_factura` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `facturaproducto`
 --
 ALTER TABLE `facturaproducto`
-  MODIFY `id_facturaProducto` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_facturaProducto` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id_producto` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedor`
 --
 ALTER TABLE `proveedor`
-  MODIFY `id_Proveedor` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_Proveedor` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `puestotrabajo`
 --
 ALTER TABLE `puestotrabajo`
-  MODIFY `id_puestoTrabajo` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_puestoTrabajo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_role` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_role` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `salida`
 --
 ALTER TABLE `salida`
-  MODIFY `id_salida` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_salida` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `salidaproducto`
 --
 ALTER TABLE `salidaproducto`
-  MODIFY `id_salidaProducto` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_salidaProducto` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `id_Usuario` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_Usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Restricciones para tablas volcadas
