@@ -123,11 +123,11 @@ function cargarUsuariosTabla() {
   });
 }
 
-// Funciones de acción (debes implementarlas según tu lógica)
 function editarUsuario(id) {
   window.api.obtenerUsuarios((usuarios) => {
     usuarios.forEach((usuario) => {
       if (usuario.idUsuario === Number(id)) {
+        document.getElementById("idUsuario").value = usuario.idUsuario;
         document.getElementById("nombreUsuario").value = usuario.nombreUsuario;
 
         // Cargar la lista de roles y preseleccionar el rol del usuario
@@ -174,16 +174,29 @@ function enviarEdicionUsuario() {
     return; // Detener el envío del formulario si las contraseñas no coinciden
   }
 
-  // Si las contraseñas coinciden, crear el objeto JSON
+  // Si las contraseñas coinciden, crear el objeto JSON con los datos del usuario
   const jsonData = {
+    idUsuario: document.getElementById("idUsuario").value,
     nombreUsuario: document.getElementById("nombreUsuario").value,
     newPassword: newPassword,
-    confirmPassword: confirmPassword,
     roleName: document.getElementById("roleName").value,
   };
 
+  // Enviar los datos al proceso principal a través de preload.js
+  window.api.actualizarUsuario(jsonData);
+
+  // Mostrar el resultado de la actualización al recibir la respuesta
+  window.api.onRespuestaActualizarUsuario((respuesta) => {
+    if (respuesta.success) {
+      alert('Usuario actualizado exitosamente: ' + respuesta.message);
+    } else {
+      alert('Error al actualizar el usuario: ' + respuesta.message);
+    }
+  });
+
   console.log(jsonData);
 }
+
 
 function eliminarUsuario(id) {
   console.log(`Eliminar usuario con ID: ${id}`);

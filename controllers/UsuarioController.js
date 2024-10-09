@@ -14,6 +14,10 @@ class UsuarioController {
     async listarUsuarios(){
         return await this.#usuarioService.obtenerUsuarios();
     }
+
+    async actualizarUsuario(usuario){
+        return await this.#usuarioService.actualizarUsuario(usuario);
+    }
 }
 
 module.exports = UsuarioController;

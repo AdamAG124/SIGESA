@@ -21,6 +21,10 @@ class UsuarioService {
     async obtenerUsuarios(){
         return await this.#usuarioDB.obtenerUsuarios();
     }
+
+    async actualizarUsuario(usuario){
+        return await this.#usuarioDB.actualizarUsuarioBD(usuario);
+    }
 }
 
 // Exportar la clase

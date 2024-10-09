@@ -23,5 +23,10 @@ contextBridge.exposeInMainWorld('api', {
     obtenerRoles: (callback) => {
         ipcRenderer.send('listar-roles'); // Enviar el evento al proceso principal
         ipcRenderer.on('cargar-roles', (event, roles) => callback(roles)); // Recibir la respuesta
-    }
+    },
+
+    // Método para enviar los datos de edición de usuario al proceso principal
+    actualizarUsuario: (usuarioData) => ipcRenderer.send('actualizar-usuario', usuarioData),
+    // Recibir la respuesta de la actualización del usuario
+    onRespuestaActualizarUsuario: (callback) => ipcRenderer.on('respuesta-actualizar-usuario', (event, respuesta) => callback(respuesta))
 });

@@ -119,6 +119,27 @@ ipcMain.on('listar-usuarios', async (event) => {
     }
 });
 
+ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
+    try {
+        // Crear un objeto Usuario y setear los datos
+        const usuario = new Usuario();
+        usuario.setIdUsuario(usuarioData.idUsuario);
+        usuario.setNombreUsuario(usuarioData.nombreUsuario);
+        usuario.getRole().setIdRole(usuarioData.rolName);
+        usuario.setPassword(usuarioData.newPassword);
+
+        // Llamar al método de actualizar en el UsuarioController
+        const usuarioController = new UsuarioController();
+        const resultado = await usuarioController.actualizarUsuario(usuario);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-actualizar-usuario', resultado); // Pasar el resultado que viene desde UsuarioController
+    } catch (error) {
+        console.error('Error al actualizar usuario:', error);
+        event.reply('respuesta-actualizar-usuario', { success: false, message: error.message });
+    }
+});
+
 ipcMain.on('listar-roles', async (event) => {
     const rolesController = new RolesController(); // Asegúrate de tener acceso a la clase RolesDB
     const roles = await rolesController.getRoles(); // Asegúrate de que listarRoles es asíncrono

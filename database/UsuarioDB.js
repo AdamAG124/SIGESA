@@ -82,14 +82,14 @@ class UsuarioDB {
                 } else {
                     return {
                         success: false,
-                        message: 'Contraseña incorrecta.',
+                        message: 'Correo o contraseña incorrectos',
                         view: 'login/login.html'
                     };
                 }
             } else {
                 return {
                     success: false,
-                    message: 'Usuario no encontrado.',
+                    message: 'Correo o contraseña incorrectos',
                     view: 'login/login.html'
                 };
             }
@@ -161,6 +161,58 @@ class UsuarioDB {
         }
     }
     
+    async actualizarUsuarioBD(usuario) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+            
+            // Obtén los atributos del objeto Usuario
+            const idUsuario = usuario.getIdUsuario();
+            const nombreUsuario = usuario.getNombreUsuario();
+            const idRole = usuario.getRole().getIdRole();
+            const password = usuario.getPassword();
+            
+            // Construimos la consulta SQL dinámicamente
+            let query = `UPDATE ${this.#table} SET nombreUsuario = ?, idRol = ?`;
+            let params = [nombreUsuario, idRole];
+
+            // Evaluar si el password no es vacío
+            if (password && password.trim() !== '') {
+                const hashedPassword = await bcrypt.hash(password, 10);
+                query += `, password = ?`;
+                params.push(hashedPassword);
+            }
+
+            query += ` WHERE idUsuario = ?`;
+            params.push(idUsuario);
+
+            // Ejecutar la consulta
+            const [result] = await connection.query(query, params);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Usuario actualizado exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró el usuario o no se realizaron cambios.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al actualizar el usuario: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Asegurarse de cerrar la conexión
+            }
+        }
+    }
 
 }
 
