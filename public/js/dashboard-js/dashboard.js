@@ -188,9 +188,13 @@ function enviarEdicionUsuario() {
   // Mostrar el resultado de la actualización al recibir la respuesta
   window.api.onRespuestaActualizarUsuario((respuesta) => {
     if (respuesta.success) {
-      alert('Usuario actualizado exitosamente: ' + respuesta.message);
+      mostrarToastConfirmacion(respuesta.message);
+      cerrarModal();
+      setTimeout(() => {
+        cargarUsuariosTabla();
+      }, 2000);
     } else {
-      alert('Error al actualizar el usuario: ' + respuesta.message);
+      mostrarToastError(respuesta.message);
     }
   });
 

@@ -185,7 +185,7 @@ class UsuarioDB {
                 params.push(hashedPassword);
             }
 
-            query += ` WHERE idUsuario = ?`;
+            query += ` WHERE id_Usuario = ?`;
             params.push(idUsuario);
 
             // Ejecutar la consulta

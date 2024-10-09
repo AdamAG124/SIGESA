@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const UsuarioController = require('./controllers/UsuarioController');
 const RolesController = require('./controllers/RolesController');
+const Usuario = require('./domain/Usuario');
 const fs = require('fs');
 
 let mainWindow;  // Declarar mainWindow a nivel global
@@ -125,7 +126,7 @@ ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
         const usuario = new Usuario();
         usuario.setIdUsuario(usuarioData.idUsuario);
         usuario.setNombreUsuario(usuarioData.nombreUsuario);
-        usuario.getRole().setIdRole(usuarioData.rolName);
+        usuario.getRole().setIdRole(usuarioData.roleName);
         usuario.setPassword(usuarioData.newPassword);
 
         // Llamar al método de actualizar en el UsuarioController
