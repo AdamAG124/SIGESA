@@ -86,6 +86,7 @@ function mostrarToastConfirmacion(titulo) {
 }
 
 function cargarUsuariosTabla() {
+  cerrarModal();
   window.api.obtenerUsuarios((usuarios) => {
     const tbody = document.getElementById("usuarios-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
@@ -182,23 +183,34 @@ function enviarEdicionUsuario() {
     roleName: document.getElementById("roleName").value,
   };
 
-  // Enviar los datos al proceso principal a través de preload.js
-  window.api.actualizarUsuario(jsonData);
+  Swal.fire({
+    title: "Actualizando usuario",
+    text: "¿Esta seguro que desea actualizar la información de este usuario?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar los datos al proceso principal a través de preload.js
+      window.api.actualizarUsuario(jsonData);
 
-  // Mostrar el resultado de la actualización al recibir la respuesta
-  window.api.onRespuestaActualizarUsuario((respuesta) => {
-    if (respuesta.success) {
-      mostrarToastConfirmacion(respuesta.message);
-      cerrarModal();
-      setTimeout(() => {
-        cargarUsuariosTabla();
-      }, 2000);
-    } else {
-      mostrarToastError(respuesta.message);
+      // Mostrar el resultado de la actualización al recibir la respuesta
+      window.api.onRespuestaActualizarUsuario((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarUsuariosTabla();
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+      console.log(jsonData);
     }
   });
-
-  console.log(jsonData);
 }
 
 
