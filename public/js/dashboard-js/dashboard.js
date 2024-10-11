@@ -144,9 +144,11 @@ function editarUsuario(id) {
           });
 
           // Preseleccionar el rol del usuario
-          roleSelect.value = usuario.role.toString(); // Suponiendo que el rol del usuario tiene una propiedad idRole
+          roleSelect.value = usuario.role; // Suponiendo que el rol del usuario tiene una propiedad idRole
         });
 
+        document.getElementById("modalTitle").innerText = "Editar Usuario";
+        document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
         // Mostrar el modal
         document.getElementById("editarUsuarioModal").style.display = "block";
       }
@@ -215,13 +217,58 @@ function enviarEdicionUsuario() {
 
 
 function eliminarUsuario(id) {
-  console.log(`Eliminar usuario con ID: ${id}`);
-  // Lógica para eliminar el usuario
+  Swal.fire({
+    title: "Eliminando usuario",
+    text: "¿Esta seguro que desea eliminar a este usuario?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar los datos al proceso principal a través de preload.js
+      window.api.eliminarUsuario(Number(id));
+
+      // Mostrar el resultado de la actualización al recibir la respuesta
+      window.api.onRespuestaEliminarUsuario((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarUsuariosTabla();
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
 }
 
-function verDetallesUsuario(id) {
-  console.log(`Ver detalles del usuario con ID: ${id}`);
-  // Lógica para ver los detalles del usuario
+function agregarUsuario() {
+  document.getElementById("idUsuario").value = "";
+  document.getElementById("nombreUsuario").value = "";
+  // Cargar la lista de roles y preseleccionar el rol del usuario
+  window.api.obtenerRoles((roles) => {
+    const roleSelect = document.getElementById("roleName");
+    roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+
+    roles.forEach((role) => {
+      const option = document.createElement("option");
+      option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+      roleSelect.appendChild(option);
+    });
+
+    // Preseleccionar el rol del usuario
+    roleSelect.value = usuario.role.toString(); // Suponiendo que el rol del usuario tiene una propiedad idRole
+  });
+
+  document.getElementById("modalTitle").innerText = "Crear Usuario";
+  document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
+  // Mostrar el modal
+  document.getElementById("editarUsuarioModal").style.display = "block";
 }
 
 // Función para cerrar el modal

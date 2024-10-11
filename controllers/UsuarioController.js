@@ -18,6 +18,10 @@ class UsuarioController {
     async actualizarUsuario(usuario){
         return await this.#usuarioService.actualizarUsuario(usuario);
     }
+
+    async eliminarUsuario(usuario){
+        return await this.#usuarioService.eliminarUsuario(usuario);
+    }
 }
 
 module.exports = UsuarioController;
