@@ -33,5 +33,9 @@ contextBridge.exposeInMainWorld('api', {
     eliminarUsuario: (usuarioId) => ipcRenderer.send('eliminar-usuario', usuarioId),
     // Recibir la respuesta de la eliminación del usuario
     onRespuestaEliminarUsuario: (callback) => ipcRenderer.on('respuesta-eliminar-usuario', (event, respuesta) => callback(respuesta)),
+    // Método para enviar la información del nuevo usuario al proceso principal para su creación
+    crearUsuario: (usuarioData) => ipcRenderer.send('crear-usuario', usuarioData),
+    // Recibir la respuesta de la creación del usuario
+    onRespuestaCrearUsuario: (callback) => ipcRenderer.on('respuesta-crear-usuario', (event, respuesta) => callback(respuesta))
     
 });

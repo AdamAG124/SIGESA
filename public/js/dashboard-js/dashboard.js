@@ -86,7 +86,6 @@ function mostrarToastConfirmacion(titulo) {
 }
 
 function cargarUsuariosTabla() {
-  cerrarModal();
   window.api.obtenerUsuarios((usuarios) => {
     const tbody = document.getElementById("usuarios-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
@@ -121,6 +120,7 @@ function cargarUsuariosTabla() {
             `;
       tbody.appendChild(row);
     });
+    cerrarModal();
   });
 }
 
@@ -204,7 +204,7 @@ function enviarEdicionUsuario() {
         if (respuesta.success) {
           mostrarToastConfirmacion(respuesta.message);
           setTimeout(() => {
-            cargarUsuariosTabla();
+            adjuntarHTML('/usuarios/usuarios-admin.html');
           }, 2000);
         } else {
           mostrarToastError(respuesta.message);
@@ -247,12 +247,9 @@ function eliminarUsuario(id) {
 }
 
 function agregarUsuario() {
-  document.getElementById("idUsuario").value = "";
-  document.getElementById("nombreUsuario").value = "";
   // Cargar la lista de roles y preseleccionar el rol del usuario
   window.api.obtenerRoles((roles) => {
     const roleSelect = document.getElementById("roleName");
-    roleSelect.innerHTML = ""; // Limpiar las opciones existentes
 
     roles.forEach((role) => {
       const option = document.createElement("option");
@@ -260,20 +257,100 @@ function agregarUsuario() {
       option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
       roleSelect.appendChild(option);
     });
-
-    // Preseleccionar el rol del usuario
-    roleSelect.value = usuario.role.toString(); // Suponiendo que el rol del usuario tiene una propiedad idRole
   });
 
   document.getElementById("modalTitle").innerText = "Crear Usuario";
-  document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
+  document.getElementById("buttonModal").onclick = enviarCreacionUsuario;
   // Mostrar el modal
   document.getElementById("editarUsuarioModal").style.display = "block";
 }
 
+function enviarCreacionUsuario() {
+  const nombreUsuario = document.getElementById("nombreUsuario").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  const passwordError = document.getElementById("passwordError");
+  const newPasswordInput = document.getElementById("newPassword");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
+  const roleName = document.getElementById("roleName").value;
+
+  // Reiniciar el estilo de los campos y el mensaje de error
+  passwordError.style.display = "none";
+  newPasswordInput.style.border = "";
+  confirmPasswordInput.style.border = "";
+
+  // Validar que los campos no estén vacíos
+  if (!nombreUsuario || !newPassword || !confirmPassword || !roleName) {
+    passwordError.innerText = "Por favor, complete todos los campos.";
+    passwordError.style.display = "block";
+    return; // Detener el envío del formulario si hay campos vacíos
+  }
+
+  // Verificar que la nueva contraseña tenga al menos 6 caracteres y contenga números y letras
+  const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/; // Al menos 6 caracteres, con letras y números
+  if (!passwordPattern.test(newPassword)) {
+    passwordError.innerText = "La contraseña debe tener al menos 6 caracteres, incluyendo números y letras.";
+    passwordError.style.display = "block";
+    newPasswordInput.style.border = "2px solid red";
+    return; // Detener el envío del formulario si la contraseña no es válida
+  }
+
+  // Comparar las contraseñas
+  if (newPassword !== confirmPassword) {
+    // Mostrar el mensaje de error y cambiar el borde a rojo
+    passwordError.innerText = "Las contraseñas no coinciden.";
+    passwordError.style.display = "block";
+    newPasswordInput.style.border = "2px solid red";
+    confirmPasswordInput.style.border = "2px solid red";
+    return; // Detener el envío del formulario si las contraseñas no coinciden
+  }
+
+  // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
+  const jsonData = {
+    nombreUsuario: nombreUsuario,
+    newPassword: newPassword,
+    roleName: roleName,
+  };
+
+  Swal.fire({
+    title: "Creando usuario",
+    text: "¿Está seguro que desea crear un usuario nuevo?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar los datos al proceso principal a través de preload.js
+      window.api.crearUsuario(jsonData);
+
+      // Mostrar el resultado de la actualización al recibir la respuesta
+      window.api.onRespuestaCrearUsuario((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            adjuntarHTML('/usuarios/usuarios-admin.html');
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+      console.log(jsonData);
+    }
+  });
+}
+
 // Función para cerrar el modal
 function cerrarModal() {
+  console.log("se llamo a la función cerrar modal");
   document.getElementById("editarUsuarioModal").style.display = "none";
+  // Limpiar los campos del formulario y resetear mensajes de error
+  document.getElementById("editarUsuarioForm").reset();
+  document.getElementById("passwordError").style.display = "none";
+  document.getElementById("newPassword").style.border = "";
+  document.getElementById("confirmPassword").style.border = "";
 }
 
 function cargarRoles() {

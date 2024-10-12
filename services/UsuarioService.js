@@ -29,6 +29,10 @@ class UsuarioService {
     async eliminarUsuario(usuario){
         return await this.#usuarioDB.eliminarUsuarioBD(usuario);
     }
+
+    async crearUsuario(usuario){
+        return await this.#usuarioDB.crearUsuarioBD(usuario);
+    }
 }
 
 // Exportar la clase
