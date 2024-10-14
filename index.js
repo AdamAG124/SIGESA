@@ -2,7 +2,9 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const UsuarioController = require('./controllers/UsuarioController');
 const RolesController = require('./controllers/RolesController');
+const Usuario = require('./domain/Usuario');
 const fs = require('fs');
+const ColaboradorController = require('./controllers/ColaboradorController');
 
 let mainWindow;  // Declarar mainWindow a nivel global
 
@@ -104,6 +106,7 @@ ipcMain.on('listar-usuarios', async (event) => {
         return {
             idUsuario: usuario.getIdUsuario(),
             nombreUsuario: usuario.getNombreUsuario(),
+            idColaborador: usuario.getIdColaborador().getIdColaborador(),
             nombreColaborador: usuario.getIdColaborador().getNombre(),
             primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
             segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
@@ -116,6 +119,65 @@ ipcMain.on('listar-usuarios', async (event) => {
     //alert(usuarios.getNombreUsuario());
     if (mainWindow) {  // Verifica que mainWindow esté definido
         mainWindow.webContents.send('cargar-usuarios', usuariosSimplificados); // Enviar los usuarios de vuelta al frontend
+    }
+});
+
+ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
+    try {
+        // Crear un objeto Usuario y setear los datos
+        const usuario = new Usuario();
+        usuario.setIdUsuario(usuarioData.idUsuario);
+        usuario.setNombreUsuario(usuarioData.nombreUsuario);
+        usuario.getRole().setIdRole(usuarioData.roleName);
+        usuario.setPassword(usuarioData.newPassword);
+
+        // Llamar al método de actualizar en el UsuarioController
+        const usuarioController = new UsuarioController();
+        const resultado = await usuarioController.actualizarUsuario(usuario);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-actualizar-usuario', resultado); // Pasar el resultado que viene desde UsuarioController
+    } catch (error) {
+        console.error('Error al actualizar usuario:', error);
+        event.reply('respuesta-actualizar-usuario', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-usuario', async (event, usuarioId) => {
+    try {
+        // Crear un objeto Usuario y setear los datos
+        const usuario = new Usuario();
+        usuario.setIdUsuario(usuarioId);
+
+        // Llamar al método de actualizar en el UsuarioController
+        const usuarioController = new UsuarioController();
+        const resultado = await usuarioController.eliminarUsuario(usuario);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-eliminar-usuario', resultado); // Pasar el resultado que viene desde UsuarioController
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        event.reply('respuesta-eliminar-usuario', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('crear-usuario', async (event, usuarioData) => {
+    try {
+        // Crear un objeto Usuario y setear los datos
+        const usuario = new Usuario();
+        usuario.setNombreUsuario(usuarioData.nombreUsuario);
+        usuario.getRole().setIdRole(usuarioData.roleName);
+        usuario.setPassword(usuarioData.newPassword);
+
+        // Llamar al método de actualizar en el UsuarioController
+        const usuarioController = new UsuarioController();
+        const resultado = await usuarioController.crearUsuario(usuario);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-crear-usuario', resultado); // Pasar el resultado que viene desde UsuarioController
+    } catch (error) {
+        console.error('Error al crear usuario:', error);
+        event.reply('respuesta-crear-usuario', { success: false, message: error.message });
     }
 });
 
@@ -134,6 +196,26 @@ ipcMain.on('listar-roles', async (event) => {
 
     if (mainWindow) {  // Verifica que mainWindow esté definido
         mainWindow.webContents.send('cargar-roles', rolesSimplificados); // Enviar los roles de vuelta al frontend
+    }
+});
+
+ipcMain.on('listar-colaboradores', async (event) => {
+    const colaboradorController = new ColaboradorController(); // Asegúrate de tener acceso a la clase RolesDB
+    const colaboradores = await colaboradorController.getColaboradores(); // Asegúrate de que listarRoles es asíncrono
+
+    // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
+    const colaboradoresSimplificados = colaboradores.map(colaborador => {
+        return {
+            idColaborador: colaborador.getIdColaborador(),
+            nombreColaborador: colaborador.getNombre(),
+            cedulaColaborador: colaborador.getCedula(),
+            primerApellidoColaborador: colaborador.getPrimerApellido(),
+            segundoApellidoColaborador: colaborador.getSegundoApellido()
+        };
+    });
+
+    if (mainWindow) {  // Verifica que mainWindow esté definido
+        mainWindow.webContents.send('cargar-colaboradores', colaboradoresSimplificados); // Enviar los roles de vuelta al frontend
     }
 });
 

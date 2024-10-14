@@ -120,14 +120,15 @@ function cargarUsuariosTabla() {
             `;
       tbody.appendChild(row);
     });
+    cerrarModal();
   });
 }
 
-// Funciones de acción (debes implementarlas según tu lógica)
 function editarUsuario(id) {
   window.api.obtenerUsuarios((usuarios) => {
     usuarios.forEach((usuario) => {
       if (usuario.idUsuario === Number(id)) {
+        document.getElementById("idUsuario").value = usuario.idUsuario;
         document.getElementById("nombreUsuario").value = usuario.nombreUsuario;
 
         // Cargar la lista de roles y preseleccionar el rol del usuario
@@ -143,9 +144,11 @@ function editarUsuario(id) {
           });
 
           // Preseleccionar el rol del usuario
-          roleSelect.value = usuario.role.toString(); // Suponiendo que el rol del usuario tiene una propiedad idRole
+          roleSelect.value = usuario.role; // Suponiendo que el rol del usuario tiene una propiedad idRole
         });
 
+        document.getElementById("modalTitle").innerText = "Editar Usuario";
+        document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
         // Mostrar el modal
         document.getElementById("editarUsuarioModal").style.display = "block";
       }
@@ -174,30 +177,208 @@ function enviarEdicionUsuario() {
     return; // Detener el envío del formulario si las contraseñas no coinciden
   }
 
-  // Si las contraseñas coinciden, crear el objeto JSON
+  // Si las contraseñas coinciden, crear el objeto JSON con los datos del usuario
   const jsonData = {
+    idUsuario: document.getElementById("idUsuario").value,
     nombreUsuario: document.getElementById("nombreUsuario").value,
     newPassword: newPassword,
-    confirmPassword: confirmPassword,
     roleName: document.getElementById("roleName").value,
   };
 
-  console.log(jsonData);
+  Swal.fire({
+    title: "Actualizando usuario",
+    text: "¿Esta seguro que desea actualizar la información de este usuario?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar los datos al proceso principal a través de preload.js
+      window.api.actualizarUsuario(jsonData);
+
+      // Mostrar el resultado de la actualización al recibir la respuesta
+      window.api.onRespuestaActualizarUsuario((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            adjuntarHTML('/usuarios/usuarios-admin.html');
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+      console.log(jsonData);
+    }
+  });
 }
+
 
 function eliminarUsuario(id) {
-  console.log(`Eliminar usuario con ID: ${id}`);
-  // Lógica para eliminar el usuario
+  Swal.fire({
+    title: "Eliminando usuario",
+    text: "¿Esta seguro que desea eliminar a este usuario?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar los datos al proceso principal a través de preload.js
+      window.api.eliminarUsuario(Number(id));
+
+      // Mostrar el resultado de la actualización al recibir la respuesta
+      window.api.onRespuestaEliminarUsuario((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarUsuariosTabla();
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
 }
 
-function verDetallesUsuario(id) {
-  console.log(`Ver detalles del usuario con ID: ${id}`);
-  // Lógica para ver los detalles del usuario
+function agregarUsuario() {
+  // Cargar la lista de roles y preseleccionar el rol del usuario
+  window.api.obtenerRoles((roles) => {
+    const roleSelect = document.getElementById("roleName");
+
+    roles.forEach((role) => {
+      const option = document.createElement("option");
+      option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = role.roleName;
+      roleSelect.appendChild(option);
+    });
+  });
+
+  window.api.obtenerColaboradores((colaboradores) => {
+    const colaboradorSelect = document.getElementById("colaboradorName");
+    const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
+    colaboradorSelect.style.display = "block";
+    colaboradorSelectLabel.style.display = "block";
+
+    colaboradores.forEach((colaborador) => {
+      const option = document.createElement("option");
+      option.value = colaborador.idColaborador;
+      option.textContent = colaborador.nombreColaborador + " " + colaborador.primerApellidoColaborador + " " + colaborador.segundoApellidoColaborador;
+      colaboradorSelect.appendChild(option);
+    });
+  });
+
+  document.getElementById("modalTitle").innerText = "Crear Usuario";
+  document.getElementById("buttonModal").onclick = enviarCreacionUsuario;
+  // Mostrar el modal
+  document.getElementById("editarUsuarioModal").style.display = "block";
+}
+
+function enviarCreacionUsuario() {
+  const colaborador = document.getElementById("colaboradorName").value;
+  const nombreUsuario = document.getElementById("nombreUsuario").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  const passwordError = document.getElementById("passwordError");
+  const newPasswordInput = document.getElementById("newPassword");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
+  const roleName = document.getElementById("roleName").value;
+
+  // Reiniciar el estilo de los campos y el mensaje de error
+  passwordError.style.display = "none";
+  newPasswordInput.style.border = "";
+  confirmPasswordInput.style.border = "";
+
+  // Validar que los campos no estén vacíos
+  if (!colaborador || !nombreUsuario || !newPassword || !confirmPassword || !roleName) {
+    passwordError.innerText = "Por favor, complete todos los campos.";
+    passwordError.style.display = "block";
+    return; // Detener el envío del formulario si hay campos vacíos
+  }
+
+  // Verificar que la nueva contraseña tenga al menos 6 caracteres y contenga números y letras
+  const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/; // Al menos 6 caracteres, con letras y números
+  if (!passwordPattern.test(newPassword)) {
+    passwordError.innerText = "La contraseña debe tener al menos 6 caracteres, incluyendo números y letras.";
+    passwordError.style.display = "block";
+    newPasswordInput.style.border = "2px solid red";
+    return; // Detener el envío del formulario si la contraseña no es válida
+  }
+
+  // Comparar las contraseñas
+  if (newPassword !== confirmPassword) {
+    // Mostrar el mensaje de error y cambiar el borde a rojo
+    passwordError.innerText = "Las contraseñas no coinciden.";
+    passwordError.style.display = "block";
+    newPasswordInput.style.border = "2px solid red";
+    confirmPasswordInput.style.border = "2px solid red";
+    return; // Detener el envío del formulario si las contraseñas no coinciden
+  }
+
+  window.api.obtenerUsuarios((usuarios) => {
+    usuarios.forEach((usuario) => {
+      if (usuario.nombreUsuario === nombreUsuario) {
+        passwordError.innerText = "El nombre de usuario ya existe.";
+        passwordError.style.display = "block";
+        return; // Detener el envío del formulario si el nombre de usuario ya está en uso
+      } else if (usuario.idColaborador === colaborador) {
+        passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
+        passwordError.style.display = "block";
+        return; // Detener el envío del formulario si el colaborador ya tiene un usuario asociado
+      }
+    });
+    // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
+    const jsonData = {
+      nombreUsuario: nombreUsuario,
+      newPassword: newPassword,
+      roleName: roleName,
+    };
+
+    Swal.fire({
+      title: "Creando usuario",
+      text: "¿Está seguro que desea crear un usuario nuevo?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Enviar los datos al proceso principal a través de preload.js
+        window.api.crearUsuario(jsonData);
+
+        // Mostrar el resultado de la actualización al recibir la respuesta
+        window.api.onRespuestaCrearUsuario((respuesta) => {
+          if (respuesta.success) {
+            mostrarToastConfirmacion(respuesta.message);
+            setTimeout(() => {
+              adjuntarHTML('/usuarios/usuarios-admin.html');
+            }, 2000);
+          } else {
+            mostrarToastError(respuesta.message);
+          }
+        });
+        console.log(jsonData);
+      }
+    });
+  });
 }
 
 // Función para cerrar el modal
 function cerrarModal() {
+  console.log("se llamo a la función cerrar modal");
   document.getElementById("editarUsuarioModal").style.display = "none";
+  // Limpiar los campos del formulario y resetear mensajes de error
+  document.getElementById("editarUsuarioForm").reset();
+  document.getElementById("passwordError").style.display = "none";
+  document.getElementById("newPassword").style.border = "";
+  document.getElementById("confirmPassword").style.border = "";
 }
 
 function cargarRoles() {

@@ -23,5 +23,24 @@ contextBridge.exposeInMainWorld('api', {
     obtenerRoles: (callback) => {
         ipcRenderer.send('listar-roles'); // Enviar el evento al proceso principal
         ipcRenderer.on('cargar-roles', (event, roles) => callback(roles)); // Recibir la respuesta
+    },
+
+    // Método para enviar los datos de edición de usuario al proceso principal
+    actualizarUsuario: (usuarioData) => ipcRenderer.send('actualizar-usuario', usuarioData),
+    // Recibir la respuesta de la actualización del usuario
+    onRespuestaActualizarUsuario: (callback) => ipcRenderer.on('respuesta-actualizar-usuario', (event, respuesta) => callback(respuesta)),
+    // Método para enviar el id de usuario al proceso principal para su eliminación
+    eliminarUsuario: (usuarioId) => ipcRenderer.send('eliminar-usuario', usuarioId),
+    // Recibir la respuesta de la eliminación del usuario
+    onRespuestaEliminarUsuario: (callback) => ipcRenderer.on('respuesta-eliminar-usuario', (event, respuesta) => callback(respuesta)),
+    // Método para enviar la información del nuevo usuario al proceso principal para su creación
+    crearUsuario: (usuarioData) => ipcRenderer.send('crear-usuario', usuarioData),
+    // Recibir la respuesta de la creación del usuario
+    onRespuestaCrearUsuario: (callback) => ipcRenderer.on('respuesta-crear-usuario', (event, respuesta) => callback(respuesta)),
+
+    obtenerColaboradores: (callback) => {
+        ipcRenderer.send('listar-colaboradores'); // Enviar el evento al proceso principal
+        ipcRenderer.on('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
     }
+    
 });
