@@ -4,6 +4,7 @@ const UsuarioController = require('./controllers/UsuarioController');
 const RolesController = require('./controllers/RolesController');
 const Usuario = require('./domain/Usuario');
 const fs = require('fs');
+const ColaboradorController = require('./controllers/ColaboradorController');
 
 let mainWindow;  // Declarar mainWindow a nivel global
 
@@ -105,6 +106,7 @@ ipcMain.on('listar-usuarios', async (event) => {
         return {
             idUsuario: usuario.getIdUsuario(),
             nombreUsuario: usuario.getNombreUsuario(),
+            idColaborador: usuario.getIdColaborador().getIdColaborador(),
             nombreColaborador: usuario.getIdColaborador().getNombre(),
             primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
             segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
@@ -194,6 +196,26 @@ ipcMain.on('listar-roles', async (event) => {
 
     if (mainWindow) {  // Verifica que mainWindow esté definido
         mainWindow.webContents.send('cargar-roles', rolesSimplificados); // Enviar los roles de vuelta al frontend
+    }
+});
+
+ipcMain.on('listar-colaboradores', async (event) => {
+    const colaboradorController = new ColaboradorController(); // Asegúrate de tener acceso a la clase RolesDB
+    const colaboradores = await colaboradorController.getColaboradores(); // Asegúrate de que listarRoles es asíncrono
+
+    // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
+    const colaboradoresSimplificados = colaboradores.map(colaborador => {
+        return {
+            idColaborador: colaborador.getIdColaborador(),
+            nombreColaborador: colaborador.getNombre(),
+            cedulaColaborador: colaborador.getCedula(),
+            primerApellidoColaborador: colaborador.getPrimerApellido(),
+            segundoApellidoColaborador: colaborador.getSegundoApellido()
+        };
+    });
+
+    if (mainWindow) {  // Verifica que mainWindow esté definido
+        mainWindow.webContents.send('cargar-colaboradores', colaboradoresSimplificados); // Enviar los roles de vuelta al frontend
     }
 });
 

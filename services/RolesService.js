@@ -5,11 +5,11 @@ class RolesService{
     #rolesDB;
 
     constructor(){
-        this.rolesDB = new RolesDB();
+        this.#rolesDB = new RolesDB();
     }
 
     async obtenerRolesPorUsuario(){
-        return await this.rolesDB.listarRoles();
+        return await this.#rolesDB.listarRoles();
     }
 }
 

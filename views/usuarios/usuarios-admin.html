@@ -51,6 +51,12 @@
         <form id="editarUsuarioForm" class="editar-usuario-form">
             <input type="hidden" id="idUsuario">
 
+            <label style="display: none;" id="colaboradorSelectLabel" for="colaboradorName">Colaborador:</label>
+            <select style="display: none;" id="colaboradorName" name="colaboradorName" required>
+                <option value="">Seleccione un colaborador</option>
+                <!-- Opciones de roles se llenarán aquí -->
+            </select>
+
             <label for="nombreUsuario">Nombre de Usuario:</label>
             <input type="text" id="nombreUsuario" name="nombreUsuario" required>
 

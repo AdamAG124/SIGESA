@@ -119,6 +119,7 @@ class UsuarioDB {
                     u.id_Usuario,
                     u.nombreUsuario,
                     u.idRol,
+                    c.id_colaborador,
                     c.nombre,
                     c.primerApellido,
                     c.segundoApellido,
@@ -139,6 +140,7 @@ class UsuarioDB {
                 // Setear la información en el objeto Usuario
                 usuario.setIdUsuario(usuarioDB.id_Usuario);
                 usuario.setNombreUsuario(usuarioDB.nombreUsuario);
+                usuario.getIdColaborador().setIdColaborador(usuarioDB.id_colaborador);
                 usuario.getIdColaborador().setNombre(usuarioDB.nombre);
                 usuario.getIdColaborador().setPrimerApellido(usuarioDB.primerApellido);
                 usuario.getIdColaborador().setSegundoApellido(usuarioDB.segundoApellido);

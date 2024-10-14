@@ -36,6 +36,11 @@ contextBridge.exposeInMainWorld('api', {
     // Método para enviar la información del nuevo usuario al proceso principal para su creación
     crearUsuario: (usuarioData) => ipcRenderer.send('crear-usuario', usuarioData),
     // Recibir la respuesta de la creación del usuario
-    onRespuestaCrearUsuario: (callback) => ipcRenderer.on('respuesta-crear-usuario', (event, respuesta) => callback(respuesta))
+    onRespuestaCrearUsuario: (callback) => ipcRenderer.on('respuesta-crear-usuario', (event, respuesta) => callback(respuesta)),
+
+    obtenerColaboradores: (callback) => {
+        ipcRenderer.send('listar-colaboradores'); // Enviar el evento al proceso principal
+        ipcRenderer.on('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
+    }
     
 });

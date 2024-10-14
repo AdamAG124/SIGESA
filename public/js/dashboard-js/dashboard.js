@@ -254,8 +254,22 @@ function agregarUsuario() {
     roles.forEach((role) => {
       const option = document.createElement("option");
       option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+      option.textContent = role.roleName;
       roleSelect.appendChild(option);
+    });
+  });
+
+  window.api.obtenerColaboradores((colaboradores) => {
+    const colaboradorSelect = document.getElementById("colaboradorName");
+    const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
+    colaboradorSelect.style.display = "block";
+    colaboradorSelectLabel.style.display = "block";
+
+    colaboradores.forEach((colaborador) => {
+      const option = document.createElement("option");
+      option.value = colaborador.idColaborador;
+      option.textContent = colaborador.nombreColaborador + " " + colaborador.primerApellidoColaborador + " " + colaborador.segundoApellidoColaborador;
+      colaboradorSelect.appendChild(option);
     });
   });
 
@@ -266,6 +280,7 @@ function agregarUsuario() {
 }
 
 function enviarCreacionUsuario() {
+  const colaborador = document.getElementById("colaboradorName").value;
   const nombreUsuario = document.getElementById("nombreUsuario").value;
   const newPassword = document.getElementById("newPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
@@ -280,7 +295,7 @@ function enviarCreacionUsuario() {
   confirmPasswordInput.style.border = "";
 
   // Validar que los campos no estén vacíos
-  if (!nombreUsuario || !newPassword || !confirmPassword || !roleName) {
+  if (!colaborador || !nombreUsuario || !newPassword || !confirmPassword || !roleName) {
     passwordError.innerText = "Por favor, complete todos los campos.";
     passwordError.style.display = "block";
     return; // Detener el envío del formulario si hay campos vacíos
@@ -305,40 +320,53 @@ function enviarCreacionUsuario() {
     return; // Detener el envío del formulario si las contraseñas no coinciden
   }
 
-  // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
-  const jsonData = {
-    nombreUsuario: nombreUsuario,
-    newPassword: newPassword,
-    roleName: roleName,
-  };
+  window.api.obtenerUsuarios((usuarios) => {
+    usuarios.forEach((usuario) => {
+      if (usuario.nombreUsuario === nombreUsuario) {
+        passwordError.innerText = "El nombre de usuario ya existe.";
+        passwordError.style.display = "block";
+        return; // Detener el envío del formulario si el nombre de usuario ya está en uso
+      } else if (usuario.idColaborador === colaborador) {
+        passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
+        passwordError.style.display = "block";
+        return; // Detener el envío del formulario si el colaborador ya tiene un usuario asociado
+      }
+    });
+    // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
+    const jsonData = {
+      nombreUsuario: nombreUsuario,
+      newPassword: newPassword,
+      roleName: roleName,
+    };
 
-  Swal.fire({
-    title: "Creando usuario",
-    text: "¿Está seguro que desea crear un usuario nuevo?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Enviar los datos al proceso principal a través de preload.js
-      window.api.crearUsuario(jsonData);
+    Swal.fire({
+      title: "Creando usuario",
+      text: "¿Está seguro que desea crear un usuario nuevo?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Enviar los datos al proceso principal a través de preload.js
+        window.api.crearUsuario(jsonData);
 
-      // Mostrar el resultado de la actualización al recibir la respuesta
-      window.api.onRespuestaCrearUsuario((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            adjuntarHTML('/usuarios/usuarios-admin.html');
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-      console.log(jsonData);
-    }
+        // Mostrar el resultado de la actualización al recibir la respuesta
+        window.api.onRespuestaCrearUsuario((respuesta) => {
+          if (respuesta.success) {
+            mostrarToastConfirmacion(respuesta.message);
+            setTimeout(() => {
+              adjuntarHTML('/usuarios/usuarios-admin.html');
+            }, 2000);
+          } else {
+            mostrarToastError(respuesta.message);
+          }
+        });
+        console.log(jsonData);
+      }
+    });
   });
 }
 
