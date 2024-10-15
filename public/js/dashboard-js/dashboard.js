@@ -85,12 +85,7 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-<<<<<<< Updated upstream
 function cargarUsuariosTabla() {
-=======
-function cargarUsuariosTabla() { 
-  cargarRoles("filtrado-role", "Filtrar por rol");
->>>>>>> Stashed changes
   window.api.obtenerUsuarios((usuarios) => {
     const tbody = document.getElementById("usuarios-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
@@ -252,7 +247,6 @@ function eliminarUsuario(id) {
 }
 
 function agregarUsuario() {
-<<<<<<< Updated upstream
   // Cargar la lista de roles y preseleccionar el rol del usuario
   window.api.obtenerRoles((roles) => {
     const roleSelect = document.getElementById("roleName");
@@ -264,9 +258,6 @@ function agregarUsuario() {
       roleSelect.appendChild(option);
     });
   });
-=======
-  cargarRoles("roleName", "Selecciona un role");
->>>>>>> Stashed changes
 
   window.api.obtenerColaboradores((colaboradores) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
@@ -390,14 +381,10 @@ function cerrarModal() {
   document.getElementById("confirmPassword").style.border = "";
 }
 
-function cargarRoles(elementID, primeraOpcion) {
+function cargarRoles() {
   window.api.obtenerRoles((roles) => {
-    const roleSelect = document.getElementById(elementID);
+    const roleSelect = document.getElementById("roleName");
     roleSelect.innerHTML = ""; // Limpiar las opciones existentes
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = primeraOpcion;
-    roleSelect.appendChild(option);
 
     roles.forEach((role) => {
       const option = document.createElement("option");

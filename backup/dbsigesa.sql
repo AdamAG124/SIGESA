@@ -1,9 +1,12 @@
+-- Actualización hecha martes 15 de octubre a las 10:24 de la mañana por Adam Acuña
+-- Solo agregue informacióin basura de colaboradores a la bd
+
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-09-2024 a las 03:47:21
+-- Tiempo de generación: 15-10-2024 a las 18:23:14
 -- Versión del servidor: 8.4.2
 -- Versión de PHP: 8.2.4
 
@@ -61,7 +64,27 @@ CREATE TABLE `colaborador` (
 --
 
 INSERT INTO `colaborador` (`id_colaborador`, `idDepartamento`, `idPuesto`, `segundoApellido`, `fechaNacimiento`, `numTelefono`, `fechaIngreso`, `fechaSalida`, `estado`, `correo`, `cedula`, `nombre`, `primerApellido`) VALUES
-(1, 1, 1, 'González', '2001-08-25', '63133860', '2022-09-01', NULL, 1, 'adam.acuna.gonzalez@est.una.ac.cr', '118200907A', 'Adam', 'Acuña');
+(1, 1, 1, 'González', '2001-08-25', '63133860', '2022-09-01', NULL, 1, 'adam.acuna.gonzalez@est.una.ac.cr', '118200907A', 'Adam', 'Acuña'),
+(2, 1, 1, 'Gómez', '2001-10-16', '85218760', '2022-09-01', NULL, 1, 'karolayvargasg@gmail.com', '5461623101989', 'Karolay', 'Vargas'),
+(3, 1, 1, 'Ramírez', '1990-07-15', '62452341', '2021-06-12', NULL, 1, 'lucia.ramirez@empresa.com', '109876543', 'Lucía', 'Pérez'),
+(4, 1, 1, 'Vargas', '1985-09-30', '63214578', '2020-05-01', NULL, 1, 'juan.vargas@empresa.com', '234567890', 'Juan', 'Gómez'),
+(5, 1, 1, 'Rodríguez', '1993-01-10', '61543298', '2022-07-20', NULL, 1, 'maria.rodriguez@empresa.com', '345678901', 'María', 'Lopez'),
+(6, 1, 1, 'Sánchez', '1992-12-15', '62341257', '2023-01-15', NULL, 1, 'diego.sanchez@empresa.com', '456789012', 'Diego', 'Hernández'),
+(7, 1, 1, 'Guzmán', '1988-04-22', '62134679', '2021-09-10', NULL, 1, 'andrea.guzman@empresa.com', '567890123', 'Andrea', 'Martínez'),
+(8, 1, 1, 'Mejía', '1989-11-03', '62547812', '2020-12-05', NULL, 1, 'carlos.mejia@empresa.com', '678901234', 'Carlos', 'Jiménez'),
+(9, 1, 1, 'Solís', '1991-02-14', '62014567', '2021-03-17', NULL, 1, 'diana.solis@empresa.com', '789012345', 'Diana', 'García'),
+(10, 1, 1, 'Rojas', '1995-06-29', '62894312', '2022-04-09', NULL, 1, 'fernando.rojas@empresa.com', '890123456', 'Fernando', 'Castro'),
+(11, 1, 1, 'Pacheco', '1994-10-18', '62983451', '2023-02-11', NULL, 1, 'ana.pacheco@empresa.com', '901234567', 'Ana', 'Vega'),
+(12, 1, 1, 'Valverde', '1987-08-24', '61983745', '2019-11-22', NULL, 1, 'roberto.valverde@empresa.com', '912345678', 'Roberto', 'Chacón'),
+(13, 1, 1, 'Mora', '1996-03-27', '62674930', '2022-06-14', NULL, 1, 'sofia.mora@empresa.com', '923456789', 'Sofía', 'Ortega'),
+(14, 1, 1, 'Arias', '1992-05-12', '61734982', '2023-05-21', NULL, 1, 'gabriel.arias@empresa.com', '934567890', 'Gabriel', 'Monge'),
+(15, 1, 1, 'García', '1993-07-08', '62245839', '2021-08-02', NULL, 1, 'raquel.garcia@empresa.com', '945678901', 'Raquel', 'Alvarado'),
+(16, 1, 1, 'Zamora', '1986-09-19', '62493817', '2020-09-23', NULL, 1, 'esteban.zamora@empresa.com', '956789012', 'Esteban', 'Vargas'),
+(17, 1, 1, 'Murillo', '1989-10-11', '62983721', '2021-10-13', NULL, 1, 'karla.murillo@empresa.com', '967890123', 'Karla', 'Rodríguez'),
+(18, 1, 1, 'Castillo', '1990-11-25', '61834972', '2022-11-01', NULL, 1, 'daniel.castillo@empresa.com', '978901234', 'Daniel', 'Navarro'),
+(19, 1, 1, 'Cordero', '1984-04-15', '61634892', '2019-01-29', NULL, 1, 'alicia.cordero@empresa.com', '989012345', 'Alicia', 'Torres'),
+(20, 1, 1, 'Fernández', '1991-05-05', '61435982', '2020-03-14', NULL, 1, 'pablo.fernandez@empresa.com', '990123456', 'Pablo', 'Cruz'),
+(21, 1, 1, 'Esquivel', '1993-12-23', '62038495', '2021-12-07', NULL, 1, 'monica.esquivel@empresa.com', '991234567', 'Mónica', 'Méndez');
 
 -- --------------------------------------------------------
 
@@ -225,6 +248,14 @@ CREATE TABLE `roles` (
   `role_description` text COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id_role`, `role_name`, `role_description`) VALUES
+(1, 'Administrador', 'Usuario con acceso total al sistema, es capaz de administrar todo lo que hay en el.'),
+(2, 'Asistente', 'Tiene acceso solo a las funcionalidades administrativas que respectan a la gestión del inventario');
+
 -- --------------------------------------------------------
 
 --
@@ -270,6 +301,14 @@ CREATE TABLE `usuario` (
   `password` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `estado` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `usuario`
+--
+
+INSERT INTO `usuario` (`id_Usuario`, `idColaborador`, `nombreUsuario`, `idRol`, `password`, `estado`) VALUES
+(1, 1, 'AdamAG124', 1, '$2b$10$RwK/N7hKAkrRLnuPvg9Yje60fZeAcbz9Ba5UyniqdQ/U0cQAn/kwy', 0),
+(2, 2, 'KaroVG1622', 2, '$2b$10$wwGRKKQ4hqFqbFiytxhUgOuGV0UQJE6EagcKkEYCTctl27IwZgsLS', 1);
 
 --
 -- Índices para tablas volcadas
@@ -396,7 +435,7 @@ ALTER TABLE `categoriaproducto`
 -- AUTO_INCREMENT de la tabla `colaborador`
 --
 ALTER TABLE `colaborador`
-  MODIFY `id_colaborador` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_colaborador` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `comprobantepago`
@@ -456,7 +495,7 @@ ALTER TABLE `puestotrabajo`
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_role` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_role` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `salida`
@@ -474,7 +513,7 @@ ALTER TABLE `salidaproducto`
 -- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `id_Usuario` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_Usuario` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Restricciones para tablas volcadas
