@@ -37,7 +37,6 @@ class UsuarioDB {
             if (rows.length > 0) {
                 const usuarioDB = rows[0];
                 const match = await bcrypt.compare(password, usuarioDB.password);
-
                 if (match) {
                     // Crear objeto Usuario y setear la información
                     const usuario = new Usuario();
