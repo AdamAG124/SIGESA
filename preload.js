@@ -41,6 +41,34 @@ contextBridge.exposeInMainWorld('api', {
     obtenerColaboradores: (callback) => {
         ipcRenderer.send('listar-colaboradores'); // Enviar el evento al proceso principal
         ipcRenderer.on('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
-    }
-    
-});
+    },
+
+        // Métodos para gestionar categorías
+    obtenerCategorias: (callback) => {
+        ipcRenderer.send('listar-categorias'); // Enviar el evento al proceso principal
+        ipcRenderer.on('cargar-categorias', (event, categorias) => callback(categorias)); // Recibir la respuesta
+    },
+
+    // Método para enviar la información del nuevo usuario al proceso principal para su creación
+    crearCategoria: (categoriaData) => ipcRenderer.send('crear-categoria', categoriaData),
+    // Recibir la respuesta de la creación de la categoría
+    onRespuestaCrearCategoria: (callback) => {
+        ipcRenderer.on('respuesta-crear-categoria', (event, respuesta) => callback(respuesta));
+    },
+
+    // Método para enviar los datos de edición de categoría al proceso principal
+    actualizarCategoria: (categoriaData) => ipcRenderer.send('actualizar-categoria', categoriaData),
+    // Recibir la respuesta de la actualización de la categoría
+    onRespuestaActualizarCategoria: (callback) => {
+        ipcRenderer.on('respuesta-actualizar-categoria', (event, respuesta) => callback(respuesta));
+    },
+
+    // Método para enviar el id de categoría al proceso principal para su eliminación
+    eliminarCategoria: (categoriaId) => ipcRenderer.send('eliminar-categoria', categoriaId),
+    // Recibir la respuesta de la eliminación de la categoría
+    onRespuestaEliminarCategoria: (callback) => {
+        ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta));
+    },
+
+        
+    });
