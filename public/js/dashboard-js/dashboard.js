@@ -85,7 +85,7 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla() {
+function cargarUsuariosTabla() { 
   window.api.obtenerUsuarios((usuarios) => {
     const tbody = document.getElementById("usuarios-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
@@ -112,10 +112,10 @@ function cargarUsuariosTabla() {
                         <span class="material-icons">delete</span>
                         <span class="tooltiptext">Eliminar usuario</span>
                     </button>
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="verDetallesUsuario(this.value)">
+                    <!--<button class="tooltip" value="${usuario.idUsuario}" onclick="verDetallesUsuario(this.value)">
                         <span class="material-icons">info</span>
                         <span class="tooltiptext">Ver detalles</span>
-                    </button>
+                    </button>-->
                 </td>
             `;
       tbody.appendChild(row);
@@ -125,6 +125,10 @@ function cargarUsuariosTabla() {
 }
 
 function editarUsuario(id) {
+  const colaboradorSelect = document.getElementById("colaboradorName");
+  const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
+  colaboradorSelect.style.display = "none";
+  colaboradorSelectLabel.style.display = "none";
   window.api.obtenerUsuarios((usuarios) => {
     usuarios.forEach((usuario) => {
       if (usuario.idUsuario === Number(id)) {
@@ -135,6 +139,10 @@ function editarUsuario(id) {
         window.api.obtenerRoles((roles) => {
           const roleSelect = document.getElementById("roleName");
           roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "Selecciona un rol";
+          roleSelect.appendChild(option);
 
           roles.forEach((role) => {
             const option = document.createElement("option");
@@ -250,11 +258,16 @@ function agregarUsuario() {
   // Cargar la lista de roles y preseleccionar el rol del usuario
   window.api.obtenerRoles((roles) => {
     const roleSelect = document.getElementById("roleName");
+    roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Selecciona un rol";
+    roleSelect.appendChild(option);
 
     roles.forEach((role) => {
       const option = document.createElement("option");
       option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.roleName;
+      option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
       roleSelect.appendChild(option);
     });
   });
@@ -264,6 +277,11 @@ function agregarUsuario() {
     const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
     colaboradorSelect.style.display = "block";
     colaboradorSelectLabel.style.display = "block";
+    colaboradorSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Selecciona un colaborador";
+    colaboradorSelect.appendChild(option);
 
     colaboradores.forEach((colaborador) => {
       const option = document.createElement("option");
@@ -279,7 +297,9 @@ function agregarUsuario() {
   document.getElementById("editarUsuarioModal").style.display = "block";
 }
 
-function enviarCreacionUsuario() {
+function enviarCreacionUsuario(event) {
+  event.preventDefault(); // Evitar comportamiento predeterminado de envío del formulario
+
   const colaborador = document.getElementById("colaboradorName").value;
   const nombreUsuario = document.getElementById("nombreUsuario").value;
   const newPassword = document.getElementById("newPassword").value;
@@ -321,19 +341,22 @@ function enviarCreacionUsuario() {
   }
 
   window.api.obtenerUsuarios((usuarios) => {
-    usuarios.forEach((usuario) => {
-      if (usuario.nombreUsuario === nombreUsuario) {
-        passwordError.innerText = "El nombre de usuario ya existe.";
-        passwordError.style.display = "block";
-        return; // Detener el envío del formulario si el nombre de usuario ya está en uso
-      } else if (usuario.idColaborador === colaborador) {
+    for (const usuario of usuarios) {
+      if (usuario.idColaborador === Number(colaborador)) {
         passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
         passwordError.style.display = "block";
         return; // Detener el envío del formulario si el colaborador ya tiene un usuario asociado
       }
-    });
+      if (usuario.nombreUsuario === nombreUsuario) {
+        passwordError.innerText = "El nombre de usuario ya existe.";
+        passwordError.style.display = "block";
+        return; // Detener el envío del formulario si el nombre de usuario ya existe
+      }
+    }
+
     // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
     const jsonData = {
+      colaborador: colaborador,
       nombreUsuario: nombreUsuario,
       newPassword: newPassword,
       roleName: roleName,
