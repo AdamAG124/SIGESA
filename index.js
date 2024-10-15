@@ -232,7 +232,7 @@ app.on('window-all-closed', () => {
 });
 
 ipcMain.on('listar-categorias', async (event) => {
-    const controller = new CategoriaController();
+    const controller = new CategoriaProductoController();
     const categorias = await controller.listarCategorias();
     const categoriasSimplificadas = categorias.map(categoria => {
         return {
@@ -253,7 +253,7 @@ ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
         categoria.setIdCategoria(categoriaData.idCategoria);
         categoria.setNombreCategoria(categoriaData.nombreCategoria);
 
-        const categoriaController = new CategoriaController();
+        const categoriaController = new CategoriaProductoController();
         const resultado = await categoriaController.actualizarCategoria(categoria);
 
         event.reply('respuesta-actualizar-categoria', resultado);
@@ -268,7 +268,7 @@ ipcMain.on('eliminar-categoria', async (event, categoriaId) => {
         const categoria = new Categoria();
         categoria.setIdCategoria(categoriaId);
 
-        const categoriaController = new CategoriaController();
+        const categoriaController = new CategoriaProductoController();
         const resultado = await categoriaController.eliminarCategoria(categoria);
 
         event.reply('respuesta-eliminar-categoria', resultado);
@@ -283,7 +283,7 @@ ipcMain.on('crear-categoria', async (event, categoriaData) => {
         const categoria = new Categoria();
         categoria.setNombreCategoria(categoriaData.nombreCategoria);
 
-        const categoriaController = new CategoriaController();
+        const categoriaController = new CategoriaProductoController();
         const resultado = await categoriaController.crearCategoria(categoria);
 
         event.reply('respuesta-crear-categoria', resultado);
