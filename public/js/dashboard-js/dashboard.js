@@ -410,3 +410,83 @@ function togglePasswordVisibility(passwordFieldId, iconId) {
     icon.classList.add("fa-eye-slash"); // Ojo cerrado
   }
 }
+
+//funciones del crud para categorias 
+function cargarCategoriasTabla() {
+  window.api.obtenerCategorias((categorias) => {
+    const tbody = document.getElementById("categorias-body");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+
+    categorias.forEach((categoria) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+                <td>${categoria.nombreCategoria}</td>
+                <td class="action-icons">
+                    <button class="tooltip" value="${categoria.idCategoria}" onclick="editarCategoria(this.value)">
+                        <span class="material-icons">edit</span>
+                        <span class="tooltiptext">Editar categoría</span>
+                    </button>
+                    <button class="tooltip" value="${categoria.idCategoria}" onclick="eliminarCategoria(this.value)">
+                        <span class="material-icons">delete</span>
+                        <span class="tooltiptext">Eliminar categoría</span>
+                    </button>
+                </td>
+            `;
+      tbody.appendChild(row);
+    });
+    cerrarModal();
+  });
+}
+
+function editarCategoria(id) {
+  window.api.obtenerCategorias((categorias) => {
+    categorias.forEach((categoria) => {
+      if (categoria.idCategoria === Number(id)) {
+        document.getElementById("idCategoria").value = categoria.idCategoria;
+        document.getElementById("nombreCategoria").value = categoria.nombreCategoria;
+
+        document.getElementById("modalTitle").innerText = "Editar Categoría";
+        document.getElementById("buttonModal").onclick = enviarEdicionCategoria;
+        // Mostrar el modal
+        document.getElementById("editarCategoriaModal").style.display = "block";
+      }
+    });
+  });
+}
+
+function eliminarCategoria(id) {
+  Swal.fire({
+    title: "Eliminando categoría",
+    text: "¿Está seguro que desea eliminar esta categoría?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar los datos al proceso principal a través de preload.js
+      window.api.eliminarCategoria(Number(id));
+
+      // Mostrar el resultado de la eliminación al recibir la respuesta
+      window.api.onRespuestaEliminarCategoria((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarCategoriasTabla();
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
+function agregarCategoria() {
+  document.getElementById("modalTitle").innerText = "Crear Categoría";
+  document.getElementById("buttonModal").onclick = enviarCreacionCategoria;
+  // Mostrar el modal
+  document.getElementById("editarCategoriaModal").style.display = "block";
+}

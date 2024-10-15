@@ -230,3 +230,66 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
+
+ipcMain.on('listar-categorias', async (event) => {
+    const controller = new CategoriaProductoController();
+    const categorias = await controller.listarCategorias();
+    const categoriasSimplificadas = categorias.map(categoria => {
+        return {
+            idCategoria: categoria.getIdCategoria(),
+            nombreCategoria: categoria.getNombreCategoria(),
+            estado: categoria.getEstado()
+        };
+    });
+
+    if (mainWindow) {  
+        mainWindow.webContents.send('cargar-categorias', categoriasSimplificadas);
+    }
+});
+
+ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
+    try {
+        const categoria = new Categoria();
+        categoria.setIdCategoria(categoriaData.idCategoria);
+        categoria.setNombreCategoria(categoriaData.nombreCategoria);
+
+        const categoriaController = new CategoriaProductoController();
+        const resultado = await categoriaController.actualizarCategoria(categoria);
+
+        event.reply('respuesta-actualizar-categoria', resultado);
+    } catch (error) {
+        console.error('Error al actualizar categoría:', error);
+        event.reply('respuesta-actualizar-categoria', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-categoria', async (event, categoriaId) => {
+    try {
+        const categoria = new Categoria();
+        categoria.setIdCategoria(categoriaId);
+
+        const categoriaController = new CategoriaProductoController();
+        const resultado = await categoriaController.eliminarCategoria(categoria);
+
+        event.reply('respuesta-eliminar-categoria', resultado);
+    } catch (error) {
+        console.error('Error al eliminar categoría:', error);
+        event.reply('respuesta-eliminar-categoria', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('crear-categoria', async (event, categoriaData) => {
+    try {
+        const categoria = new Categoria();
+        categoria.setNombreCategoria(categoriaData.nombreCategoria);
+
+        const categoriaController = new CategoriaProductoController();
+        const resultado = await categoriaController.crearCategoria(categoria);
+
+        event.reply('respuesta-crear-categoria', resultado);
+    } catch (error) {
+        console.error('Error al crear categoría:', error);
+        event.reply('respuesta-crear-categoria', { success: false, message: error.message });
+    }
+});
+
