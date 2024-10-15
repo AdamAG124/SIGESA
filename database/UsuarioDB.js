@@ -265,22 +265,23 @@ class UsuarioDB {
             connection = await db.conectar();
 
             // Obtén los atributos del objeto Usuario
+            const idColaborador = usuario.getIdColaborador().getIdColaborador();
             const nombreUsuario = usuario.getNombreUsuario();
             const idRole = usuario.getRole().getIdRole();
             const password = usuario.getPassword();
             const hashedPassword = await bcrypt.hash(password, 10);
 
             // Construimos la consulta SQL dinámicamente
-            let query = `INSERT INTO ${this.#table} () VALUES (${nombreUsuario}, ${idRole}, ${hashedPassword})`;
-            let params = [nombreUsuario, idRole];
+            let query = `INSERT INTO ${this.#table} (idColaborador, nombreUsuario, idRol, password, estado) 
+                         VALUES (${idColaborador}, '${nombreUsuario}', ${idRole}, '${hashedPassword}', 1)`;
 
             // Ejecutar la consulta
-            const [result] = await connection.query(query, params);
+            const [result] = await connection.query(query);
 
             if (result.affectedRows > 0) {
                 return {
                     success: true,
-                    message: 'Usuario actualizado exitosamente.'
+                    message: 'Usuario creado exitosamente.'
                 };
             } else {
                 return {
@@ -291,7 +292,7 @@ class UsuarioDB {
         } catch (error) {
             return {
                 success: false,
-                message: 'Error al actualizar el usuario: ' + error.message
+                message: 'Error al crear el usuario: ' + error.message
             };
         } finally {
             if (connection) {
@@ -299,7 +300,6 @@ class UsuarioDB {
             }
         }
     }
-
 }
 
 // Exportar la clase
