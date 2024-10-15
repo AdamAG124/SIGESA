@@ -165,7 +165,6 @@ ipcMain.on('crear-usuario', async (event, usuarioData) => {
     try {
         // Crear un objeto Usuario y setear los datos
         const usuario = new Usuario();
-        usuario.getIdColaborador().setIdColaborador(usuarioData.colaborador);
         usuario.setNombreUsuario(usuarioData.nombreUsuario);
         usuario.getRole().setIdRole(usuarioData.roleName);
         usuario.setPassword(usuarioData.newPassword);
