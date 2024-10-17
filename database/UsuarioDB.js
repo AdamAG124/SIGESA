@@ -6,7 +6,7 @@ class UsuarioDB {
     #table;
 
     constructor() {
-        this.#table = 'usuario';
+        this.#table = 'SIGM_USUARIO';
     }
 
     async validarUsuario(username, password) {
@@ -19,20 +19,21 @@ class UsuarioDB {
             // Consultar si el usuario existe
             const [rows] = await connection.query(`
                 SELECT 
-                    u.*,
-                    c.nombre,
-                    c.primerApellido,
-                    c.segundoApellido,
-                    c.numTelefono,
-                    c.correo,
-                    r.role_name
+                    U.ID_USUARIO, U,ID_COLABORADOR, U.DSC_NOMBRE AS nombreUsuario, U.ID_ROL,
+                    U.DSC_PASSWORD, U.ESTADO AS estadoUsuario,
+                    C.DSC_NOMBRE AS colaboradorNombre,
+                    C.DSC_PRIMER_APELLIDO,
+                    C.DSC_SEGUNDO_APELLIDO,
+                    C.NUM_TELEFONO,
+                    C.DSC_CORREO,
+                    R.DSC_NOMBRE AS nombreRol
                 FROM 
-                    ${this.#table} u
+                    ${this.#table} U
                 INNER JOIN
-                    colaborador c ON u.idColaborador = c.id_colaborador
+                    SIGM_COLABORADOR C ON U.ID_COLABORADOR = C.ID_COLABORADOR
                 INNER JOIN
-                    roles r ON u.idRol = r.id_role
-                WHERE nombreUsuario = ?`, [username]);
+                    SIGM_ROL R ON U.ID_ROL = R.ID_ROL
+                WHERE U.DSC_NOMBRE = ?`, [username]);
 
             if (rows.length > 0) {
                 const usuarioDB = rows[0];
@@ -45,13 +46,13 @@ class UsuarioDB {
                     // Llenar el objeto Usuario
                     usuario.setIdUsuario(usuarioDB.idUsuario);
                     usuario.setNombreUsuario(usuarioDB.nombreUsuario);
-                    usuario.getIdColaborador().setNombre(usuarioDB.nombre);
+                    usuario.getIdColaborador().setNombre(usuarioDB.nombreColaborador);
                     usuario.getIdColaborador().setPrimerApellido(usuarioDB.primerApellido);
                     usuario.getIdColaborador().setSegundoApellido(usuarioDB.segundoApellido);
                     usuario.getIdColaborador().setNumTelefono(usuarioDB.numTelefono);
                     usuario.getIdColaborador().setCorreo(usuarioDB.correo);
-                    usuario.getRole().setRoleName(usuarioDB.role_name);
-                    usuario.setEstado(usuarioDB.estado);
+                    usuario.getRol().setNombre(usuarioDB.nombreRol);
+                    usuario.setEstado(usuarioDB.estadoUsuario);
 
                     // Verificar si el usuario está inactivo
                     if (usuario.getEstado() == 0) {
@@ -75,7 +76,7 @@ class UsuarioDB {
                             segundoApellido: usuario.getIdColaborador().getSegundoApellido(),
                             numTelefono: usuario.getIdColaborador().getNumTelefono(),
                             correo: usuario.getIdColaborador().getCorreo(),
-                            roleName: usuario.getRole().getRoleName(),
+                            roleName: usuario.getRol().getNombre(),
                             estado: usuario.getEstado(),
                         }
                     };
@@ -116,21 +117,21 @@ class UsuarioDB {
             // Consultar todos los usuarios
             const [rows] = await connection.query(`
                 SELECT 
-                    u.id_Usuario,
-                    u.nombreUsuario,
-                    u.idRol,
-                    c.id_colaborador,
-                    c.nombre,
-                    c.primerApellido,
-                    c.segundoApellido,
-                    r.role_name,
-                    u.estado
+                    U.ID_USUARIO AS idUsuario,
+                    U.DSC_NOMBRE AS nombreUsuario,
+                    U.ID_ROL AS idRol,
+                    C.ID_COLABORADOR AS idColaborador,
+                    C.DSC_NOMBRE AS nombreColaborador,
+                    C.DSC_PRIMER_APELLIDO AS primerApellido,
+                    C.DSC_SEGUNDO_APELLIDO AS segundoApellido,
+                    R.DSC_NOMBRE AS nombreRol,
+                    U.ESTADO AS estadoUsuario
                 FROM 
-                    ${this.#table} u
+                    ${this.#table} U
                 INNER JOIN
-                    colaborador c ON u.idColaborador = c.id_colaborador
+                    SIGM_COLABORADOR C ON U.ID_COLABORADOR = C.ID_COLABORADOR
                 INNER JOIN
-                    roles r ON u.idRol = r.id_role
+                    SIGM_ROL R ON U.ID_ROL = R.ID_ROL
             `);
 
             // Crear un array para almacenar los objetos Usuario
@@ -138,15 +139,15 @@ class UsuarioDB {
                 const usuario = new Usuario();
 
                 // Setear la información en el objeto Usuario
-                usuario.setIdUsuario(usuarioDB.id_Usuario);
+                usuario.setIdUsuario(usuarioDB.idUsuario);
                 usuario.setNombreUsuario(usuarioDB.nombreUsuario);
-                usuario.getIdColaborador().setIdColaborador(usuarioDB.id_colaborador);
-                usuario.getIdColaborador().setNombre(usuarioDB.nombre);
+                usuario.getIdColaborador().setIdColaborador(usuarioDB.idColaborador);
+                usuario.getIdColaborador().setNombre(usuarioDB.nombreColaborador);
                 usuario.getIdColaborador().setPrimerApellido(usuarioDB.primerApellido);
                 usuario.getIdColaborador().setSegundoApellido(usuarioDB.segundoApellido);
-                usuario.getRole().setIdRole(usuarioDB.idRol);
-                usuario.getRole().setRoleName(usuarioDB.role_name);
-                usuario.setEstado(usuarioDB.estado);
+                usuario.getRol().setIdRol(usuarioDB.idRol);
+                usuario.getRol().setNombre(usuarioDB.nombreRol);
+                usuario.setEstado(usuarioDB.estadoUsuario);
 
                 return usuario;
             });
@@ -173,21 +174,21 @@ class UsuarioDB {
             // Obtén los atributos del objeto Usuario
             const idUsuario = usuario.getIdUsuario();
             const nombreUsuario = usuario.getNombreUsuario();
-            const idRole = usuario.getRole().getIdRole();
+            const idRol = usuario.getRol().getIdRol();
             const password = usuario.getPassword();
 
             // Construimos la consulta SQL dinámicamente
-            let query = `UPDATE ${this.#table} SET nombreUsuario = ?, idRol = ?`;
-            let params = [nombreUsuario, idRole];
+            let query = `UPDATE ${this.#table} SET DSC_NOMBRE = ?, ID_ROL = ?`;
+            let params = [nombreUsuario, idRol];
 
             // Evaluar si el password no es vacío
             if (password && password.trim() !== '') {
                 const hashedPassword = await bcrypt.hash(password, 10);
-                query += `, password = ?`;
+                query += `, DSC_PASSWORD = ?`;
                 params.push(hashedPassword);
             }
 
-            query += ` WHERE id_Usuario = ?`;
+            query += ` WHERE ID_USUARIO = ?`;
             params.push(idUsuario);
 
             // Ejecutar la consulta
@@ -228,7 +229,7 @@ class UsuarioDB {
             const estado = usuario.getEstado();
 
             // Construimos la consulta SQL dinámicamente
-            let query = `UPDATE ${this.#table} SET estado = ? WHERE id_Usuario = ?`;
+            let query = `UPDATE ${this.#table} SET ESTADO = ? WHERE ID_USUARIO = ?`;
             let params = [estado, idUsuario];
 
             // Ejecutar la consulta
@@ -267,13 +268,13 @@ class UsuarioDB {
             // Obtén los atributos del objeto Usuario
             const idColaborador = usuario.getIdColaborador().getIdColaborador();
             const nombreUsuario = usuario.getNombreUsuario();
-            const idRole = usuario.getRole().getIdRole();
+            const idRol = usuario.getRol().getIdRol();
             const password = usuario.getPassword();
             const hashedPassword = await bcrypt.hash(password, 10);
 
             // Construimos la consulta SQL dinámicamente
-            let query = `INSERT INTO ${this.#table} (idColaborador, nombreUsuario, idRol, password, estado) 
-                         VALUES (${idColaborador}, '${nombreUsuario}', ${idRole}, '${hashedPassword}', 1)`;
+            let query = `INSERT INTO ${this.#table} (ID_COLABORADOR, DSC_NOMBRE, ID_ROL, DSC_PASSWORD, ESTADO) 
+                         VALUES (${idColaborador}, '${nombreUsuario}', ${idRol}, '${hashedPassword}', 1)`;
 
             // Ejecutar la consulta
             const [result] = await connection.query(query);

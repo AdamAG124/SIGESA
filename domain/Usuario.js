@@ -1,12 +1,12 @@
 const Colaborador = require('./Colaborador'); // Importa la clase Colaborador
-const Roles = require('./Roles');
+const Rol = require('./Rol');
 
 class Usuario {
     // Atributos privados
     #idUsuario;
     #idColaborador; // Inicializado como objeto de Colaborador
     #nombreUsuario;
-    #idRole;
+    #idRol;
     #password;
     #estado;
 
@@ -15,7 +15,7 @@ class Usuario {
         this.#idUsuario = 0;                        // Inicializado como 0
         this.#idColaborador = new Colaborador();    // Inicializado como objeto de Colaborador
         this.#nombreUsuario = '';                    // Inicializado como cadena vacía
-        this.#idRole = new Roles();                             // Inicializado como cadena vacía
+        this.#idRol = new Rol();                             // Inicializado como cadena vacía
         this.#password = '';                         // Inicializado como cadena vacía
         this.#estado = false;                        // Inicializado como false (tinyint(1))
     }
@@ -45,12 +45,12 @@ class Usuario {
         this.#nombreUsuario = nombreUsuario;
     }
 
-    getRole() {
-        return this.#idRole;
+    getRol() {
+        return this.#idRol;
     }
 
-    setRole(role) {
-        this.#idRole = role;
+    setRol(rol) {
+        this.#idRol = rol;
     }
 
     getPassword() {

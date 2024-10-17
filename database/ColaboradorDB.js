@@ -5,7 +5,7 @@ class ColaboradorDB {
     #table;
 
     constructor() {
-        this.#table = 'colaborador';
+        this.#table = 'SIGM_COLABORADOR';
     }
 
     // Método para recuperar la lista de colaboradores con sus departamentos y puestos
@@ -18,15 +18,20 @@ class ColaboradorDB {
             // Query con INNER JOIN para obtener el nombre del departamento y el puesto de trabajo
             const [rows] = await connection.query(`
                 SELECT 
-                    c.*,
-                    d.nombre AS departamentoNombre,
-                    p.nombre AS puestoNombre
+                    C.ID_COLABORADOR AS idColaborador, C.ID_DEPARTAMENTO AS idDepartamento,
+                    C.ID_PUESTO AS idPuesto, C.DSC_SEGUNDO_APELLIDO AS segundoApellido,
+                    C.FEC_NACIMIENTO AS fechaNacimiento, C.NUM_TELEFONO AS  numTelefono,
+                    C.FEC_INGRESO AS fechaIngreso, C.FEC_SALIDA AS fechaSalida, C.ESTADO AS estado,
+                    C.DSC_CORREO AS correo, C.DSC_CEDULA AS cedula, C.DSC_NOMBRE AS nombreColaborador,
+                    C.DSC_PRIMER_APELLIDO AS primerApellido,
+                    D.DSC_NOMBRE_DEPARTAMENTO AS nombreDepartamento,
+                    P.DSC_NOMBRE AS nombrePuesto
                 FROM 
-                    ${this.#table} c
+                    ${this.#table} C
                 INNER JOIN 
-                    departamento d ON c.idDepartamento = d.id_departamento
+                    SIGM_DEPARTAMENTO D ON C.ID_DEPARTAMENTO = D.ID_DEPARTAMENTO
                 INNER JOIN 
-                    puestotrabajo p ON c.idPuesto = p.id_puestoTrabajo
+                    SIGM_PUESTO_TRABAJO P ON C.ID_PUESTO = P.ID_PUESTO_TRABAJO
             `);
 
             // Mapear cada fila a un objeto de tipo Colaborador
@@ -34,8 +39,8 @@ class ColaboradorDB {
                 const colaborador = new Colaborador();
 
                 // Setear valores del colaborador
-                colaborador.setIdColaborador(row.id_colaborador);
-                colaborador.setNombre(row.nombre);
+                colaborador.setIdColaborador(row.idColaborador);
+                colaborador.setNombre(row.nombreColaborador);
                 colaborador.setPrimerApellido(row.primerApellido);
                 colaborador.setSegundoApellido(row.segundoApellido);
                 colaborador.setFechaNacimiento(row.fechaNacimiento);
@@ -45,8 +50,8 @@ class ColaboradorDB {
                 colaborador.setEstado(row.estado);
                 colaborador.setCorreo(row.correo);
                 colaborador.setCedula(row.cedula);
-                colaborador.getIdDepartamento().setNombre(row.departamentoNombre);
-                colaborador.getIdPuesto().setNombre(row.puestoNombre);
+                colaborador.getIdDepartamento().setNombre(row.nombreDepartamento);
+                colaborador.getIdPuesto().setNombre(row.nombrePuesto);
 
                 // Añadir el colaborador a la lista
                 colaboradores.push(colaborador);

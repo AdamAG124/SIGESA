@@ -10,7 +10,7 @@ function showUserData() {
     if (user) {
       document.getElementById("user-name").innerText =
         user.nombre + " " + user.primerApellido;
-      document.getElementById("user-role").innerText = user.roleName;
+      document.getElementById("user-role").innerText = user.nombre;
     } else {
       console.log("No se encontraron datos de usuario.");
     }
@@ -101,7 +101,7 @@ function cargarUsuariosTabla() {
       row.innerHTML = `
                 <td>${nombreCompleto}</td>
                 <td>${usuario.nombreUsuario}</td>
-                <td>${usuario.roleName}</td>
+                <td>${usuario.nombreRol}</td>
                 <td>${estadoUsuario}</td> <!-- Aquí se imprime el estado -->
                 <td class="action-icons">
                     <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value)">
@@ -127,8 +127,10 @@ function cargarUsuariosTabla() {
 function editarUsuario(id) {
   const colaboradorSelect = document.getElementById("colaboradorName");
   const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
+  const roleSelect = document.getElementById("roleName");
   colaboradorSelect.style.display = "none";
   colaboradorSelectLabel.style.display = "none";
+
   window.api.obtenerUsuarios((usuarios) => {
     usuarios.forEach((usuario) => {
       if (usuario.idUsuario === Number(id)) {
@@ -137,32 +139,33 @@ function editarUsuario(id) {
 
         // Cargar la lista de roles y preseleccionar el rol del usuario
         window.api.obtenerRoles((roles) => {
-          const roleSelect = document.getElementById("roleName");
           roleSelect.innerHTML = ""; // Limpiar las opciones existentes
-          const option = document.createElement("option");
-          option.value = "";
-          option.textContent = "Selecciona un rol";
-          roleSelect.appendChild(option);
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.textContent = "Selecciona un rol";
+          roleSelect.appendChild(defaultOption);
 
-          roles.forEach((role) => {
+          roles.forEach((rol) => {
             const option = document.createElement("option");
-            option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-            option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+            option.value = rol.id; 
+            option.textContent = rol.nombre; 
             roleSelect.appendChild(option);
           });
 
           // Preseleccionar el rol del usuario
-          roleSelect.value = usuario.role; // Suponiendo que el rol del usuario tiene una propiedad idRole
+          roleSelect.value = usuario.idRol; // Asegúrate de que usuario.idRol coincide con rol.idRol
         });
 
         document.getElementById("modalTitle").innerText = "Editar Usuario";
         document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
+        
         // Mostrar el modal
         document.getElementById("editarUsuarioModal").style.display = "block";
       }
     });
   });
 }
+
 
 function enviarEdicionUsuario() {
   const newPassword = document.getElementById("newPassword").value;
@@ -266,8 +269,8 @@ function agregarUsuario() {
 
     roles.forEach((role) => {
       const option = document.createElement("option");
-      option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+      option.value = role.id; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = role.nombre;
       roleSelect.appendChild(option);
     });
   });
@@ -359,7 +362,7 @@ function enviarCreacionUsuario(event) {
       colaborador: colaborador,
       nombreUsuario: nombreUsuario,
       newPassword: newPassword,
-      roleName: roleName,
+      rol: roleName,
     };
 
     Swal.fire({
@@ -411,8 +414,8 @@ function cargarRoles() {
 
     roles.forEach((role) => {
       const option = document.createElement("option");
-      option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+      option.value = role.id; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = role.nombre; // Asumiendo que tu objeto role tiene un roleName
       roleSelect.appendChild(option);
     });
   });
