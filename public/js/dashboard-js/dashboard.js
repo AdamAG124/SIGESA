@@ -10,7 +10,7 @@ function showUserData() {
     if (user) {
       document.getElementById("user-name").innerText =
         user.nombre + " " + user.primerApellido;
-      document.getElementById("user-role").innerText = user.roleName;
+      document.getElementById("user-role").innerText = user.nombre;
     } else {
       console.log("No se encontraron datos de usuario.");
     }
@@ -85,8 +85,7 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla() {
-  cargarRoles("filtrado-role", "Filtrar por rol");
+function cargarUsuariosTabla() { 
   window.api.obtenerUsuarios((usuarios) => {
     const tbody = document.getElementById("usuarios-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
@@ -102,7 +101,7 @@ function cargarUsuariosTabla() {
       row.innerHTML = `
                 <td>${nombreCompleto}</td>
                 <td>${usuario.nombreUsuario}</td>
-                <td>${usuario.roleName}</td>
+                <td>${usuario.nombreRol}</td>
                 <td>${estadoUsuario}</td> <!-- Aquí se imprime el estado -->
                 <td class="action-icons">
                     <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value)">
@@ -113,10 +112,10 @@ function cargarUsuariosTabla() {
                         <span class="material-icons">delete</span>
                         <span class="tooltiptext">Eliminar usuario</span>
                     </button>
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="verDetallesUsuario(this.value)">
+                    <!--<button class="tooltip" value="${usuario.idUsuario}" onclick="verDetallesUsuario(this.value)">
                         <span class="material-icons">info</span>
                         <span class="tooltiptext">Ver detalles</span>
-                    </button>
+                    </button>-->
                 </td>
             `;
       tbody.appendChild(row);
@@ -126,6 +125,12 @@ function cargarUsuariosTabla() {
 }
 
 function editarUsuario(id) {
+  const colaboradorSelect = document.getElementById("colaboradorName");
+  const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
+  const roleSelect = document.getElementById("roleName");
+  colaboradorSelect.style.display = "none";
+  colaboradorSelectLabel.style.display = "none";
+
   window.api.obtenerUsuarios((usuarios) => {
     usuarios.forEach((usuario) => {
       if (usuario.idUsuario === Number(id)) {
@@ -134,28 +139,33 @@ function editarUsuario(id) {
 
         // Cargar la lista de roles y preseleccionar el rol del usuario
         window.api.obtenerRoles((roles) => {
-          const roleSelect = document.getElementById("roleName");
           roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.textContent = "Selecciona un rol";
+          roleSelect.appendChild(defaultOption);
 
-          roles.forEach((role) => {
+          roles.forEach((rol) => {
             const option = document.createElement("option");
-            option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-            option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+            option.value = rol.id; 
+            option.textContent = rol.nombre; 
             roleSelect.appendChild(option);
           });
 
           // Preseleccionar el rol del usuario
-          roleSelect.value = usuario.role; // Suponiendo que el rol del usuario tiene una propiedad idRole
+          roleSelect.value = usuario.idRol; // Asegúrate de que usuario.idRol coincide con rol.idRol
         });
 
         document.getElementById("modalTitle").innerText = "Editar Usuario";
         document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
+        
         // Mostrar el modal
         document.getElementById("editarUsuarioModal").style.display = "block";
       }
     });
   });
 }
+
 
 function enviarEdicionUsuario() {
   const newPassword = document.getElementById("newPassword").value;
@@ -248,13 +258,33 @@ function eliminarUsuario(id) {
 }
 
 function agregarUsuario() {
-  cargarRoles("roleName", "Seleccione un rol");
+  // Cargar la lista de roles y preseleccionar el rol del usuario
+  window.api.obtenerRoles((roles) => {
+    const roleSelect = document.getElementById("roleName");
+    roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Selecciona un rol";
+    roleSelect.appendChild(option);
+
+    roles.forEach((role) => {
+      const option = document.createElement("option");
+      option.value = role.id; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = role.nombre;
+      roleSelect.appendChild(option);
+    });
+  });
 
   window.api.obtenerColaboradores((colaboradores) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
     const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
     colaboradorSelect.style.display = "block";
     colaboradorSelectLabel.style.display = "block";
+    colaboradorSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Selecciona un colaborador";
+    colaboradorSelect.appendChild(option);
 
     colaboradores.forEach((colaborador) => {
       const option = document.createElement("option");
@@ -270,7 +300,9 @@ function agregarUsuario() {
   document.getElementById("editarUsuarioModal").style.display = "block";
 }
 
-function enviarCreacionUsuario() {
+function enviarCreacionUsuario(event) {
+  event.preventDefault(); // Evitar comportamiento predeterminado de envío del formulario
+
   const colaborador = document.getElementById("colaboradorName").value;
   const nombreUsuario = document.getElementById("nombreUsuario").value;
   const newPassword = document.getElementById("newPassword").value;
@@ -312,22 +344,25 @@ function enviarCreacionUsuario() {
   }
 
   window.api.obtenerUsuarios((usuarios) => {
-    usuarios.forEach((usuario) => {
-      if (usuario.nombreUsuario === nombreUsuario) {
-        passwordError.innerText = "El nombre de usuario ya existe.";
-        passwordError.style.display = "block";
-        return; // Detener el envío del formulario si el nombre de usuario ya está en uso
-      } else if (usuario.idColaborador === colaborador) {
+    for (const usuario of usuarios) {
+      if (usuario.idColaborador === Number(colaborador)) {
         passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
         passwordError.style.display = "block";
         return; // Detener el envío del formulario si el colaborador ya tiene un usuario asociado
       }
-    });
+      if (usuario.nombreUsuario === nombreUsuario) {
+        passwordError.innerText = "El nombre de usuario ya existe.";
+        passwordError.style.display = "block";
+        return; // Detener el envío del formulario si el nombre de usuario ya existe
+      }
+    }
+
     // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
     const jsonData = {
+      colaborador: colaborador,
       nombreUsuario: nombreUsuario,
       newPassword: newPassword,
-      roleName: roleName,
+      rol: roleName,
     };
 
     Swal.fire({
@@ -372,19 +407,15 @@ function cerrarModal() {
   document.getElementById("confirmPassword").style.border = "";
 }
 
-function cargarRoles(elementID, primeraOpcion) {
+function cargarRoles() {
   window.api.obtenerRoles((roles) => {
-    const roleSelect = document.getElementById(elementID);
+    const roleSelect = document.getElementById("roleName");
     roleSelect.innerHTML = ""; // Limpiar las opciones existentes
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = primeraOpcion;
-    roleSelect.appendChild(option);
 
     roles.forEach((role) => {
       const option = document.createElement("option");
-      option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+      option.value = role.id; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = role.nombre; // Asumiendo que tu objeto role tiene un roleName
       roleSelect.appendChild(option);
     });
   });
@@ -404,84 +435,4 @@ function togglePasswordVisibility(passwordFieldId, iconId) {
     icon.classList.remove("fa-eye"); // Ojo abierto
     icon.classList.add("fa-eye-slash"); // Ojo cerrado
   }
-}
-
-//funciones del crud para categorias 
-function cargarCategoriasTabla() {
-  window.api.obtenerCategorias((categorias) => {
-    const tbody = document.getElementById("categorias-body");
-    tbody.innerHTML = ""; // Limpiar contenido previo
-
-    categorias.forEach((categoria) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-                <td>${categoria.nombreCategoria}</td>
-                <td class="action-icons">
-                    <button class="tooltip" value="${categoria.idCategoria}" onclick="editarCategoria(this.value)">
-                        <span class="material-icons">edit</span>
-                        <span class="tooltiptext">Editar categoría</span>
-                    </button>
-                    <button class="tooltip" value="${categoria.idCategoria}" onclick="eliminarCategoria(this.value)">
-                        <span class="material-icons">delete</span>
-                        <span class="tooltiptext">Eliminar categoría</span>
-                    </button>
-                </td>
-            `;
-      tbody.appendChild(row);
-    });
-    cerrarModal();
-  });
-}
-
-function editarCategoria(id) {
-  window.api.obtenerCategorias((categorias) => {
-    categorias.forEach((categoria) => {
-      if (categoria.idCategoria === Number(id)) {
-        document.getElementById("idCategoria").value = categoria.idCategoria;
-        document.getElementById("nombreCategoria").value = categoria.nombreCategoria;
-
-        document.getElementById("modalTitle").innerText = "Editar Categoría";
-        document.getElementById("buttonModal").onclick = enviarEdicionCategoria;
-        // Mostrar el modal
-        document.getElementById("editarCategoriaModal").style.display = "block";
-      }
-    });
-  });
-}
-
-function eliminarCategoria(id) {
-  Swal.fire({
-    title: "Eliminando categoría",
-    text: "¿Está seguro que desea eliminar esta categoría?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Enviar los datos al proceso principal a través de preload.js
-      window.api.eliminarCategoria(Number(id));
-
-      // Mostrar el resultado de la eliminación al recibir la respuesta
-      window.api.onRespuestaEliminarCategoria((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            cargarCategoriasTabla();
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-    }
-  });
-}
-
-function agregarCategoria() {
-  document.getElementById("modalTitle").innerText = "Crear Categoría";
-  document.getElementById("buttonModal").onclick = enviarCreacionCategoria;
-  // Mostrar el modal
-  document.getElementById("editarCategoriaModal").style.display = "block";
 }

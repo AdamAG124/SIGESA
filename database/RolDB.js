@@ -1,11 +1,11 @@
 const ConectarDB = require('./ConectarDB');
-const Roles = require('../domain/Roles');
+const Rol = require('../domain/Rol');
 
-class RolesDB {
+class RolDB {
     #table;
 
     constructor() {
-        this.#table = 'roles';
+        this.#table = 'SIGM_ROL';
     }
 
     // Método para recuperar la lista de roles
@@ -15,14 +15,14 @@ class RolesDB {
         const roles = [];
 
         try {
-            const [rows] = await connection.query(`SELECT * FROM ${this.#table}`);
+            const [rows] = await connection.query(`SELECT ID_ROL AS idRol, DSC_NOMBRE AS nombreRol, DSC_ROL AS descripcion FROM ${this.#table}`);
 
             // Mapear cada fila a un objeto de tipo Roles
             rows.forEach(row => {
-                const rol = new Roles();
-                rol.setIdRole(row.id_role);
-                rol.setRoleName(row.role_name);
-                rol.setRoleDescription(row.role_description);
+                const rol = new Rol();
+                rol.setIdRol(row.idRol);
+                rol.setNombre(row.nombreRol);
+                rol.setDescripcion(row.descripcion);
                 roles.push(rol);
             });
 
@@ -38,4 +38,4 @@ class RolesDB {
     }
 }
 
-module.exports = RolesDB;
+module.exports = RolDB;
