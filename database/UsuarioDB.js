@@ -19,13 +19,12 @@ class UsuarioDB {
             // Consultar si el usuario existe
             const [rows] = await connection.query(`
                 SELECT 
-                    U.ID_USUARIO, U,ID_COLABORADOR, U.DSC_NOMBRE AS nombreUsuario, U.ID_ROL,
-                    U.DSC_PASSWORD, U.ESTADO AS estadoUsuario,
+                    U.ID_USUARIO, U.DSC_NOMBRE AS nombreUsuario, U.DSC_PASSWORD,
+                    U.ESTADO AS estadoUsuario,
                     C.DSC_NOMBRE AS colaboradorNombre,
                     C.DSC_PRIMER_APELLIDO,
                     C.DSC_SEGUNDO_APELLIDO,
-                    C.NUM_TELEFONO,
-                    C.DSC_CORREO,
+                    C.NUM_TELEFONO, C.DSC_CORREO,
                     R.DSC_NOMBRE AS nombreRol
                 FROM 
                     ${this.#table} U
@@ -37,20 +36,20 @@ class UsuarioDB {
 
             if (rows.length > 0) {
                 const usuarioDB = rows[0];
-                const match = await bcrypt.compare(password, usuarioDB.password);
+                const match = await bcrypt.compare(password, usuarioDB.DSC_PASSWORD);
 
                 if (match) {
                     // Crear objeto Usuario y setear la información
                     const usuario = new Usuario();
 
                     // Llenar el objeto Usuario
-                    usuario.setIdUsuario(usuarioDB.idUsuario);
+                    usuario.setIdUsuario(usuarioDB.ID_USUARIO);
                     usuario.setNombreUsuario(usuarioDB.nombreUsuario);
-                    usuario.getIdColaborador().setNombre(usuarioDB.nombreColaborador);
-                    usuario.getIdColaborador().setPrimerApellido(usuarioDB.primerApellido);
-                    usuario.getIdColaborador().setSegundoApellido(usuarioDB.segundoApellido);
-                    usuario.getIdColaborador().setNumTelefono(usuarioDB.numTelefono);
-                    usuario.getIdColaborador().setCorreo(usuarioDB.correo);
+                    usuario.getIdColaborador().setNombre(usuarioDB.colaboradorNombre);
+                    usuario.getIdColaborador().setPrimerApellido(usuarioDB.DSC_PRIMER_APELLIDO);
+                    usuario.getIdColaborador().setSegundoApellido(usuarioDB.DSC_SEGUNDO_APELLIDO);
+                    usuario.getIdColaborador().setCorreo(usuarioDB.NUM_TELEFONO);
+                    usuario.getIdColaborador().setCorreo(usuarioDB.DSC_CORREO);
                     usuario.getRol().setNombre(usuarioDB.nombreRol);
                     usuario.setEstado(usuarioDB.estadoUsuario);
 
@@ -107,15 +106,18 @@ class UsuarioDB {
         }
     }
 
-    async obtenerUsuarios() {
+    async obtenerUsuarios(pageSize, currentPage, estadoUsuario) {
         const db = new ConectarDB();
         let connection;
-
+    
         try {
             connection = await db.conectar();
-
-            // Consultar todos los usuarios
-            const [rows] = await connection.query(`
+    
+            // Calcular el OFFSET para la paginación
+            const offset = (currentPage - 1) * pageSize;
+    
+            // Construir la consulta SQL principal con paginación y filtro de estado
+            let query = `
                 SELECT 
                     U.ID_USUARIO AS idUsuario,
                     U.DSC_NOMBRE AS nombreUsuario,
@@ -132,12 +134,23 @@ class UsuarioDB {
                     SIGM_COLABORADOR C ON U.ID_COLABORADOR = C.ID_COLABORADOR
                 INNER JOIN
                     SIGM_ROL R ON U.ID_ROL = R.ID_ROL
-            `);
-
+            `;
+    
+            // Añadir la condición de filtro por estado de usuario si es proporcionado
+            if (estadoUsuario !== null) {
+                query += ` WHERE U.ESTADO = ${estadoUsuario}`;
+            }
+    
+            // Añadir la cláusula de LIMIT y OFFSET para la paginación
+            query += ` LIMIT ${pageSize} OFFSET ${offset}`;
+    
+            // Ejecutar la consulta SQL para obtener los usuarios
+            const [rows] = await connection.query(query);
+    
             // Crear un array para almacenar los objetos Usuario
             const usuarios = rows.map(usuarioDB => {
                 const usuario = new Usuario();
-
+    
                 // Setear la información en el objeto Usuario
                 usuario.setIdUsuario(usuarioDB.idUsuario);
                 usuario.setNombreUsuario(usuarioDB.nombreUsuario);
@@ -148,21 +161,55 @@ class UsuarioDB {
                 usuario.getRol().setIdRol(usuarioDB.idRol);
                 usuario.getRol().setNombre(usuarioDB.nombreRol);
                 usuario.setEstado(usuarioDB.estadoUsuario);
-
+    
                 return usuario;
             });
-
-            return usuarios; // Retornar solo el array de objetos Usuario
-
+    
+            // Ahora obtenemos el total de usuarios para la paginación
+            let countQuery = `
+                SELECT COUNT(*) as total
+                FROM ${this.#table} U
+                INNER JOIN SIGM_COLABORADOR C ON U.ID_COLABORADOR = C.ID_COLABORADOR
+                INNER JOIN SIGM_ROL R ON U.ID_ROL = R.ID_ROL
+            `;
+    
+            // Añadir la condición de filtro por estado de usuario si es proporcionado
+            if (estadoUsuario !== null) {
+                countQuery += ` WHERE U.ESTADO = ${estadoUsuario}`;
+            }
+    
+            // Ejecutar la consulta para contar el total de usuarios
+            const [countResult] = await connection.query(countQuery);
+            const totalRecords = countResult[0].total;
+    
+            // Calcular el número total de páginas
+            const totalPages = Math.ceil(totalRecords / pageSize);
+    
+            // Retornar los usuarios y los datos de paginación
+            return {
+                usuarios,
+                pagination: {
+                    currentPage,
+                    pageSize,
+                    totalPages,
+                    totalRecords,
+                    firstPage: 1,
+                    lastPage: totalPages
+                }
+            };
+    
         } catch (error) {
             console.error('Error en la consulta a la base de datos:', error.message);
-            return []; // Retornar un array vacío en caso de error
+            return {
+                success: false,
+                message: 'Error al obtener los usuarios: ' + error.message
+            };
         } finally {
             if (connection) {
-                await connection.end(); // Asegúrate de cerrar la conexión
+                await connection.end(); // Asegurarse de cerrar la conexión
             }
         }
-    }
+    }    
 
     async actualizarUsuarioBD(usuario) {
         const db = new ConectarDB();

@@ -97,9 +97,9 @@ ipcMain.on('leer-html', (event, filePath) => {
     });
 });
 
-ipcMain.on('listar-usuarios', async (event) => {
+ipcMain.on('listar-usuarios', async () => {
     const controller = new UsuarioController();
-    const usuarios = await controller.listarUsuarios(); // Asegúrate de que listarUsuarios es asíncrono
+    const usuarios = await controller.listarUsuarios(1,2,1); // Asegúrate de que listarUsuarios es asíncrono
     // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
     const usuariosSimplificados = usuarios.map(usuario => {
         //console.log(usuario.getRole().getIdRole());

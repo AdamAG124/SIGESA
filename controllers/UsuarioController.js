@@ -11,8 +11,8 @@ class UsuarioController {
         return await this.#usuarioService.validarUsuario(username, password);
     }
 
-    async listarUsuarios(){
-        return await this.#usuarioService.obtenerUsuarios();
+    async listarUsuarios(pageSize, currentPage, estadoUsuario){
+        return await this.#usuarioService.obtenerUsuarios(pageSize, currentPage, estadoUsuario);
     }
 
     async actualizarUsuario(usuario){

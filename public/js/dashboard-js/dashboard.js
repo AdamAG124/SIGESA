@@ -10,7 +10,7 @@ function showUserData() {
     if (user) {
       document.getElementById("user-name").innerText =
         user.nombre + " " + user.primerApellido;
-      document.getElementById("user-role").innerText = user.nombre;
+      document.getElementById("user-role").innerText = user.roleName;
     } else {
       console.log("No se encontraron datos de usuario.");
     }
@@ -85,7 +85,8 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla() { 
+function cargarUsuariosTabla() {
+  cargarRoles("filtrado-role", "Filtrar por tipo");
   window.api.obtenerUsuarios((usuarios) => {
     const tbody = document.getElementById("usuarios-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
@@ -147,8 +148,8 @@ function editarUsuario(id) {
 
           roles.forEach((rol) => {
             const option = document.createElement("option");
-            option.value = rol.id; 
-            option.textContent = rol.nombre; 
+            option.value = rol.id;
+            option.textContent = rol.nombre;
             roleSelect.appendChild(option);
           });
 
@@ -158,7 +159,7 @@ function editarUsuario(id) {
 
         document.getElementById("modalTitle").innerText = "Editar Usuario";
         document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
-        
+
         // Mostrar el modal
         document.getElementById("editarUsuarioModal").style.display = "block";
       }
@@ -259,21 +260,7 @@ function eliminarUsuario(id) {
 
 function agregarUsuario() {
   // Cargar la lista de roles y preseleccionar el rol del usuario
-  window.api.obtenerRoles((roles) => {
-    const roleSelect = document.getElementById("roleName");
-    roleSelect.innerHTML = ""; // Limpiar las opciones existentes
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "Selecciona un rol";
-    roleSelect.appendChild(option);
-
-    roles.forEach((role) => {
-      const option = document.createElement("option");
-      option.value = role.id; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.nombre;
-      roleSelect.appendChild(option);
-    });
-  });
+  cargarRoles("roleName", "Selecciona un rol");
 
   window.api.obtenerColaboradores((colaboradores) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
@@ -407,15 +394,19 @@ function cerrarModal() {
   document.getElementById("confirmPassword").style.border = "";
 }
 
-function cargarRoles() {
+function cargarRoles(idSelect, mensajeQueamado) {
   window.api.obtenerRoles((roles) => {
-    const roleSelect = document.getElementById("roleName");
+    const roleSelect = document.getElementById(idSelect);
     roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = mensajeQueamado;
+    roleSelect.appendChild(option);
 
     roles.forEach((role) => {
       const option = document.createElement("option");
       option.value = role.id; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.nombre; // Asumiendo que tu objeto role tiene un roleName
+      option.textContent = role.nombre;
       roleSelect.appendChild(option);
     });
   });
