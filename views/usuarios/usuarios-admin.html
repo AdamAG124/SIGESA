@@ -8,12 +8,21 @@
     <input type="text" placeholder="Buscar usuarios...">
 </div>
 <div class="filters">
-    <select>
-        <option>10 por página</option>
-        <option>25 por página</option>
-        <option>50 por página</option>
+    <!--<label for="selectPageSize">Cantidad de registros</label>-->
+    <select id="selectPageSize" onchange="filterTable()">
+        <option value="5">5 por página</option>
+        <option value="10">10 por página</option>
+        <option value="25">25 por página</option>
+        <option value="50">50 por página</option>
     </select>
-    <select id="filtrado-role">
+    <!--<label for="filtrado-role">Filtrar por tipo de usuario</label>-->
+    <select id="filtrado-role" onchange="filterTable()">
+    </select>
+    <!--<label for="filtrado-estado">Filtrar por estado</label>-->
+    <select name="" id="filtrado-estado" onchange="filterTable()">
+        <option value="2">Todos</option>
+        <option value="1">Activos</option>
+        <option value="0">Inactivos</option>
     </select>
     <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
 </div>
@@ -31,13 +40,9 @@
 
     </tbody>
 </table>
-<div class="pagination">
-    <button><span class="material-icons">first_page</span></button>
-    <button><span class="material-icons">navigate_before</span></button>
-    <span>1</span>
-    <button><span class="material-icons">navigate_next</span></button>
-    <button><span class="material-icons">last_page</span></button>
-</div>
+    <div class="pagination">
+        
+    </div>
 </div>
 <!-- Modal para editar usuario -->
 <div id="editarUsuarioModal" class="modal">

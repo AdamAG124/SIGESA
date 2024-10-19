@@ -19,6 +19,9 @@ class UsuarioService {
     }
 
     async obtenerUsuarios(pageSize, currentPage, estadoUsuario){
+        if(estadoUsuario == 2){
+            estadoUsuario = null;
+        }
         return await this.#usuarioDB.obtenerUsuarios(pageSize, currentPage, estadoUsuario);
     }
 

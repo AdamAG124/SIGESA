@@ -194,6 +194,7 @@ class UsuarioDB {
                     totalPages,
                     totalRecords,
                     firstPage: 1,
+                    estado: estadoUsuario,
                     lastPage: totalPages
                 }
             };

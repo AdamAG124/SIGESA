@@ -97,30 +97,46 @@ ipcMain.on('leer-html', (event, filePath) => {
     });
 });
 
-ipcMain.on('listar-usuarios', async () => {
+ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado }) => {
     const controller = new UsuarioController();
-    const usuarios = await controller.listarUsuarios(1,2,1); // Asegúrate de que listarUsuarios es asíncrono
-    // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
-    const usuariosSimplificados = usuarios.map(usuario => {
-        //console.log(usuario.getRole().getIdRole());
-        return {
-            idUsuario: usuario.getIdUsuario(),
-            nombreUsuario: usuario.getNombreUsuario(),
-            idColaborador: usuario.getIdColaborador().getIdColaborador(),
-            nombreColaborador: usuario.getIdColaborador().getNombre(),
-            primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
-            segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
-            idRol: usuario.getRol().getIdRol(),
-            nombreRol: usuario.getRol().getNombre(),
-            nombreUsuario: usuario.getNombreUsuario(),
-            estado: usuario.getEstado()
+    try {
+        // Llamar al método listarUsuarios con los parámetros recibidos
+        const resultado = await controller.listarUsuarios(pageSize, pageNumber, estado);
+
+        // Simplificar la lista de usuarios
+        const usuariosSimplificados = resultado.usuarios.map(usuario => {
+            return {
+                idUsuario: usuario.getIdUsuario(),
+                nombreUsuario: usuario.getNombreUsuario(),
+                idColaborador: usuario.getIdColaborador().getIdColaborador(),
+                nombreColaborador: usuario.getIdColaborador().getNombre(),
+                primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
+                segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
+                idRol: usuario.getRol().getIdRol(),
+                nombreRol: usuario.getRol().getNombre(),
+                estado: usuario.getEstado()
+            };
+        });
+
+        // Preparar el objeto de respuesta que incluye los usuarios y los datos de paginación
+        const respuesta = {
+            usuarios: usuariosSimplificados,  // Lista simplificada de usuarios
+            paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
         };
-    });
-    //alert(usuarios.getNombreUsuario());
-    if (mainWindow) {  // Verifica que mainWindow esté definido
-        mainWindow.webContents.send('cargar-usuarios', usuariosSimplificados); // Enviar los usuarios de vuelta al frontend
+
+        // Enviar los datos de vuelta al frontend
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-usuarios', respuesta);
+        }
+
+    } catch (error) {
+        console.error('Error al listar los usuarios:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-usuarios', 'Hubo un error al cargar los usuarios.');
+        }
     }
 });
+
 
 ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
     try {

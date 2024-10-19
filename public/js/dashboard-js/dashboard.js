@@ -85,17 +85,33 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla() {
+function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2) {
+
+  // Obtener el select por su id
+  const selectEstado = document.getElementById('filtrado-estado');
+  const selectPageSize = document.getElementById('selectPageSize');
+  // Verificar el valor del estado
+  if (estado === 0 || estado === 1) {
+    // Si el estado es 0 o 1, preseleccionamos ese valor en el select
+    selectEstado.value = estado;
+  } else {
+    // Si el estado es null o cualquier otro valor, preseleccionamos el option con value=2
+    selectEstado.value = 2;
+  }
+
+  selectPageSize.value = pageSize;
+
+  // Cargar los roles para el filtrado (esto permanece igual)
   cargarRoles("filtrado-role", "Filtrar por tipo");
-  window.api.obtenerUsuarios((usuarios) => {
+
+  // Llamar al método del preload.js pasando los datos de paginación
+  window.api.obtenerUsuarios(pageSize, pageNumber, estado, (respuesta) => {
     const tbody = document.getElementById("usuarios-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
 
-    usuarios.forEach((usuario) => {
-      // Concatenar el nombre del colaborador con los apellidos
+    // Iterar sobre los usuarios y agregarlos a la tabla
+    respuesta.usuarios.forEach((usuario) => {
       const nombreCompleto = `${usuario.nombreColaborador} ${usuario.primerApellidoColaborador} ${usuario.segundoApellidoColaborador}`;
-
-      // Verificar el estado del usuario
       const estadoUsuario = usuario.estado === 1 ? "Activo" : "Inactivo";
 
       const row = document.createElement("tr");
@@ -103,7 +119,7 @@ function cargarUsuariosTabla() {
                 <td>${nombreCompleto}</td>
                 <td>${usuario.nombreUsuario}</td>
                 <td>${usuario.nombreRol}</td>
-                <td>${estadoUsuario}</td> <!-- Aquí se imprime el estado -->
+                <td>${estadoUsuario}</td>
                 <td class="action-icons">
                     <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value)">
                         <span class="material-icons">edit</span>
@@ -113,16 +129,79 @@ function cargarUsuariosTabla() {
                         <span class="material-icons">delete</span>
                         <span class="tooltiptext">Eliminar usuario</span>
                     </button>
-                    <!--<button class="tooltip" value="${usuario.idUsuario}" onclick="verDetallesUsuario(this.value)">
-                        <span class="material-icons">info</span>
-                        <span class="tooltiptext">Ver detalles</span>
-                    </button>-->
                 </td>
             `;
       tbody.appendChild(row);
     });
-    cerrarModal();
+
+    // Actualizar los botones de paginación
+    actualizarPaginacion(respuesta.paginacion, ".pagination");
+
+    cerrarModal(); // Cerrar cualquier modal activo
   });
+}
+
+function actualizarPaginacion(pagination, idInnerDiv) {
+  const paginacionDiv = document.querySelector(idInnerDiv);
+
+  // Limpiar el contenido previo de paginación
+  paginacionDiv.innerHTML = "";
+
+  // Botón "Primera página"
+  const firstPageButton = document.createElement("button");
+  firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
+  firstPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
+  firstPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado);
+  });
+  paginacionDiv.appendChild(firstPageButton);
+
+  // Botón "Página anterior"
+  const prevPageButton = document.createElement("button");
+  prevPageButton.innerHTML = `<span class="material-icons">navigate_before</span>`;
+  prevPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
+  prevPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado);
+  });
+  paginacionDiv.appendChild(prevPageButton);
+
+  // Páginas numeradas
+  //for (let i = 1; i <= pagination.totalPages; i++) {
+  const pageSpan = document.createElement("span");
+  pageSpan.textContent = pagination.currentPage + ' de ' + pagination.totalPages;
+  pageSpan.setAttribute('data-value', pagination.currentPage);
+  pageSpan.classList.add("currentPage");
+  /*if (i === pagination.currentPage) {
+    pageSpan.classList.add("active"); // Añadir clase activa para la página actual
+  }
+  pageSpan.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, i, pagination.estado);
+  });
+  paginacionDiv.appendChild(pageSpan);
+}*/
+  paginacionDiv.appendChild(pageSpan);
+
+  // Botón "Siguiente página"
+  const nextPageButton = document.createElement("button");
+  nextPageButton.innerHTML = `<span class="material-icons">navigate_next</span>`;
+  nextPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
+  nextPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado);
+  });
+  paginacionDiv.appendChild(nextPageButton);
+
+  // Botón "Última página"
+  const lastPageButton = document.createElement("button");
+  lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
+  lastPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
+  lastPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado);
+  });
+  paginacionDiv.appendChild(lastPageButton);
+}
+
+function filterTable() {
+  cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value));
 }
 
 function editarUsuario(id) {
