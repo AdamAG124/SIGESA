@@ -106,16 +106,16 @@ class UsuarioDB {
         }
     }
 
-    async obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro) {
+    async obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro, valorBusqueda) {
         const db = new ConectarDB();
         let connection;
-    
+
         try {
             connection = await db.conectar();
-    
+
             // Calcular el OFFSET para la paginación
             const offset = (currentPage - 1) * pageSize;
-    
+
             // Construir la consulta SQL principal con paginación y filtro de estado
             let query = `
                 SELECT 
@@ -135,26 +135,45 @@ class UsuarioDB {
                 INNER JOIN
                     SIGM_ROL R ON U.ID_ROL = R.ID_ROL
             `;
-    
+
+            // Definir una variable para verificar si ya hemos agregado alguna condición
+            let whereClauseAdded = false;
+
             // Añadir la condición de filtro por estado de usuario si es proporcionado
             if (estadoUsuario !== null) {
                 query += ` WHERE U.ESTADO = ${estadoUsuario}`;
+                whereClauseAdded = true;
             }
 
-            if(idRolFiltro !== null){
-                query += ` AND U.ID_ROL = ${idRolFiltro}`;
+            // Filtro por rol
+            if (idRolFiltro !== null) {
+                query += whereClauseAdded ? ` AND U.ID_ROL = ${idRolFiltro}` : ` WHERE U.ID_ROL = ${idRolFiltro}`;
+                whereClauseAdded = true;
             }
-    
+
+            // Filtro por valor de búsqueda
+            if (valorBusqueda !== null) {
+                const likeCondition = `
+                (
+                    U.DSC_NOMBRE LIKE '${valorBusqueda}%' OR
+                    C.DSC_NOMBRE LIKE '${valorBusqueda}%' OR
+                    C.DSC_PRIMER_APELLIDO LIKE '${valorBusqueda}%' OR
+                    C.DSC_SEGUNDO_APELLIDO LIKE '${valorBusqueda}%'
+                )
+            `;
+                query += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
+            }
+
             // Añadir la cláusula de LIMIT y OFFSET para la paginación
             query += ` LIMIT ${pageSize} OFFSET ${offset}`;
-    
+
             // Ejecutar la consulta SQL para obtener los usuarios
             const [rows] = await connection.query(query);
-    
+
             // Crear un array para almacenar los objetos Usuario
             const usuarios = rows.map(usuarioDB => {
                 const usuario = new Usuario();
-    
+
                 // Setear la información en el objeto Usuario
                 usuario.setIdUsuario(usuarioDB.idUsuario);
                 usuario.setNombreUsuario(usuarioDB.nombreUsuario);
@@ -165,10 +184,10 @@ class UsuarioDB {
                 usuario.getRol().setIdRol(usuarioDB.idRol);
                 usuario.getRol().setNombre(usuarioDB.nombreRol);
                 usuario.setEstado(usuarioDB.estadoUsuario);
-    
+
                 return usuario;
             });
-    
+
             // Ahora obtenemos el total de usuarios para la paginación
             let countQuery = `
                 SELECT COUNT(*) as total
@@ -176,22 +195,29 @@ class UsuarioDB {
                 INNER JOIN SIGM_COLABORADOR C ON U.ID_COLABORADOR = C.ID_COLABORADOR
                 INNER JOIN SIGM_ROL R ON U.ID_ROL = R.ID_ROL
             `;
-    
-            // Añadir la condición de filtro por estado de usuario si es proporcionado
+
+            // Añadir las mismas condiciones al query de conteo
+            whereClauseAdded = false;
             if (estadoUsuario !== null) {
                 countQuery += ` WHERE U.ESTADO = ${estadoUsuario}`;
+                whereClauseAdded = true;
             }
-            if(idRolFiltro !== null){
-                query += ` AND U.ID_ROL = ${idRolFiltro}`;
+            if (idRolFiltro !== null) {
+                countQuery += whereClauseAdded ? ` AND U.ID_ROL = ${idRolFiltro}` : ` WHERE U.ID_ROL = ${idRolFiltro}`;
+                whereClauseAdded = true;
             }
-    
+            if (valorBusqueda !== null) {
+                const likeCondition = `C.DSC_NOMBRE LIKE '${valorBusqueda}%'`;
+                countQuery += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
+            }
+
             // Ejecutar la consulta para contar el total de usuarios
             const [countResult] = await connection.query(countQuery);
             const totalRecords = countResult[0].total;
-    
+
             // Calcular el número total de páginas
             const totalPages = Math.ceil(totalRecords / pageSize);
-    
+
             // Retornar los usuarios y los datos de paginación
             return {
                 usuarios,
@@ -206,7 +232,7 @@ class UsuarioDB {
                     lastPage: totalPages
                 }
             };
-    
+
         } catch (error) {
             console.error('Error en la consulta a la base de datos:', error.message);
             return {
@@ -218,7 +244,8 @@ class UsuarioDB {
                 await connection.end(); // Asegurarse de cerrar la conexión
             }
         }
-    }    
+    }
+
 
     async actualizarUsuarioBD(usuario) {
         const db = new ConectarDB();

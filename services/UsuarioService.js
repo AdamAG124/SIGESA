@@ -18,14 +18,14 @@ class UsuarioService {
         return await this.#usuarioDB.validarUsuario(username, password);
     }
 
-    async obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro){
+    async obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro, valorBusqueda){
         if(estadoUsuario == 2){
             estadoUsuario = null;
         }
         if(idRolFiltro == 0){
             idRolFiltro = null;
         }
-        return await this.#usuarioDB.obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro);
+        return await this.#usuarioDB.obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro, valorBusqueda);
     }
 
     async actualizarUsuario(usuario){

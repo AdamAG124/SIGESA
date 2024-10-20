@@ -5,7 +5,7 @@
     </button>
 </div>
 <div class="search-bar">
-    <input type="text" placeholder="Buscar usuarios...">
+    <input id="search-bar" type="text" onkeypress="filterTable()" placeholder="Buscar usuarios...">
 </div>
 <div class="filters">
     <!--<label for="selectPageSize">Cantidad de registros</label>-->
@@ -17,6 +17,7 @@
     </select>
     <!--<label for="filtrado-role">Filtrar por tipo de usuario</label>-->
     <select id="filtrado-role" onchange="filterTable()">
+
     </select>
     <!--<label for="filtrado-estado">Filtrar por estado</label>-->
     <select name="" id="filtrado-estado" onchange="filterTable()">
@@ -89,7 +90,7 @@
                 <!-- Opciones de roles se llenarán aquí -->
             </select>
 
-            <button type="button" id="buttonModal">Guardar Cambios</button>
+            <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
         </form>
     </div>
 </div>

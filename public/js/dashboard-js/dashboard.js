@@ -85,7 +85,7 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFiltro = 0) {
+function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFiltro = 0, valorBusqueda = null) {
 
   // Obtener el select por su id
   const selectEstado = document.getElementById('filtrado-estado');
@@ -108,7 +108,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
     selectRoles.value = idRolFiltro;
 
     // Llamar al método del preload.js pasando los datos de paginación
-    window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, (respuesta) => {
+    window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, valorBusqueda, (respuesta) => {
       const tbody = document.getElementById("usuarios-body");
       tbody.innerHTML = ""; // Limpiar contenido previo
 
@@ -205,7 +205,7 @@ function actualizarPaginacion(pagination, idInnerDiv) {
 }
 
 function filterTable() {
-  cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value));
+  cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
 }
 
 function editarUsuario(id, pageSize, pageNumber, estado, idRolFiltro) {
@@ -353,8 +353,32 @@ function eliminarUsuario(id) {
 }
 
 function agregarUsuario() {
+  const roleSelectOrigen = document.getElementById("filtrado-role");
+  const roleSelectDestino = document.getElementById("roleName");
+
+  // Crear un array para almacenar los textos de las opciones
+  const opcionesArray = [];
+
+  for (let i = 0; i < roleSelectOrigen.options.length; i++) {
+    const option = roleSelectOrigen.options[i];
+    opcionesArray.push(option.textContent); // Guardar el texto en el array
+  }
+
   // Cargar la lista de roles y preseleccionar el rol del usuario
-  cargarRoles("roleName", "Selecciona un rol");
+  //window.api.obtenerRoles((roles) => {
+  roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Selecciona un rol";
+  roleSelectDestino.appendChild(defaultOption);
+
+  //roles.forEach((rol) => {
+  for (let i = 1; i < opcionesArray.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = opcionesArray[i];
+    roleSelectDestino.appendChild(option);
+  }
 
   window.api.obtenerColaboradores((colaboradores) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
