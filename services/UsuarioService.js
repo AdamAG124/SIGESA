@@ -1,4 +1,4 @@
-const UsuarioDB = require('../database/usuariodb');
+const UsuarioDB = require('../database/UsuarioDB');
 
 class UsuarioService {
 
@@ -18,8 +18,14 @@ class UsuarioService {
         return await this.#usuarioDB.validarUsuario(username, password);
     }
 
-    async obtenerUsuarios(){
-        return await this.#usuarioDB.obtenerUsuarios();
+    async obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro, valorBusqueda){
+        if(estadoUsuario == 2){
+            estadoUsuario = null;
+        }
+        if(idRolFiltro == 0){
+            idRolFiltro = null;
+        }
+        return await this.#usuarioDB.obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro, valorBusqueda);
     }
 
     async actualizarUsuario(usuario){

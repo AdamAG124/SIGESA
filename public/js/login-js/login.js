@@ -55,13 +55,3 @@ function mostrarToastConfirmacion(titulo) {
         title: titulo
     });
 }
-
-// renderer.js
-function adjuntarHTML() {
-    const filePath = 'views/dashboard/holaxd.html';  // La ruta relativa del archivo HTML
-    window.api.loadHTML(filePath);  // Solicita cargar el archivo HTML
-    // Recibir el contenido del archivo HTML y adjuntarlo a innerHTML
-    window.api.onHTMLLoaded((data) => {
-        document.getElementById('holaxd').innerHTML = data;
-    });
-}

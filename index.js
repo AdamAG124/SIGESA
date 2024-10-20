@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const UsuarioController = require('./controllers/UsuarioController');
-const RolesController = require('./controllers/RolesController');
+const RolController = require('./controllers/RolController');
 const Usuario = require('./domain/Usuario');
 const fs = require('fs');
 const ColaboradorController = require('./controllers/ColaboradorController');
@@ -97,30 +97,46 @@ ipcMain.on('leer-html', (event, filePath) => {
     });
 });
 
-ipcMain.on('listar-usuarios', async (event) => {
+ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRolFiltro, valorBusqueda }) => {
     const controller = new UsuarioController();
-    const usuarios = await controller.listarUsuarios(); // Asegúrate de que listarUsuarios es asíncrono
-    // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
-    const usuariosSimplificados = usuarios.map(usuario => {
-        //console.log(usuario.getRole().getIdRole());
-        return {
-            idUsuario: usuario.getIdUsuario(),
-            nombreUsuario: usuario.getNombreUsuario(),
-            idColaborador: usuario.getIdColaborador().getIdColaborador(),
-            nombreColaborador: usuario.getIdColaborador().getNombre(),
-            primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
-            segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
-            role: usuario.getRole().getIdRole(),
-            roleName: usuario.getRole().getRoleName(),
-            nombreUsuario: usuario.getNombreUsuario(),
-            estado: usuario.getEstado()
+    try {
+        // Llamar al método listarUsuarios con los parámetros recibidos
+        const resultado = await controller.listarUsuarios(pageSize, pageNumber, estado, idRolFiltro, valorBusqueda);
+
+        // Simplificar la lista de usuarios
+        const usuariosSimplificados = resultado.usuarios.map(usuario => {
+            return {
+                idUsuario: usuario.getIdUsuario(),
+                nombreUsuario: usuario.getNombreUsuario(),
+                idColaborador: usuario.getIdColaborador().getIdColaborador(),
+                nombreColaborador: usuario.getIdColaborador().getNombre(),
+                primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
+                segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
+                idRol: usuario.getRol().getIdRol(),
+                nombreRol: usuario.getRol().getNombre(),
+                estado: usuario.getEstado()
+            };
+        });
+
+        // Preparar el objeto de respuesta que incluye los usuarios y los datos de paginación
+        const respuesta = {
+            usuarios: usuariosSimplificados,  // Lista simplificada de usuarios
+            paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
         };
-    });
-    //alert(usuarios.getNombreUsuario());
-    if (mainWindow) {  // Verifica que mainWindow esté definido
-        mainWindow.webContents.send('cargar-usuarios', usuariosSimplificados); // Enviar los usuarios de vuelta al frontend
+
+        // Enviar los datos de vuelta al frontend
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-usuarios', respuesta);
+        }
+
+    } catch (error) {
+        console.error('Error al listar los usuarios:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-usuarios', 'Hubo un error al cargar los usuarios.');
+        }
     }
 });
+
 
 ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
     try {
@@ -128,7 +144,7 @@ ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
         const usuario = new Usuario();
         usuario.setIdUsuario(usuarioData.idUsuario);
         usuario.setNombreUsuario(usuarioData.nombreUsuario);
-        usuario.getRole().setIdRole(usuarioData.roleName);
+        usuario.getRol().setIdRol(usuarioData.roleName);
         usuario.setPassword(usuarioData.newPassword);
 
         // Llamar al método de actualizar en el UsuarioController
@@ -166,7 +182,7 @@ ipcMain.on('crear-usuario', async (event, usuarioData) => {
         // Crear un objeto Usuario y setear los datos
         const usuario = new Usuario();
         usuario.setNombreUsuario(usuarioData.nombreUsuario);
-        usuario.getRole().setIdRole(usuarioData.roleName);
+        usuario.getRol().setIdRol(usuarioData.rol); // Guarda el id del select con id roleName
         usuario.setPassword(usuarioData.newPassword);
 
         // Llamar al método de actualizar en el UsuarioController
@@ -182,15 +198,15 @@ ipcMain.on('crear-usuario', async (event, usuarioData) => {
 });
 
 ipcMain.on('listar-roles', async (event) => {
-    const rolesController = new RolesController(); // Asegúrate de tener acceso a la clase RolesDB
-    const roles = await rolesController.getRoles(); // Asegúrate de que listarRoles es asíncrono
+    const rolController = new RolController(); 
+    const roles = await rolController.getRoles(); 
 
     // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
     const rolesSimplificados = roles.map(rol => {
         return {
-            idRole: rol.getIdRole(),
-            roleName: rol.getRoleName(),
-            roleDescription: rol.getRoleDescription()
+            id: rol.getIdRol(),
+            nombre: rol.getNombre(),
+            descripcion: rol.getDescripcion()
         };
     });
 

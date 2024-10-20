@@ -85,26 +85,46 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla() {
-  window.api.obtenerUsuarios((usuarios) => {
-    const tbody = document.getElementById("usuarios-body");
-    tbody.innerHTML = ""; // Limpiar contenido previo
+function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFiltro = 0, valorBusqueda = null) {
 
-    usuarios.forEach((usuario) => {
-      // Concatenar el nombre del colaborador con los apellidos
-      const nombreCompleto = `${usuario.nombreColaborador} ${usuario.primerApellidoColaborador} ${usuario.segundoApellidoColaborador}`;
+  // Obtener el select por su id
+  const selectEstado = document.getElementById('filtrado-estado');
+  const selectPageSize = document.getElementById('selectPageSize');
+  const selectRoles = document.getElementById("filtrado-role");
+  // Verificar el valor del estado
+  if (estado === 0 || estado === 1) {
+    // Si el estado es 0 o 1, preseleccionamos ese valor en el select
+    selectEstado.value = estado;
+  } else {
+    // Si el estado es null o cualquier otro valor, preseleccionamos el option con value=2
+    selectEstado.value = 2;
+  }
 
-      // Verificar el estado del usuario
-      const estadoUsuario = usuario.estado === 1 ? "Activo" : "Inactivo";
+  selectPageSize.value = pageSize;
 
-      const row = document.createElement("tr");
-      row.innerHTML = `
+  // Cargar los roles para el filtrado (esto permanece igual)
+  cargarRoles("filtrado-role", "Filtrar por tipo");
+  setTimeout(() => {
+    selectRoles.value = idRolFiltro;
+
+    // Llamar al método del preload.js pasando los datos de paginación
+    window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, valorBusqueda, (respuesta) => {
+      const tbody = document.getElementById("usuarios-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
+
+      // Iterar sobre los usuarios y agregarlos a la tabla
+      respuesta.usuarios.forEach((usuario) => {
+        const nombreCompleto = `${usuario.nombreColaborador} ${usuario.primerApellidoColaborador} ${usuario.segundoApellidoColaborador}`;
+        const estadoUsuario = usuario.estado === 1 ? "Activo" : "Inactivo";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${nombreCompleto}</td>
                 <td>${usuario.nombreUsuario}</td>
-                <td>${usuario.roleName}</td>
-                <td>${estadoUsuario}</td> <!-- Aquí se imprime el estado -->
+                <td>${usuario.nombreRol}</td>
+                <td>${estadoUsuario}</td>
                 <td class="action-icons">
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value)">
+                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value, ${pageSize}, ${pageNumber}, ${estado}, ${idRolFiltro})">
                         <span class="material-icons">edit</span>
                         <span class="tooltiptext">Editar usuario</span>
                     </button>
@@ -112,49 +132,135 @@ function cargarUsuariosTabla() {
                         <span class="material-icons">delete</span>
                         <span class="tooltiptext">Eliminar usuario</span>
                     </button>
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="verDetallesUsuario(this.value)">
-                        <span class="material-icons">info</span>
-                        <span class="tooltiptext">Ver detalles</span>
-                    </button>
                 </td>
             `;
-      tbody.appendChild(row);
+        tbody.appendChild(row);
+      });
+
+      // Actualizar los botones de paginación
+      actualizarPaginacion(respuesta.paginacion, ".pagination");
+
+      cerrarModal(); // Cerrar cualquier modal activo
     });
-    cerrarModal();
-  });
+  }, 100);
 }
 
-function editarUsuario(id) {
-  window.api.obtenerUsuarios((usuarios) => {
-    usuarios.forEach((usuario) => {
+function actualizarPaginacion(pagination, idInnerDiv) {
+  const paginacionDiv = document.querySelector(idInnerDiv);
+
+  // Limpiar el contenido previo de paginación
+  paginacionDiv.innerHTML = "";
+
+  // Botón "Primera página"
+  const firstPageButton = document.createElement("button");
+  firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
+  firstPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
+  firstPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado, pagination.idRol);
+  });
+  paginacionDiv.appendChild(firstPageButton);
+
+  // Botón "Página anterior"
+  const prevPageButton = document.createElement("button");
+  prevPageButton.innerHTML = `<span class="material-icons">navigate_before</span>`;
+  prevPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
+  prevPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idRol);
+  });
+  paginacionDiv.appendChild(prevPageButton);
+
+  // Páginas numeradas
+  //for (let i = 1; i <= pagination.totalPages; i++) {
+  const pageSpan = document.createElement("span");
+  pageSpan.textContent = pagination.currentPage + ' de ' + pagination.totalPages;
+  pageSpan.setAttribute('data-value', pagination.currentPage);
+  pageSpan.classList.add("currentPage");
+  /*if (i === pagination.currentPage) {
+    pageSpan.classList.add("active"); // Añadir clase activa para la página actual
+  }
+  pageSpan.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, i, pagination.estado);
+  });
+  paginacionDiv.appendChild(pageSpan);
+}*/
+  paginacionDiv.appendChild(pageSpan);
+
+  // Botón "Siguiente página"
+  const nextPageButton = document.createElement("button");
+  nextPageButton.innerHTML = `<span class="material-icons">navigate_next</span>`;
+  nextPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
+  nextPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idRol);
+  });
+  paginacionDiv.appendChild(nextPageButton);
+
+  // Botón "Última página"
+  const lastPageButton = document.createElement("button");
+  lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
+  lastPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
+  lastPageButton.addEventListener("click", () => {
+    cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idRol);
+  });
+  paginacionDiv.appendChild(lastPageButton);
+}
+
+function filterTable() {
+  cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
+}
+
+function editarUsuario(id, pageSize, pageNumber, estado, idRolFiltro) {
+  const colaboradorSelect = document.getElementById("colaboradorName");
+  const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
+  const roleSelectOrigen = document.getElementById("filtrado-role");
+  const roleSelectDestino = document.getElementById("roleName");
+  colaboradorSelect.style.display = "none";
+  colaboradorSelectLabel.style.display = "none";
+
+  window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, (resultado) => {
+    resultado.usuarios.forEach((usuario) => {
       if (usuario.idUsuario === Number(id)) {
         document.getElementById("idUsuario").value = usuario.idUsuario;
         document.getElementById("nombreUsuario").value = usuario.nombreUsuario;
 
+        // Crear un array para almacenar los textos de las opciones
+        const opcionesArray = [];
+
+        for (let i = 0; i < roleSelectOrigen.options.length; i++) {
+          const option = roleSelectOrigen.options[i];
+          opcionesArray.push(option.textContent); // Guardar el texto en el array
+        }
+
         // Cargar la lista de roles y preseleccionar el rol del usuario
-        window.api.obtenerRoles((roles) => {
-          const roleSelect = document.getElementById("roleName");
-          roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+        //window.api.obtenerRoles((roles) => {
+        roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "Selecciona un rol";
+        roleSelectDestino.appendChild(defaultOption);
 
-          roles.forEach((role) => {
-            const option = document.createElement("option");
-            option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-            option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
-            roleSelect.appendChild(option);
-          });
+        //roles.forEach((rol) => {
+        for (let i = 1; i < opcionesArray.length; i++) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = opcionesArray[i];
+          roleSelectDestino.appendChild(option);
+        }
+        //});
 
-          // Preseleccionar el rol del usuario
-          roleSelect.value = usuario.role; // Suponiendo que el rol del usuario tiene una propiedad idRole
-        });
+        // Preseleccionar el rol del usuario
+        roleSelectDestino.value = usuario.idRol; // Asegúrate de que usuario.idRol coincide con rol.idRol
+        //});
 
         document.getElementById("modalTitle").innerText = "Editar Usuario";
         document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
+
         // Mostrar el modal
         document.getElementById("editarUsuarioModal").style.display = "block";
       }
     });
   });
 }
+
 
 function enviarEdicionUsuario() {
   const newPassword = document.getElementById("newPassword").value;
@@ -204,7 +310,7 @@ function enviarEdicionUsuario() {
         if (respuesta.success) {
           mostrarToastConfirmacion(respuesta.message);
           setTimeout(() => {
-            adjuntarHTML('/usuarios/usuarios-admin.html');
+            filterTable();
           }, 2000);
         } else {
           mostrarToastError(respuesta.message);
@@ -247,23 +353,43 @@ function eliminarUsuario(id) {
 }
 
 function agregarUsuario() {
-  // Cargar la lista de roles y preseleccionar el rol del usuario
-  window.api.obtenerRoles((roles) => {
-    const roleSelect = document.getElementById("roleName");
+  const roleSelectOrigen = document.getElementById("filtrado-role");
+  const roleSelectDestino = document.getElementById("roleName");
 
-    roles.forEach((role) => {
-      const option = document.createElement("option");
-      option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.roleName;
-      roleSelect.appendChild(option);
-    });
-  });
+  // Crear un array para almacenar los textos de las opciones
+  const opcionesArray = [];
+
+  for (let i = 0; i < roleSelectOrigen.options.length; i++) {
+    const option = roleSelectOrigen.options[i];
+    opcionesArray.push(option.textContent); // Guardar el texto en el array
+  }
+
+  // Cargar la lista de roles y preseleccionar el rol del usuario
+  //window.api.obtenerRoles((roles) => {
+  roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Selecciona un rol";
+  roleSelectDestino.appendChild(defaultOption);
+
+  //roles.forEach((rol) => {
+  for (let i = 1; i < opcionesArray.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = opcionesArray[i];
+    roleSelectDestino.appendChild(option);
+  }
 
   window.api.obtenerColaboradores((colaboradores) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
     const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
     colaboradorSelect.style.display = "block";
     colaboradorSelectLabel.style.display = "block";
+    colaboradorSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Selecciona un colaborador";
+    colaboradorSelect.appendChild(option);
 
     colaboradores.forEach((colaborador) => {
       const option = document.createElement("option");
@@ -279,7 +405,9 @@ function agregarUsuario() {
   document.getElementById("editarUsuarioModal").style.display = "block";
 }
 
-function enviarCreacionUsuario() {
+function enviarCreacionUsuario(event) {
+  event.preventDefault(); // Evitar comportamiento predeterminado de envío del formulario
+
   const colaborador = document.getElementById("colaboradorName").value;
   const nombreUsuario = document.getElementById("nombreUsuario").value;
   const newPassword = document.getElementById("newPassword").value;
@@ -321,22 +449,25 @@ function enviarCreacionUsuario() {
   }
 
   window.api.obtenerUsuarios((usuarios) => {
-    usuarios.forEach((usuario) => {
-      if (usuario.nombreUsuario === nombreUsuario) {
-        passwordError.innerText = "El nombre de usuario ya existe.";
-        passwordError.style.display = "block";
-        return; // Detener el envío del formulario si el nombre de usuario ya está en uso
-      } else if (usuario.idColaborador === colaborador) {
+    for (const usuario of usuarios) {
+      if (usuario.idColaborador === Number(colaborador)) {
         passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
         passwordError.style.display = "block";
         return; // Detener el envío del formulario si el colaborador ya tiene un usuario asociado
       }
-    });
+      if (usuario.nombreUsuario === nombreUsuario) {
+        passwordError.innerText = "El nombre de usuario ya existe.";
+        passwordError.style.display = "block";
+        return; // Detener el envío del formulario si el nombre de usuario ya existe
+      }
+    }
+
     // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
     const jsonData = {
+      colaborador: colaborador,
       nombreUsuario: nombreUsuario,
       newPassword: newPassword,
-      roleName: roleName,
+      rol: roleName,
     };
 
     Swal.fire({
@@ -381,15 +512,19 @@ function cerrarModal() {
   document.getElementById("confirmPassword").style.border = "";
 }
 
-function cargarRoles() {
+function cargarRoles(idSelect, mensajeQueamado) {
   window.api.obtenerRoles((roles) => {
-    const roleSelect = document.getElementById("roleName");
+    const roleSelect = document.getElementById(idSelect);
     roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQueamado;
+    roleSelect.appendChild(option);
 
     roles.forEach((role) => {
       const option = document.createElement("option");
-      option.value = role.idRole; // Asumiendo que tu objeto role tiene un idRole
-      option.textContent = role.roleName; // Asumiendo que tu objeto role tiene un roleName
+      option.value = role.id; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = role.nombre;
       roleSelect.appendChild(option);
     });
   });
@@ -409,84 +544,4 @@ function togglePasswordVisibility(passwordFieldId, iconId) {
     icon.classList.remove("fa-eye"); // Ojo abierto
     icon.classList.add("fa-eye-slash"); // Ojo cerrado
   }
-}
-
-//funciones del crud para categorias 
-function cargarCategoriasTabla() {
-  window.api.obtenerCategorias((categorias) => {
-    const tbody = document.getElementById("categorias-body");
-    tbody.innerHTML = ""; // Limpiar contenido previo
-
-    categorias.forEach((categoria) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-                <td>${categoria.nombreCategoria}</td>
-                <td class="action-icons">
-                    <button class="tooltip" value="${categoria.idCategoria}" onclick="editarCategoria(this.value)">
-                        <span class="material-icons">edit</span>
-                        <span class="tooltiptext">Editar categoría</span>
-                    </button>
-                    <button class="tooltip" value="${categoria.idCategoria}" onclick="eliminarCategoria(this.value)">
-                        <span class="material-icons">delete</span>
-                        <span class="tooltiptext">Eliminar categoría</span>
-                    </button>
-                </td>
-            `;
-      tbody.appendChild(row);
-    });
-    cerrarModal();
-  });
-}
-
-function editarCategoria(id) {
-  window.api.obtenerCategorias((categorias) => {
-    categorias.forEach((categoria) => {
-      if (categoria.idCategoria === Number(id)) {
-        document.getElementById("idCategoria").value = categoria.idCategoria;
-        document.getElementById("nombreCategoria").value = categoria.nombreCategoria;
-
-        document.getElementById("modalTitle").innerText = "Editar Categoría";
-        document.getElementById("buttonModal").onclick = enviarEdicionCategoria;
-        // Mostrar el modal
-        document.getElementById("editarCategoriaModal").style.display = "block";
-      }
-    });
-  });
-}
-
-function eliminarCategoria(id) {
-  Swal.fire({
-    title: "Eliminando categoría",
-    text: "¿Está seguro que desea eliminar esta categoría?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Enviar los datos al proceso principal a través de preload.js
-      window.api.eliminarCategoria(Number(id));
-
-      // Mostrar el resultado de la eliminación al recibir la respuesta
-      window.api.onRespuestaEliminarCategoria((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            cargarCategoriasTabla();
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-    }
-  });
-}
-
-function agregarCategoria() {
-  document.getElementById("modalTitle").innerText = "Crear Categoría";
-  document.getElementById("buttonModal").onclick = enviarCreacionCategoria;
-  // Mostrar el modal
-  document.getElementById("editarCategoriaModal").style.display = "block";
 }
