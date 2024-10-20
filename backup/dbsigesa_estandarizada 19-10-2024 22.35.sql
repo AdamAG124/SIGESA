@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Oct 16, 2024 at 03:21 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 20-10-2024 a las 06:35:32
+-- Versión del servidor: 9.0.1
+-- Versión de PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,46 +18,46 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `dbsigesa`
+-- Base de datos: `dbsigesa`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_categoria_producto`
+-- Estructura de tabla para la tabla `sigm_categoria_producto`
 --
 
 CREATE TABLE `sigm_categoria_producto` (
-  `ID_CATEGORIA_PRODUCTO` int(11) NOT NULL,
-  `DSC_NOMBRE` varchar(255) DEFAULT NULL,
-  `DSC_DESCRIPCION` varchar(255) DEFAULT NULL,
+  `ID_CATEGORIA_PRODUCTO` int NOT NULL,
+  `DSC_NOMBRE` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_DESCRIPCION` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_colaborador`
+-- Estructura de tabla para la tabla `sigm_colaborador`
 --
 
 CREATE TABLE `sigm_colaborador` (
-  `ID_COLABORADOR` int(11) NOT NULL,
-  `ID_DEPARTAMENTO` int(11) DEFAULT NULL,
-  `ID_PUESTO` int(11) DEFAULT NULL,
-  `DSC_SEGUNDO_APELLIDO` varchar(255) DEFAULT NULL,
+  `ID_COLABORADOR` int NOT NULL,
+  `ID_DEPARTAMENTO` int DEFAULT NULL,
+  `ID_PUESTO` int DEFAULT NULL,
+  `DSC_SEGUNDO_APELLIDO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `FEC_NACIMIENTO` date DEFAULT NULL,
-  `NUM_TELEFONO` varchar(20) DEFAULT NULL,
+  `NUM_TELEFONO` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `FEC_INGRESO` date DEFAULT NULL,
   `FEC_SALIDA` date DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL,
-  `DSC_CORREO` varchar(255) DEFAULT NULL,
-  `DSC_CEDULA` varchar(20) DEFAULT NULL,
-  `DSC_NOMBRE` varchar(255) DEFAULT NULL,
-  `DSC_PRIMER_APELLIDO` varchar(255) DEFAULT NULL
+  `DSC_CORREO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_CEDULA` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_NOMBRE` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_PRIMER_APELLIDO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `sigm_colaborador`
+-- Volcado de datos para la tabla `sigm_colaborador`
 --
 
 INSERT INTO `sigm_colaborador` (`ID_COLABORADOR`, `ID_DEPARTAMENTO`, `ID_PUESTO`, `DSC_SEGUNDO_APELLIDO`, `FEC_NACIMIENTO`, `NUM_TELEFONO`, `FEC_INGRESO`, `FEC_SALIDA`, `ESTADO`, `DSC_CORREO`, `DSC_CEDULA`, `DSC_NOMBRE`, `DSC_PRIMER_APELLIDO`) VALUES
@@ -86,14 +86,14 @@ INSERT INTO `sigm_colaborador` (`ID_COLABORADOR`, `ID_DEPARTAMENTO`, `ID_PUESTO`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_comprobante_pago`
+-- Estructura de tabla para la tabla `sigm_comprobante_pago`
 --
 
 CREATE TABLE `sigm_comprobante_pago` (
-  `ID_COMPROBANTE_PAGO` int(11) NOT NULL,
-  `ID_ENTIDAD_FINANCIERA` int(11) DEFAULT NULL,
+  `ID_COMPROBANTE_PAGO` int NOT NULL,
+  `ID_ENTIDAD_FINANCIERA` int DEFAULT NULL,
   `FEC_PAGO` date DEFAULT NULL,
-  `NUM_COMPROBANTE_PAGO` varchar(255) DEFAULT NULL,
+  `NUM_COMPROBANTE_PAGO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `MONTO_COMPROBANTE_PAGO` double DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -101,33 +101,33 @@ CREATE TABLE `sigm_comprobante_pago` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_cuenta_bancaria`
+-- Estructura de tabla para la tabla `sigm_cuenta_bancaria`
 --
 
 CREATE TABLE `sigm_cuenta_bancaria` (
-  `ID_CUENTA_BANCARIA` int(11) NOT NULL,
-  `ID_ENTIDAD_FINANCIERA` int(11) DEFAULT NULL,
-  `DSC_BANCO` varchar(255) DEFAULT NULL,
-  `NUM_CUENTA_BANCARIA` varchar(255) DEFAULT NULL,
-  `TIPO_DIVISA` varchar(10) DEFAULT NULL,
+  `ID_CUENTA_BANCARIA` int NOT NULL,
+  `ID_ENTIDAD_FINANCIERA` int DEFAULT NULL,
+  `DSC_BANCO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `NUM_CUENTA_BANCARIA` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `TIPO_DIVISA` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_departamento`
+-- Estructura de tabla para la tabla `sigm_departamento`
 --
 
 CREATE TABLE `sigm_departamento` (
-  `ID_DEPARTAMENTO` int(11) NOT NULL,
-  `DSC_NOMBRE_DEPARTAMENTO` varchar(255) DEFAULT NULL,
-  `DSC_DEPARTAMENTO` varchar(255) DEFAULT NULL,
+  `ID_DEPARTAMENTO` int NOT NULL,
+  `DSC_NOMBRE_DEPARTAMENTO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_DEPARTAMENTO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `sigm_departamento`
+-- Volcado de datos para la tabla `sigm_departamento`
 --
 
 INSERT INTO `sigm_departamento` (`ID_DEPARTAMENTO`, `DSC_NOMBRE_DEPARTAMENTO`, `DSC_DEPARTAMENTO`, `ESTADO`) VALUES
@@ -136,29 +136,29 @@ INSERT INTO `sigm_departamento` (`ID_DEPARTAMENTO`, `DSC_NOMBRE_DEPARTAMENTO`, `
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_entidad_financiera`
+-- Estructura de tabla para la tabla `sigm_entidad_financiera`
 --
 
 CREATE TABLE `sigm_entidad_financiera` (
-  `ID_ENTIDAD_FINANCIERA` int(11) NOT NULL,
-  `DSC_NOMBRE_ENTIDAD_FINANCIERA` varchar(255) DEFAULT NULL,
-  `TIPO_ENTIDAD_FINANCIERA` varchar(25) DEFAULT NULL,
+  `ID_ENTIDAD_FINANCIERA` int NOT NULL,
+  `DSC_NOMBRE_ENTIDAD_FINANCIERA` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `TIPO_ENTIDAD_FINANCIERA` varchar(25) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_factura`
+-- Estructura de tabla para la tabla `sigm_factura`
 --
 
 CREATE TABLE `sigm_factura` (
-  `ID_FACTURA` int(11) NOT NULL,
-  `ID_PROVEEDOR` int(11) DEFAULT NULL,
-  `ID_COMPROBANTE_PAGO` int(11) DEFAULT NULL,
-  `NUM_FACTURA` varchar(255) DEFAULT NULL,
+  `ID_FACTURA` int NOT NULL,
+  `ID_PROVEEDOR` int DEFAULT NULL,
+  `ID_COMPROBANTE_PAGO` int DEFAULT NULL,
+  `NUM_FACTURA` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `FEC_FACTURA` date DEFAULT NULL,
-  `DSC_DETALLE_FACTURA` text DEFAULT NULL,
+  `DSC_DETALLE_FACTURA` text COLLATE utf8mb4_unicode_ci,
   `MONTO_IMPUESTO` double DEFAULT NULL,
   `MONTO_DESCUENTO` double DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
@@ -167,50 +167,50 @@ CREATE TABLE `sigm_factura` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_producto`
+-- Estructura de tabla para la tabla `sigm_producto`
 --
 
 CREATE TABLE `sigm_producto` (
-  `ID_PRODUCTO` int(11) NOT NULL,
-  `ID_CATEGORIA_PRODUCTO` int(11) DEFAULT NULL,
-  `DSC_NOMBRE` varchar(255) DEFAULT NULL,
-  `DSC_PRODUCTO` text DEFAULT NULL,
+  `ID_PRODUCTO` int NOT NULL,
+  `ID_CATEGORIA_PRODUCTO` int DEFAULT NULL,
+  `DSC_NOMBRE` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_PRODUCTO` text COLLATE utf8mb4_unicode_ci,
   `NUM_CANTIDAD` double DEFAULT NULL,
-  `DSC_UNIDAD_MEDICION` varchar(50) NOT NULL,
+  `DSC_UNIDAD_MEDICION` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_proveedor`
+-- Estructura de tabla para la tabla `sigm_proveedor`
 --
 
 CREATE TABLE `sigm_proveedor` (
-  `ID_PROVEEDOR` int(11) NOT NULL,
-  `DSC_NOMBRE` varchar(255) DEFAULT NULL,
-  `DSC_PROVINCIA` varchar(255) DEFAULT NULL,
-  `DSC_CANTON` varchar(255) DEFAULT NULL,
-  `DSC_DISTRITO` varchar(255) DEFAULT NULL,
-  `DSC_DIRECCION` varchar(255) DEFAULT NULL,
+  `ID_PROVEEDOR` int NOT NULL,
+  `DSC_NOMBRE` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_PROVINCIA` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_CANTON` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_DISTRITO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_DIRECCION` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_puesto_trabajo`
+-- Estructura de tabla para la tabla `sigm_puesto_trabajo`
 --
 
 CREATE TABLE `sigm_puesto_trabajo` (
-  `ID_PUESTO_TRABAJO` int(11) NOT NULL,
-  `DSC_NOMBRE` varchar(255) DEFAULT NULL,
-  `DSC_PUESTO_TRABAJO` varchar(255) DEFAULT NULL,
+  `ID_PUESTO_TRABAJO` int NOT NULL,
+  `DSC_NOMBRE` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DSC_PUESTO_TRABAJO` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `sigm_puesto_trabajo`
+-- Volcado de datos para la tabla `sigm_puesto_trabajo`
 --
 
 INSERT INTO `sigm_puesto_trabajo` (`ID_PUESTO_TRABAJO`, `DSC_NOMBRE`, `DSC_PUESTO_TRABAJO`, `ESTADO`) VALUES
@@ -219,17 +219,17 @@ INSERT INTO `sigm_puesto_trabajo` (`ID_PUESTO_TRABAJO`, `DSC_NOMBRE`, `DSC_PUEST
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_rol`
+-- Estructura de tabla para la tabla `sigm_rol`
 --
 
 CREATE TABLE `sigm_rol` (
-  `ID_ROL` int(11) NOT NULL,
-  `DSC_NOMBRE` varchar(50) NOT NULL,
-  `DSC_ROL` text NOT NULL
+  `ID_ROL` int NOT NULL,
+  `DSC_NOMBRE` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `DSC_ROL` text COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `sigm_rol`
+-- Volcado de datos para la tabla `sigm_rol`
 --
 
 INSERT INTO `sigm_rol` (`ID_ROL`, `DSC_NOMBRE`, `DSC_ROL`) VALUES
@@ -239,68 +239,85 @@ INSERT INTO `sigm_rol` (`ID_ROL`, `DSC_NOMBRE`, `DSC_ROL`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigm_usuario`
+-- Estructura de tabla para la tabla `sigm_usuario`
 --
 
 CREATE TABLE `sigm_usuario` (
-  `ID_USUARIO` int(11) NOT NULL,
-  `ID_COLABORADOR` int(11) DEFAULT NULL,
-  `DSC_NOMBRE` varchar(255) DEFAULT NULL,
-  `ID_ROL` int(11) DEFAULT NULL,
-  `DSC_PASSWORD` varchar(255) DEFAULT NULL,
+  `ID_USUARIO` int NOT NULL,
+  `ID_COLABORADOR` int DEFAULT NULL,
+  `DSC_NOMBRE` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ID_ROL` int DEFAULT NULL,
+  `DSC_PASSWORD` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `sigm_usuario`
+-- Volcado de datos para la tabla `sigm_usuario`
 --
 
 INSERT INTO `sigm_usuario` (`ID_USUARIO`, `ID_COLABORADOR`, `DSC_NOMBRE`, `ID_ROL`, `DSC_PASSWORD`, `ESTADO`) VALUES
-(1, 1, 'AdamAG124', 1, '$2b$10$RwK/N7hKAkrRLnuPvg9Yje60fZeAcbz9Ba5UyniqdQ/U0cQAn/kwy', 0),
-(2, 2, 'KaroVG1622', 2, '$2b$10$wwGRKKQ4hqFqbFiytxhUgOuGV0UQJE6EagcKkEYCTctl27IwZgsLS', 1);
+(1, 1, 'AdamAG124', 1, '$2b$10$RwK/N7hKAkrRLnuPvg9Yje60fZeAcbz9Ba5UyniqdQ/U0cQAn/kwy', 1),
+(2, 2, 'KaroVG1622', 2, '$2b$10$wwGRKKQ4hqFqbFiytxhUgOuGV0UQJE6EagcKkEYCTctl27IwZgsLS', 1),
+(3, 3, 'LuciaP3', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(4, 4, 'JuanG4', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(5, 5, 'MariaL555', 1, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 0),
+(6, 6, 'DiegoH6', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 0),
+(7, 7, 'AndreaM7', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(8, 8, 'CarlosJ8', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(9, 9, 'DianaG9', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(10, 10, 'FernandoC10', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(11, 11, 'AnaV11', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(12, 12, 'RobertoC12', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(13, 13, 'SofiaO13', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(14, 14, 'GabrielM14', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(15, 15, 'RaquelA15', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(16, 16, 'EstebanV16', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(17, 17, 'KarlaR17', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(18, 18, 'DanielN18', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1),
+(19, 19, 'AliciaT19', 2, '$2b$10$Ej5Vj8GkTzK6grz.1JDy4O1oy6Z5yygpFOBhMLqQ.rpxIgN2w/qyC', 1);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigt_factura_producto`
+-- Estructura de tabla para la tabla `sigt_factura_producto`
 --
 
 CREATE TABLE `sigt_factura_producto` (
-  `ID_FACTURA_PRODUCTO` int(11) NOT NULL,
-  `ID_FACTURA` int(11) DEFAULT NULL,
-  `ID_PRODUCTO` int(11) DEFAULT NULL,
+  `ID_FACTURA_PRODUCTO` int NOT NULL,
+  `ID_FACTURA` int DEFAULT NULL,
+  `ID_PRODUCTO` int DEFAULT NULL,
   `NUM_CANTIDAD_ANTERIOR` double DEFAULT NULL,
   `NUM_CANTIDAD_ENTRANDO` double DEFAULT NULL,
   `MONTO_PRECIO_NUEVA` double DEFAULT NULL,
-  `ID_USUARIO` int(11) DEFAULT NULL,
+  `ID_USUARIO` int DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigt_salida`
+-- Estructura de tabla para la tabla `sigt_salida`
 --
 
 CREATE TABLE `sigt_salida` (
-  `ID_SALIDA` int(11) NOT NULL,
-  `ID_COLABORADOR_SACANDO` int(11) DEFAULT NULL,
-  `ID_COLABORADOR_RECIBIENDO` int(11) DEFAULT NULL,
+  `ID_SALIDA` int NOT NULL,
+  `ID_COLABORADOR_SACANDO` int DEFAULT NULL,
+  `ID_COLABORADOR_RECIBIENDO` int DEFAULT NULL,
   `FEC_SALIDA` datetime DEFAULT NULL,
-  `ID_USUARIO` int(11) DEFAULT NULL,
+  `ID_USUARIO` int DEFAULT NULL,
   `ESTADO` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sigt_salida_producto`
+-- Estructura de tabla para la tabla `sigt_salida_producto`
 --
 
 CREATE TABLE `sigt_salida_producto` (
-  `ID_SALIDA_PRODUCTO` int(11) NOT NULL,
-  `ID_PRODUCTO` int(11) DEFAULT NULL,
-  `ID_SALIDA` int(11) DEFAULT NULL,
+  `ID_SALIDA_PRODUCTO` int NOT NULL,
+  `ID_PRODUCTO` int DEFAULT NULL,
+  `ID_SALIDA` int DEFAULT NULL,
   `NUM_CANTIDAD_ANTERIOR` double DEFAULT NULL,
   `NUM_CANTIDAD_SALIENDO` double DEFAULT NULL,
   `NUM_CANTIDAD_NUEVA` double DEFAULT NULL,
@@ -308,17 +325,17 @@ CREATE TABLE `sigt_salida_producto` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Indexes for dumped tables
+-- Índices para tablas volcadas
 --
 
 --
--- Indexes for table `sigm_categoria_producto`
+-- Indices de la tabla `sigm_categoria_producto`
 --
 ALTER TABLE `sigm_categoria_producto`
   ADD PRIMARY KEY (`ID_CATEGORIA_PRODUCTO`);
 
 --
--- Indexes for table `sigm_colaborador`
+-- Indices de la tabla `sigm_colaborador`
 --
 ALTER TABLE `sigm_colaborador`
   ADD PRIMARY KEY (`ID_COLABORADOR`),
@@ -326,33 +343,33 @@ ALTER TABLE `sigm_colaborador`
   ADD KEY `ID_PUESTO` (`ID_PUESTO`);
 
 --
--- Indexes for table `sigm_comprobante_pago`
+-- Indices de la tabla `sigm_comprobante_pago`
 --
 ALTER TABLE `sigm_comprobante_pago`
   ADD PRIMARY KEY (`ID_COMPROBANTE_PAGO`),
   ADD KEY `ID_ENTIDAD_FINANCIERA` (`ID_ENTIDAD_FINANCIERA`);
 
 --
--- Indexes for table `sigm_cuenta_bancaria`
+-- Indices de la tabla `sigm_cuenta_bancaria`
 --
 ALTER TABLE `sigm_cuenta_bancaria`
   ADD PRIMARY KEY (`ID_CUENTA_BANCARIA`),
   ADD KEY `ID_ENTIDAD_FINANCIERA` (`ID_ENTIDAD_FINANCIERA`);
 
 --
--- Indexes for table `sigm_departamento`
+-- Indices de la tabla `sigm_departamento`
 --
 ALTER TABLE `sigm_departamento`
   ADD PRIMARY KEY (`ID_DEPARTAMENTO`);
 
 --
--- Indexes for table `sigm_entidad_financiera`
+-- Indices de la tabla `sigm_entidad_financiera`
 --
 ALTER TABLE `sigm_entidad_financiera`
   ADD PRIMARY KEY (`ID_ENTIDAD_FINANCIERA`);
 
 --
--- Indexes for table `sigm_factura`
+-- Indices de la tabla `sigm_factura`
 --
 ALTER TABLE `sigm_factura`
   ADD PRIMARY KEY (`ID_FACTURA`),
@@ -360,32 +377,32 @@ ALTER TABLE `sigm_factura`
   ADD KEY `ID_COMPROBANTE_PAGO` (`ID_COMPROBANTE_PAGO`);
 
 --
--- Indexes for table `sigm_producto`
+-- Indices de la tabla `sigm_producto`
 --
 ALTER TABLE `sigm_producto`
   ADD PRIMARY KEY (`ID_PRODUCTO`),
   ADD KEY `ID_CATEGORIA_PRODUCTO` (`ID_CATEGORIA_PRODUCTO`);
 
 --
--- Indexes for table `sigm_proveedor`
+-- Indices de la tabla `sigm_proveedor`
 --
 ALTER TABLE `sigm_proveedor`
   ADD PRIMARY KEY (`ID_PROVEEDOR`);
 
 --
--- Indexes for table `sigm_puesto_trabajo`
+-- Indices de la tabla `sigm_puesto_trabajo`
 --
 ALTER TABLE `sigm_puesto_trabajo`
   ADD PRIMARY KEY (`ID_PUESTO_TRABAJO`);
 
 --
--- Indexes for table `sigm_rol`
+-- Indices de la tabla `sigm_rol`
 --
 ALTER TABLE `sigm_rol`
   ADD PRIMARY KEY (`ID_ROL`);
 
 --
--- Indexes for table `sigm_usuario`
+-- Indices de la tabla `sigm_usuario`
 --
 ALTER TABLE `sigm_usuario`
   ADD PRIMARY KEY (`ID_USUARIO`),
@@ -393,7 +410,7 @@ ALTER TABLE `sigm_usuario`
   ADD KEY `ID_ROL` (`ID_ROL`);
 
 --
--- Indexes for table `sigt_factura_producto`
+-- Indices de la tabla `sigt_factura_producto`
 --
 ALTER TABLE `sigt_factura_producto`
   ADD PRIMARY KEY (`ID_FACTURA_PRODUCTO`),
@@ -402,7 +419,7 @@ ALTER TABLE `sigt_factura_producto`
   ADD KEY `ID_USUARIO` (`ID_USUARIO`);
 
 --
--- Indexes for table `sigt_salida`
+-- Indices de la tabla `sigt_salida`
 --
 ALTER TABLE `sigt_salida`
   ADD PRIMARY KEY (`ID_SALIDA`),
@@ -411,7 +428,7 @@ ALTER TABLE `sigt_salida`
   ADD KEY `ID_USUARIO` (`ID_USUARIO`);
 
 --
--- Indexes for table `sigt_salida_producto`
+-- Indices de la tabla `sigt_salida_producto`
 --
 ALTER TABLE `sigt_salida_producto`
   ADD PRIMARY KEY (`ID_SALIDA_PRODUCTO`),
@@ -419,144 +436,144 @@ ALTER TABLE `sigt_salida_producto`
   ADD KEY `ID_SALIDA` (`ID_SALIDA`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT de las tablas volcadas
 --
 
 --
--- AUTO_INCREMENT for table `sigm_categoria_producto`
+-- AUTO_INCREMENT de la tabla `sigm_categoria_producto`
 --
 ALTER TABLE `sigm_categoria_producto`
-  MODIFY `ID_CATEGORIA_PRODUCTO` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_CATEGORIA_PRODUCTO` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigm_colaborador`
+-- AUTO_INCREMENT de la tabla `sigm_colaborador`
 --
 ALTER TABLE `sigm_colaborador`
-  MODIFY `ID_COLABORADOR` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `ID_COLABORADOR` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
--- AUTO_INCREMENT for table `sigm_comprobante_pago`
+-- AUTO_INCREMENT de la tabla `sigm_comprobante_pago`
 --
 ALTER TABLE `sigm_comprobante_pago`
-  MODIFY `ID_COMPROBANTE_PAGO` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_COMPROBANTE_PAGO` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigm_cuenta_bancaria`
+-- AUTO_INCREMENT de la tabla `sigm_cuenta_bancaria`
 --
 ALTER TABLE `sigm_cuenta_bancaria`
-  MODIFY `ID_CUENTA_BANCARIA` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_CUENTA_BANCARIA` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigm_departamento`
+-- AUTO_INCREMENT de la tabla `sigm_departamento`
 --
 ALTER TABLE `sigm_departamento`
-  MODIFY `ID_DEPARTAMENTO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID_DEPARTAMENTO` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `sigm_entidad_financiera`
+-- AUTO_INCREMENT de la tabla `sigm_entidad_financiera`
 --
 ALTER TABLE `sigm_entidad_financiera`
-  MODIFY `ID_ENTIDAD_FINANCIERA` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_ENTIDAD_FINANCIERA` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigm_factura`
+-- AUTO_INCREMENT de la tabla `sigm_factura`
 --
 ALTER TABLE `sigm_factura`
-  MODIFY `ID_FACTURA` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_FACTURA` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigm_producto`
+-- AUTO_INCREMENT de la tabla `sigm_producto`
 --
 ALTER TABLE `sigm_producto`
-  MODIFY `ID_PRODUCTO` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_PRODUCTO` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigm_proveedor`
+-- AUTO_INCREMENT de la tabla `sigm_proveedor`
 --
 ALTER TABLE `sigm_proveedor`
-  MODIFY `ID_PROVEEDOR` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_PROVEEDOR` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigm_puesto_trabajo`
+-- AUTO_INCREMENT de la tabla `sigm_puesto_trabajo`
 --
 ALTER TABLE `sigm_puesto_trabajo`
-  MODIFY `ID_PUESTO_TRABAJO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID_PUESTO_TRABAJO` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `sigm_rol`
+-- AUTO_INCREMENT de la tabla `sigm_rol`
 --
 ALTER TABLE `sigm_rol`
-  MODIFY `ID_ROL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ID_ROL` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `sigm_usuario`
+-- AUTO_INCREMENT de la tabla `sigm_usuario`
 --
 ALTER TABLE `sigm_usuario`
-  MODIFY `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ID_USUARIO` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
--- AUTO_INCREMENT for table `sigt_factura_producto`
+-- AUTO_INCREMENT de la tabla `sigt_factura_producto`
 --
 ALTER TABLE `sigt_factura_producto`
-  MODIFY `ID_FACTURA_PRODUCTO` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_FACTURA_PRODUCTO` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigt_salida`
+-- AUTO_INCREMENT de la tabla `sigt_salida`
 --
 ALTER TABLE `sigt_salida`
-  MODIFY `ID_SALIDA` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_SALIDA` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sigt_salida_producto`
+-- AUTO_INCREMENT de la tabla `sigt_salida_producto`
 --
 ALTER TABLE `sigt_salida_producto`
-  MODIFY `ID_SALIDA_PRODUCTO` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_SALIDA_PRODUCTO` int NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints for dumped tables
+-- Restricciones para tablas volcadas
 --
 
 --
--- Constraints for table `sigm_colaborador`
+-- Filtros para la tabla `sigm_colaborador`
 --
 ALTER TABLE `sigm_colaborador`
   ADD CONSTRAINT `SIGM_COLABORADOR_ibfk_1` FOREIGN KEY (`ID_DEPARTAMENTO`) REFERENCES `sigm_departamento` (`ID_DEPARTAMENTO`),
   ADD CONSTRAINT `SIGM_COLABORADOR_ibfk_2` FOREIGN KEY (`ID_PUESTO`) REFERENCES `sigm_puesto_trabajo` (`ID_PUESTO_TRABAJO`);
 
 --
--- Constraints for table `sigm_comprobante_pago`
+-- Filtros para la tabla `sigm_comprobante_pago`
 --
 ALTER TABLE `sigm_comprobante_pago`
   ADD CONSTRAINT `SIGM_COMPROBANTE_PAGO_ibfk_1` FOREIGN KEY (`ID_ENTIDAD_FINANCIERA`) REFERENCES `sigm_entidad_financiera` (`ID_ENTIDAD_FINANCIERA`);
 
 --
--- Constraints for table `sigm_cuenta_bancaria`
+-- Filtros para la tabla `sigm_cuenta_bancaria`
 --
 ALTER TABLE `sigm_cuenta_bancaria`
   ADD CONSTRAINT `SIGM_CUENTA_BANCARIA_ibfk_1` FOREIGN KEY (`ID_ENTIDAD_FINANCIERA`) REFERENCES `sigm_entidad_financiera` (`ID_ENTIDAD_FINANCIERA`);
 
 --
--- Constraints for table `sigm_factura`
+-- Filtros para la tabla `sigm_factura`
 --
 ALTER TABLE `sigm_factura`
   ADD CONSTRAINT `SIGM_FACTURA_ibfk_1` FOREIGN KEY (`ID_PROVEEDOR`) REFERENCES `sigm_proveedor` (`ID_PROVEEDOR`),
   ADD CONSTRAINT `SIGM_FACTURA_ibfk_2` FOREIGN KEY (`ID_COMPROBANTE_PAGO`) REFERENCES `sigm_comprobante_pago` (`ID_COMPROBANTE_PAGO`);
 
 --
--- Constraints for table `sigm_producto`
+-- Filtros para la tabla `sigm_producto`
 --
 ALTER TABLE `sigm_producto`
   ADD CONSTRAINT `SIGM_PRODUCTO_ibfk_1` FOREIGN KEY (`ID_CATEGORIA_PRODUCTO`) REFERENCES `sigm_categoria_producto` (`ID_CATEGORIA_PRODUCTO`);
 
 --
--- Constraints for table `sigm_usuario`
+-- Filtros para la tabla `sigm_usuario`
 --
 ALTER TABLE `sigm_usuario`
   ADD CONSTRAINT `SIGM_USUARIO_ibfk_1` FOREIGN KEY (`ID_COLABORADOR`) REFERENCES `sigm_colaborador` (`ID_COLABORADOR`),
   ADD CONSTRAINT `SIGM_USUARIO_ibfk_2` FOREIGN KEY (`ID_ROL`) REFERENCES `sigm_rol` (`ID_ROL`);
 
 --
--- Constraints for table `sigt_factura_producto`
+-- Filtros para la tabla `sigt_factura_producto`
 --
 ALTER TABLE `sigt_factura_producto`
   ADD CONSTRAINT `SIGT_FACTURA_PRODUCTO_ibfk_1` FOREIGN KEY (`ID_FACTURA`) REFERENCES `sigm_factura` (`ID_FACTURA`),
@@ -564,7 +581,7 @@ ALTER TABLE `sigt_factura_producto`
   ADD CONSTRAINT `SIGT_FACTURA_PRODUCTO_ibfk_3` FOREIGN KEY (`ID_USUARIO`) REFERENCES `sigm_usuario` (`ID_USUARIO`);
 
 --
--- Constraints for table `sigt_salida`
+-- Filtros para la tabla `sigt_salida`
 --
 ALTER TABLE `sigt_salida`
   ADD CONSTRAINT `SIGT_SALIDA_ibfk_1` FOREIGN KEY (`ID_COLABORADOR_SACANDO`) REFERENCES `sigm_colaborador` (`ID_COLABORADOR`),
@@ -572,7 +589,7 @@ ALTER TABLE `sigt_salida`
   ADD CONSTRAINT `SIGT_SALIDA_ibfk_3` FOREIGN KEY (`ID_USUARIO`) REFERENCES `sigm_usuario` (`ID_USUARIO`);
 
 --
--- Constraints for table `sigt_salida_producto`
+-- Filtros para la tabla `sigt_salida_producto`
 --
 ALTER TABLE `sigt_salida_producto`
   ADD CONSTRAINT `SIGT_SALIDA_PRODUCTO_ibfk_1` FOREIGN KEY (`ID_PRODUCTO`) REFERENCES `sigm_producto` (`ID_PRODUCTO`),
