@@ -85,11 +85,12 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2) {
+function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFiltro = 0) {
 
   // Obtener el select por su id
   const selectEstado = document.getElementById('filtrado-estado');
   const selectPageSize = document.getElementById('selectPageSize');
+  const selectRoles = document.getElementById("filtrado-role");
   // Verificar el valor del estado
   if (estado === 0 || estado === 1) {
     // Si el estado es 0 o 1, preseleccionamos ese valor en el select
@@ -103,25 +104,27 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2) {
 
   // Cargar los roles para el filtrado (esto permanece igual)
   cargarRoles("filtrado-role", "Filtrar por tipo");
+  setTimeout(() => {
+    selectRoles.value = idRolFiltro;
 
-  // Llamar al método del preload.js pasando los datos de paginación
-  window.api.obtenerUsuarios(pageSize, pageNumber, estado, (respuesta) => {
-    const tbody = document.getElementById("usuarios-body");
-    tbody.innerHTML = ""; // Limpiar contenido previo
+    // Llamar al método del preload.js pasando los datos de paginación
+    window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, (respuesta) => {
+      const tbody = document.getElementById("usuarios-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
 
-    // Iterar sobre los usuarios y agregarlos a la tabla
-    respuesta.usuarios.forEach((usuario) => {
-      const nombreCompleto = `${usuario.nombreColaborador} ${usuario.primerApellidoColaborador} ${usuario.segundoApellidoColaborador}`;
-      const estadoUsuario = usuario.estado === 1 ? "Activo" : "Inactivo";
+      // Iterar sobre los usuarios y agregarlos a la tabla
+      respuesta.usuarios.forEach((usuario) => {
+        const nombreCompleto = `${usuario.nombreColaborador} ${usuario.primerApellidoColaborador} ${usuario.segundoApellidoColaborador}`;
+        const estadoUsuario = usuario.estado === 1 ? "Activo" : "Inactivo";
 
-      const row = document.createElement("tr");
-      row.innerHTML = `
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${nombreCompleto}</td>
                 <td>${usuario.nombreUsuario}</td>
                 <td>${usuario.nombreRol}</td>
                 <td>${estadoUsuario}</td>
                 <td class="action-icons">
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value)">
+                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value, ${pageSize}, ${pageNumber}, ${estado}, ${idRolFiltro})">
                         <span class="material-icons">edit</span>
                         <span class="tooltiptext">Editar usuario</span>
                     </button>
@@ -131,14 +134,15 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2) {
                     </button>
                 </td>
             `;
-      tbody.appendChild(row);
+        tbody.appendChild(row);
+      });
+
+      // Actualizar los botones de paginación
+      actualizarPaginacion(respuesta.paginacion, ".pagination");
+
+      cerrarModal(); // Cerrar cualquier modal activo
     });
-
-    // Actualizar los botones de paginación
-    actualizarPaginacion(respuesta.paginacion, ".pagination");
-
-    cerrarModal(); // Cerrar cualquier modal activo
-  });
+  }, 100);
 }
 
 function actualizarPaginacion(pagination, idInnerDiv) {
@@ -152,7 +156,7 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
   firstPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
   firstPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado);
+    cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado, pagination.idRol);
   });
   paginacionDiv.appendChild(firstPageButton);
 
@@ -161,7 +165,7 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   prevPageButton.innerHTML = `<span class="material-icons">navigate_before</span>`;
   prevPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
   prevPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado);
+    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idRol);
   });
   paginacionDiv.appendChild(prevPageButton);
 
@@ -186,7 +190,7 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   nextPageButton.innerHTML = `<span class="material-icons">navigate_next</span>`;
   nextPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
   nextPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado);
+    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idRol);
   });
   paginacionDiv.appendChild(nextPageButton);
 
@@ -195,46 +199,57 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
   lastPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
   lastPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado);
+    cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idRol);
   });
   paginacionDiv.appendChild(lastPageButton);
 }
 
 function filterTable() {
-  cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value));
+  cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value));
 }
 
-function editarUsuario(id) {
+function editarUsuario(id, pageSize, pageNumber, estado, idRolFiltro) {
   const colaboradorSelect = document.getElementById("colaboradorName");
   const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
-  const roleSelect = document.getElementById("roleName");
+  const roleSelectOrigen = document.getElementById("filtrado-role");
+  const roleSelectDestino = document.getElementById("roleName");
   colaboradorSelect.style.display = "none";
   colaboradorSelectLabel.style.display = "none";
 
-  window.api.obtenerUsuarios((usuarios) => {
-    usuarios.forEach((usuario) => {
+  window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, (resultado) => {
+    resultado.usuarios.forEach((usuario) => {
       if (usuario.idUsuario === Number(id)) {
         document.getElementById("idUsuario").value = usuario.idUsuario;
         document.getElementById("nombreUsuario").value = usuario.nombreUsuario;
 
+        // Crear un array para almacenar los textos de las opciones
+        const opcionesArray = [];
+
+        for (let i = 0; i < roleSelectOrigen.options.length; i++) {
+          const option = roleSelectOrigen.options[i];
+          opcionesArray.push(option.textContent); // Guardar el texto en el array
+        }
+
         // Cargar la lista de roles y preseleccionar el rol del usuario
-        window.api.obtenerRoles((roles) => {
-          roleSelect.innerHTML = ""; // Limpiar las opciones existentes
-          const defaultOption = document.createElement("option");
-          defaultOption.value = "";
-          defaultOption.textContent = "Selecciona un rol";
-          roleSelect.appendChild(defaultOption);
+        //window.api.obtenerRoles((roles) => {
+        roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "Selecciona un rol";
+        roleSelectDestino.appendChild(defaultOption);
 
-          roles.forEach((rol) => {
-            const option = document.createElement("option");
-            option.value = rol.id;
-            option.textContent = rol.nombre;
-            roleSelect.appendChild(option);
-          });
+        //roles.forEach((rol) => {
+        for (let i = 1; i < opcionesArray.length; i++) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = opcionesArray[i];
+          roleSelectDestino.appendChild(option);
+        }
+        //});
 
-          // Preseleccionar el rol del usuario
-          roleSelect.value = usuario.idRol; // Asegúrate de que usuario.idRol coincide con rol.idRol
-        });
+        // Preseleccionar el rol del usuario
+        roleSelectDestino.value = usuario.idRol; // Asegúrate de que usuario.idRol coincide con rol.idRol
+        //});
 
         document.getElementById("modalTitle").innerText = "Editar Usuario";
         document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
@@ -295,7 +310,7 @@ function enviarEdicionUsuario() {
         if (respuesta.success) {
           mostrarToastConfirmacion(respuesta.message);
           setTimeout(() => {
-            adjuntarHTML('/usuarios/usuarios-admin.html');
+            filterTable();
           }, 2000);
         } else {
           mostrarToastError(respuesta.message);
@@ -478,7 +493,7 @@ function cargarRoles(idSelect, mensajeQueamado) {
     const roleSelect = document.getElementById(idSelect);
     roleSelect.innerHTML = ""; // Limpiar las opciones existentes
     const option = document.createElement("option");
-    option.value = "";
+    option.value = "0";
     option.textContent = mensajeQueamado;
     roleSelect.appendChild(option);
 

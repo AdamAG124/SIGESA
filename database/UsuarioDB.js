@@ -106,7 +106,7 @@ class UsuarioDB {
         }
     }
 
-    async obtenerUsuarios(pageSize, currentPage, estadoUsuario) {
+    async obtenerUsuarios(pageSize, currentPage, estadoUsuario, idRolFiltro) {
         const db = new ConectarDB();
         let connection;
     
@@ -139,6 +139,10 @@ class UsuarioDB {
             // Añadir la condición de filtro por estado de usuario si es proporcionado
             if (estadoUsuario !== null) {
                 query += ` WHERE U.ESTADO = ${estadoUsuario}`;
+            }
+
+            if(idRolFiltro !== null){
+                query += ` AND U.ID_ROL = ${idRolFiltro}`;
             }
     
             // Añadir la cláusula de LIMIT y OFFSET para la paginación
@@ -177,6 +181,9 @@ class UsuarioDB {
             if (estadoUsuario !== null) {
                 countQuery += ` WHERE U.ESTADO = ${estadoUsuario}`;
             }
+            if(idRolFiltro !== null){
+                query += ` AND U.ID_ROL = ${idRolFiltro}`;
+            }
     
             // Ejecutar la consulta para contar el total de usuarios
             const [countResult] = await connection.query(countQuery);
@@ -195,6 +202,7 @@ class UsuarioDB {
                     totalRecords,
                     firstPage: 1,
                     estado: estadoUsuario,
+                    idRol: idRolFiltro,
                     lastPage: totalPages
                 }
             };

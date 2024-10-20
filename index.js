@@ -97,11 +97,11 @@ ipcMain.on('leer-html', (event, filePath) => {
     });
 });
 
-ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado }) => {
+ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRolFiltro }) => {
     const controller = new UsuarioController();
     try {
         // Llamar al método listarUsuarios con los parámetros recibidos
-        const resultado = await controller.listarUsuarios(pageSize, pageNumber, estado);
+        const resultado = await controller.listarUsuarios(pageSize, pageNumber, estado, idRolFiltro);
 
         // Simplificar la lista de usuarios
         const usuariosSimplificados = resultado.usuarios.map(usuario => {

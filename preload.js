@@ -15,9 +15,9 @@ contextBridge.exposeInMainWorld('api', {
     onHTMLLoaded: (callback) => ipcRenderer.on('html-cargado', (event, data) => callback(data)),
 
     // Función para listar los usuarios y recibir la respuesta
-    obtenerUsuarios: (pageSize, pageNumber, estado, callback) => {
+    obtenerUsuarios: (pageSize, pageNumber, estado, idRolFiltro, callback) => {
         // Enviar el evento al proceso principal, junto con los parámetros de paginación
-        ipcRenderer.send('listar-usuarios', { pageSize, pageNumber, estado });
+        ipcRenderer.send('listar-usuarios', { pageSize, pageNumber, estado, idRolFiltro });
     
         // Recibir la respuesta del proceso principal y pasarla al callback
         ipcRenderer.on('cargar-usuarios', (event, usuarios) => callback(usuarios));
