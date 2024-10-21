@@ -30,11 +30,11 @@
                 </div>
                 <div class="submenu" id="more-options">
                     <button class="menu-item more-option-buttons">Perfil</button>
-                    <button class="menu-item more-option-buttons">Configuración</button>
+                    <button class="menu-item more-option-buttons" onclick="adjuntarHTML('/configuration-panel/configuration-panel.html', null)">Configuración</button>
                     <button class="menu-item more-option-buttons" onclick="logout()">Cerrar Sesión</button>
                 </div>
             </div>
-            <button class="menu-item" onclick="adjuntarHTML('/usuarios/usuarios-admin.html')">Administrar usuarios</button>
+            <button class="menu-item" onclick="adjuntarHTML('/usuarios/usuarios-admin.html', cargarUsuariosTabla)">Administrar usuarios</button>
             <button class="menu-item">Administrar inventario</button>
             <button class="menu-item">Administrar facturas</button>
             <button class="menu-item">Administrar salida de productos</button>

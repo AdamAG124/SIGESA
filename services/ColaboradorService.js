@@ -8,8 +8,8 @@ class ColaboradorService{
         this.#colaboradorDB = new ColaboradorDB();
     }
 
-    async obtenerColaboradores(){
-        return await this.#colaboradorDB.listarColaboradores();
+    async obtenerColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda){
+        return await this.#colaboradorDB.listarColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
     }
 }
 

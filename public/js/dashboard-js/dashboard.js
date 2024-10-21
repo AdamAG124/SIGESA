@@ -45,12 +45,14 @@ function logout() {
 }
 
 // renderer.js
-function adjuntarHTML(filePath) {
+function adjuntarHTML(filePath, cargarTabla) {
   window.api.loadHTML(filePath); // Solicita cargar el archivo HTML
   // Recibir el contenido del archivo HTML y adjuntarlo a innerHTML
   window.api.onHTMLLoaded((data) => {
     document.getElementById("inner-div").innerHTML = data;
-    cargarUsuariosTabla();
+    if(cargarTabla != null){
+      cargarTabla();
+    }
   });
 }
 
@@ -393,7 +395,7 @@ function agregarUsuario() {
     roleSelectDestino.appendChild(option);
   }
 
-  window.api.obtenerColaboradores((colaboradores) => {
+  window.api.obtenerColaboradores(pageSize = null, currentPage = null, estadoColaborador = null, idPuestoFiltro = null, idDepartamentoFiltro = null, valorBusqueda = null, (respuesta) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
     const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
     colaboradorSelect.style.display = "block";
@@ -404,7 +406,7 @@ function agregarUsuario() {
     option.textContent = "Selecciona un colaborador";
     colaboradorSelect.appendChild(option);
 
-    colaboradores.forEach((colaborador) => {
+    respuesta.colaboradores.forEach((colaborador) => {
       const option = document.createElement("option");
       option.value = colaborador.idColaborador;
       option.textContent = colaborador.nombreColaborador + " " + colaborador.primerApellidoColaborador + " " + colaborador.segundoApellidoColaborador;
@@ -535,13 +537,13 @@ function cerrarModal() {
   document.getElementById("colaboradorName").style.border = "";
 }
 
-function cargarRoles(idSelect, mensajeQueamado) {
+function cargarRoles(idSelect, mensajeQuemado) {
   window.api.obtenerRoles((roles) => {
     const roleSelect = document.getElementById(idSelect);
     roleSelect.innerHTML = ""; // Limpiar las opciones existentes
     const option = document.createElement("option");
     option.value = "0";
-    option.textContent = mensajeQueamado;
+    option.textContent = mensajeQuemado;
     roleSelect.appendChild(option);
 
     roles.forEach((role) => {

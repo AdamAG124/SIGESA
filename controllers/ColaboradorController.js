@@ -8,8 +8,8 @@ class ColaboradorController{
         this.#colaboradorService = new ColaboradorService();
     }
 
-    async getColaboradores() {
-        return await this.#colaboradorService.obtenerColaboradores();
+    async getColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda) {
+        return await this.#colaboradorService.obtenerColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
     }
 
 }

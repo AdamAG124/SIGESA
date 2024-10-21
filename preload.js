@@ -18,7 +18,7 @@ contextBridge.exposeInMainWorld('api', {
     obtenerUsuarios: (pageSize, pageNumber, estado, idRolFiltro, valorBusqueda, callback) => {
         // Enviar el evento al proceso principal, junto con los parámetros de paginación
         ipcRenderer.send('listar-usuarios', { pageSize, pageNumber, estado, idRolFiltro, valorBusqueda });
-    
+
         // Recibir la respuesta del proceso principal y pasarla al callback
         ipcRenderer.on('cargar-usuarios', (event, usuarios) => callback(usuarios));
     },
@@ -41,12 +41,12 @@ contextBridge.exposeInMainWorld('api', {
     // Recibir la respuesta de la creación del usuario
     onRespuestaCrearUsuario: (callback) => ipcRenderer.on('respuesta-crear-usuario', (event, respuesta) => callback(respuesta)),
 
-    obtenerColaboradores: (callback) => {
-        ipcRenderer.send('listar-colaboradores'); // Enviar el evento al proceso principal
+    obtenerColaboradores: (pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-colaboradores', { pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }); // Enviar el evento al proceso principal
         ipcRenderer.on('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
     },
 
-        // Métodos para gestionar categorías
+    // Métodos para gestionar categorías
     obtenerCategorias: (callback) => {
         ipcRenderer.send('listar-categorias'); // Enviar el evento al proceso principal
         ipcRenderer.on('cargar-categorias', (event, categorias) => callback(categorias)); // Recibir la respuesta
@@ -73,5 +73,5 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta));
     },
 
-        
-    });
+
+});
