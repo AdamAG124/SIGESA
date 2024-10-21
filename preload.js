@@ -33,7 +33,7 @@ contextBridge.exposeInMainWorld('api', {
     // Recibir la respuesta de la actualización del usuario
     onRespuestaActualizarUsuario: (callback) => ipcRenderer.on('respuesta-actualizar-usuario', (event, respuesta) => callback(respuesta)),
     // Método para enviar el id de usuario al proceso principal para su eliminación
-    eliminarUsuario: (usuarioId) => ipcRenderer.send('eliminar-usuario', usuarioId),
+    eliminarUsuario: (usuarioId, estado) => ipcRenderer.send('eliminar-usuario', usuarioId, estado),
     // Recibir la respuesta de la eliminación del usuario
     onRespuestaEliminarUsuario: (callback) => ipcRenderer.on('respuesta-eliminar-usuario', (event, respuesta) => callback(respuesta)),
     // Método para enviar la información del nuevo usuario al proceso principal para su creación

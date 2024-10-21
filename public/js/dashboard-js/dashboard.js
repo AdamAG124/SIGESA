@@ -91,6 +91,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
   const selectEstado = document.getElementById('filtrado-estado');
   const selectPageSize = document.getElementById('selectPageSize');
   const selectRoles = document.getElementById("filtrado-role");
+
   // Verificar el valor del estado
   if (estado === 0 || estado === 1) {
     // Si el estado es 0 o 1, preseleccionamos ese valor en el select
@@ -124,13 +125,17 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
                 <td>${usuario.nombreRol}</td>
                 <td>${estadoUsuario}</td>
                 <td class="action-icons">
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value, ${pageSize}, ${pageNumber}, ${estado}, ${idRolFiltro})">
+                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value, this)">
                         <span class="material-icons">edit</span>
                         <span class="tooltiptext">Editar usuario</span>
                     </button>
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="eliminarUsuario(this.value)">
-                        <span class="material-icons">delete</span>
-                        <span class="tooltiptext">Eliminar usuario</span>
+                    <button class="tooltip" value="${usuario.idUsuario}" onclick="${usuario.estado === 1 ? `eliminarUsuario(this.value, 0, 'Eliminando usuario', '¿Está seguro que desea eliminar a este usuario?')` : `eliminarUsuario(this.value, 1, 'Reactivando usuario', '¿Está seguro que desea reactivar a este usuario?')`}">
+                        <span class="material-icons">
+                          ${usuario.estado === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
+                        </span>
+                        <span class="tooltiptext">
+                          ${usuario.estado === 1 ? 'Eliminar usuario' : 'Reactivar usuario'} <!-- Cambia el tooltip dependiendo del estado -->
+                        </span>
                     </button>
                 </td>
             `;
@@ -144,6 +149,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
     });
   }, 100);
 }
+
 
 function actualizarPaginacion(pagination, idInnerDiv) {
   const paginacionDiv = document.querySelector(idInnerDiv);
@@ -208,58 +214,61 @@ function filterTable() {
   cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
 }
 
-function editarUsuario(id, pageSize, pageNumber, estado, idRolFiltro) {
+function editarUsuario(id, boton) {
   const colaboradorSelect = document.getElementById("colaboradorName");
   const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
   const roleSelectOrigen = document.getElementById("filtrado-role");
   const roleSelectDestino = document.getElementById("roleName");
+
+  // Ocultar campos innecesarios
   colaboradorSelect.style.display = "none";
   colaboradorSelectLabel.style.display = "none";
 
-  window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, (resultado) => {
-    resultado.usuarios.forEach((usuario) => {
-      if (usuario.idUsuario === Number(id)) {
-        document.getElementById("idUsuario").value = usuario.idUsuario;
-        document.getElementById("nombreUsuario").value = usuario.nombreUsuario;
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
 
-        // Crear un array para almacenar los textos de las opciones
-        const opcionesArray = [];
+  // Extraer la información de la fila
+  const nombreUsuario = fila.children[1].textContent;
+  const nombreRol = fila.children[2].textContent;
 
-        for (let i = 0; i < roleSelectOrigen.options.length; i++) {
-          const option = roleSelectOrigen.options[i];
-          opcionesArray.push(option.textContent); // Guardar el texto en el array
-        }
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idUsuario").value = id;
+  document.getElementById("nombreUsuario").value = nombreUsuario;
 
-        // Cargar la lista de roles y preseleccionar el rol del usuario
-        //window.api.obtenerRoles((roles) => {
-        roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
-        const defaultOption = document.createElement("option");
-        defaultOption.value = "";
-        defaultOption.textContent = "Selecciona un rol";
-        roleSelectDestino.appendChild(defaultOption);
+  // Crear un array para almacenar los textos de las opciones del select de roles
+  const opcionesArray = [];
 
-        //roles.forEach((rol) => {
-        for (let i = 1; i < opcionesArray.length; i++) {
-          const option = document.createElement("option");
-          option.value = i;
-          option.textContent = opcionesArray[i];
-          roleSelectDestino.appendChild(option);
-        }
-        //});
+  for (let i = 0; i < roleSelectOrigen.options.length; i++) {
+    const option = roleSelectOrigen.options[i];
+    opcionesArray.push(option.textContent); // Guardar el texto en el array
+  }
 
-        // Preseleccionar el rol del usuario
-        roleSelectDestino.value = usuario.idRol; // Asegúrate de que usuario.idRol coincide con rol.idRol
-        //});
+  // Cargar la lista de roles y preseleccionar el rol del usuario
+  /*roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Selecciona un rol";
+  roleSelectDestino.appendChild(defaultOption);*/
 
-        document.getElementById("modalTitle").innerText = "Editar Usuario";
-        document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
+  // Insertar las opciones del select de roles
+  for (let i = 1; i < opcionesArray.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = opcionesArray[i];
+    roleSelectDestino.appendChild(option);
+  }
 
-        // Mostrar el modal
-        document.getElementById("editarUsuarioModal").style.display = "block";
-      }
-    });
-  });
+  // Preseleccionar el rol del usuario
+  roleSelectDestino.value = opcionesArray.indexOf(nombreRol);
+
+  // Cambiar el título del modal a "Editar Usuario"
+  document.getElementById("modalTitle").innerText = "Editar Usuario";
+  document.getElementById("buttonModal").onclick = enviarEdicionUsuario;
+
+  // Mostrar el modal
+  document.getElementById("editarUsuarioModal").style.display = "block";
 }
+
 
 
 function enviarEdicionUsuario() {
@@ -312,6 +321,10 @@ function enviarEdicionUsuario() {
           setTimeout(() => {
             filterTable();
           }, 2000);
+        } else if (respuesta.message === "El nombre de usuario ya está en uso.") {
+          document.getElementById("nombreUsuario").style.border = "2px solid red";
+          passwordError.innerText = respuesta.message;
+          passwordError.style.display = "block";
         } else {
           mostrarToastError(respuesta.message);
         }
@@ -322,10 +335,10 @@ function enviarEdicionUsuario() {
 }
 
 
-function eliminarUsuario(id) {
+function eliminarUsuario(id, estado, title, message) {
   Swal.fire({
-    title: "Eliminando usuario",
-    text: "¿Esta seguro que desea eliminar a este usuario?",
+    title: title,
+    text: message,
     icon: "question",
     showCancelButton: true,
     confirmButtonColor: "#4a4af4",
@@ -335,14 +348,14 @@ function eliminarUsuario(id) {
   }).then((result) => {
     if (result.isConfirmed) {
       // Enviar los datos al proceso principal a través de preload.js
-      window.api.eliminarUsuario(Number(id));
+      window.api.eliminarUsuario(Number(id), Number(estado));
 
       // Mostrar el resultado de la actualización al recibir la respuesta
       window.api.onRespuestaEliminarUsuario((respuesta) => {
         if (respuesta.success) {
           mostrarToastConfirmacion(respuesta.message);
           setTimeout(() => {
-            cargarUsuariosTabla();
+            filterTable();
           }, 2000);
         } else {
           mostrarToastError(respuesta.message);
@@ -448,7 +461,7 @@ function enviarCreacionUsuario(event) {
     return; // Detener el envío del formulario si las contraseñas no coinciden
   }
 
-  window.api.obtenerUsuarios((usuarios) => {
+  /*window.api.obtenerUsuarios((usuarios) => {
     for (const usuario of usuarios) {
       if (usuario.idColaborador === Number(colaborador)) {
         passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
@@ -460,45 +473,53 @@ function enviarCreacionUsuario(event) {
         passwordError.style.display = "block";
         return; // Detener el envío del formulario si el nombre de usuario ya existe
       }
+    }*/
+
+  // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
+  const jsonData = {
+    colaborador: colaborador,
+    nombreUsuario: nombreUsuario,
+    newPassword: newPassword,
+    rol: roleName,
+  };
+
+  Swal.fire({
+    title: "Creando usuario",
+    text: "¿Está seguro que desea crear un usuario nuevo?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar los datos al proceso principal a través de preload.js
+      window.api.crearUsuario(jsonData);
+
+      // Mostrar el resultado de la actualización al recibir la respuesta
+      window.api.onRespuestaCrearUsuario((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable();
+          }, 2000);
+        } else if (respuesta.message === "El nombre de usuario ya está en uso.") {
+          document.getElementById("nombreUsuario").style.border = "2px solid red";
+          passwordError.innerText = respuesta.message;
+          passwordError.style.display = "block";
+        } else if (respuesta.message === "El colaborador ya tiene un usuario asociado.") {
+          document.getElementById("colaboradorName").style.border = "2px solid red";
+          passwordError.innerText = respuesta.message;
+          passwordError.style.display = "block";
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+      console.log(jsonData);
     }
-
-    // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
-    const jsonData = {
-      colaborador: colaborador,
-      nombreUsuario: nombreUsuario,
-      newPassword: newPassword,
-      rol: roleName,
-    };
-
-    Swal.fire({
-      title: "Creando usuario",
-      text: "¿Está seguro que desea crear un usuario nuevo?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#4a4af4",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, continuar",
-      cancelButtonText: "Cancelar",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Enviar los datos al proceso principal a través de preload.js
-        window.api.crearUsuario(jsonData);
-
-        // Mostrar el resultado de la actualización al recibir la respuesta
-        window.api.onRespuestaCrearUsuario((respuesta) => {
-          if (respuesta.success) {
-            mostrarToastConfirmacion(respuesta.message);
-            setTimeout(() => {
-              adjuntarHTML('/usuarios/usuarios-admin.html');
-            }, 2000);
-          } else {
-            mostrarToastError(respuesta.message);
-          }
-        });
-        console.log(jsonData);
-      }
-    });
   });
+  //});
 }
 
 // Función para cerrar el modal
@@ -510,6 +531,8 @@ function cerrarModal() {
   document.getElementById("passwordError").style.display = "none";
   document.getElementById("newPassword").style.border = "";
   document.getElementById("confirmPassword").style.border = "";
+  document.getElementById("nombreUsuario").style.border = "";
+  document.getElementById("colaboradorName").style.border = "";
 }
 
 function cargarRoles(idSelect, mensajeQueamado) {

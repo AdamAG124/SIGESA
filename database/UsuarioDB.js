@@ -260,8 +260,19 @@ class UsuarioDB {
             const idRol = usuario.getRol().getIdRol();
             const password = usuario.getPassword();
 
+            // Validar si el nombre de usuario ya existe
+            let query = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = '${nombreUsuario}'`;
+            const [rowsNombreUsuario] = await connection.query(query);
+
+            if (rowsNombreUsuario[0].count > 0) {
+                return {
+                    success: false,
+                    message: 'El nombre de usuario ya está en uso.'
+                };
+            }
+
             // Construimos la consulta SQL dinámicamente
-            let query = `UPDATE ${this.#table} SET DSC_NOMBRE = ?, ID_ROL = ?`;
+            query = `UPDATE ${this.#table} SET DSC_NOMBRE = ?, ID_ROL = ?`;
             let params = [nombreUsuario, idRol];
 
             // Evaluar si el password no es vacío
@@ -319,10 +330,18 @@ class UsuarioDB {
             const [result] = await connection.query(query, params);
 
             if (result.affectedRows > 0) {
-                return {
-                    success: true,
-                    message: 'Usuario eliminado exitosamente.'
-                };
+                if (estado === 0) {
+                    return {
+                        success: true,
+                        message: 'Usuario eliminado exitosamente.'
+                    };
+                } else {
+                    return {
+                        success: true,
+                        message: 'Usuario reactivado exitosamente.'
+                    };
+                }
+
             } else {
                 return {
                     success: false,
@@ -355,11 +374,33 @@ class UsuarioDB {
             const password = usuario.getPassword();
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            // Construimos la consulta SQL dinámicamente
-            let query = `INSERT INTO ${this.#table} (ID_COLABORADOR, DSC_NOMBRE, ID_ROL, DSC_PASSWORD, ESTADO) 
-                         VALUES (${idColaborador}, '${nombreUsuario}', ${idRol}, '${hashedPassword}', 1)`;
+            // Validar si el nombre de usuario ya existe
+            let query = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = '${nombreUsuario}'`;
+            const [rowsNombreUsuario] = await connection.query(query);
 
-            // Ejecutar la consulta
+            if (rowsNombreUsuario[0].count > 0) {
+                return {
+                    success: false,
+                    message: 'El nombre de usuario ya está en uso.'
+                };
+            }
+
+            // Validar si el ID del colaborador ya existe
+            query = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE ID_COLABORADOR = ${idColaborador}`;
+            const [rowsIdColaborador] = await connection.query(query);
+
+            if (rowsIdColaborador[0].count > 0) {
+                return {
+                    success: false,
+                    message: 'El colaborador ya tiene un usuario asociado.'
+                };
+            }
+
+            // Construimos la consulta SQL para insertar el nuevo usuario
+            query = `INSERT INTO ${this.#table} (ID_COLABORADOR, DSC_NOMBRE, ID_ROL, DSC_PASSWORD, ESTADO) 
+                     VALUES (${idColaborador}, '${nombreUsuario}', ${idRol}, '${hashedPassword}', 1)`;
+
+            // Ejecutar la consulta de inserción
             const [result] = await connection.query(query);
 
             if (result.affectedRows > 0) {
@@ -384,6 +425,7 @@ class UsuarioDB {
             }
         }
     }
+
 }
 
 // Exportar la clase

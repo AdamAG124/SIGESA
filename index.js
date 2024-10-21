@@ -159,11 +159,12 @@ ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
     }
 });
 
-ipcMain.on('eliminar-usuario', async (event, usuarioId) => {
+ipcMain.on('eliminar-usuario', async (event, usuarioId, estado) => {
     try {
         // Crear un objeto Usuario y setear los datos
         const usuario = new Usuario();
         usuario.setIdUsuario(usuarioId);
+        usuario.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
 
         // Llamar al método de actualizar en el UsuarioController
         const usuarioController = new UsuarioController();
@@ -181,6 +182,7 @@ ipcMain.on('crear-usuario', async (event, usuarioData) => {
     try {
         // Crear un objeto Usuario y setear los datos
         const usuario = new Usuario();
+        usuario.getIdColaborador().setIdColaborador(usuarioData.colaborador);
         usuario.setNombreUsuario(usuarioData.nombreUsuario);
         usuario.getRol().setIdRol(usuarioData.rol); // Guarda el id del select con id roleName
         usuario.setPassword(usuarioData.newPassword);

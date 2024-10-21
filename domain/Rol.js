@@ -7,7 +7,7 @@ class Rol {
 
     // Constructor sin parámetros
     constructor() {
-        this.#idRol = null;
+        this.#idRol = 0;
         this.#nombre = '';
         this.#descripcion = '';
     }
