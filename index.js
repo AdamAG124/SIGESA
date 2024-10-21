@@ -87,15 +87,20 @@ ipcMain.on('cambiar-vista', async (event, result) => {
 
 ipcMain.on('leer-html', (event, filePath) => {
     const fullPath = path.join(__dirname, 'views', filePath); // Construir la ruta completa del archivo
+    
     fs.readFile(fullPath, 'utf-8', (err, data) => {
         if (err) {
             console.error('Error al leer el archivo HTML:', err);
+            // Enviar un mensaje de error al proceso de renderizado
+            event.sender.send('html-cargado', { error: 'Error al leer el archivo HTML' });
             return;
         }
+        
         // Enviar el contenido HTML de vuelta al proceso de renderizado
         event.sender.send('html-cargado', data);
     });
 });
+
 
 ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRolFiltro, valorBusqueda }) => {
     const controller = new UsuarioController();
@@ -218,38 +223,45 @@ ipcMain.on('listar-roles', async (event) => {
 });
 
 ipcMain.on('listar-colaboradores', async (event, { pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }) => {
-    const colaboradorController = new ColaboradorController(); // Asegúrate de tener acceso a la clase RolesDB
+    const colaboradorController = new ColaboradorController();
     try {
-        const resultado = await colaboradorController.getColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda); // Asegúrate de que listarRoles es asíncrono
+        const resultado = await colaboradorController.getColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
 
-        // Crear un nuevo array con objetos simples que solo incluyan las propiedades necesarias
-        const colaboradoresSimplificados = resultado.colaboradores.map(colaborador => {
+        // En lugar de simplificar los datos, devolver el array completo con todos los atributos
+        const colaboradoresCompletos = resultado.colaboradores.map(colaborador => {
             return {
                 idColaborador: colaborador.getIdColaborador(),
                 nombreColaborador: colaborador.getNombre(),
                 cedulaColaborador: colaborador.getCedula(),
                 primerApellidoColaborador: colaborador.getPrimerApellido(),
-                segundoApellidoColaborador: colaborador.getSegundoApellido()
+                segundoApellidoColaborador: colaborador.getSegundoApellido(),
+                fechaNacimiento: colaborador.getFechaNacimiento(),
+                numTelefono: colaborador.getNumTelefono(),
+                fechaIngreso: colaborador.getFechaIngreso(),
+                fechaSalida: colaborador.getFechaSalida(),
+                estado: colaborador.getEstado(),
+                correo: colaborador.getCorreo(),
+                nombreDepartamento: colaborador.getIdDepartamento().getNombre(),
+                nombrePuesto: colaborador.getIdPuesto().getNombre()
             };
         });
 
-        // Preparar el objeto de respuesta que incluye los usuarios y los datos de paginación
+        // Preparar el objeto de respuesta que incluye los colaboradores completos y los datos de paginación
         const respuesta = {
-            colaboradores: colaboradoresSimplificados,  // Lista simplificada de usuarios
+            colaboradores: colaboradoresCompletos,  // Lista completa de colaboradores con todos los atributos
             paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
         };
 
         if (mainWindow) {  // Verifica que mainWindow esté definido
-            mainWindow.webContents.send('cargar-colaboradores', respuesta); // Enviar los roles de vuelta al frontend
+            mainWindow.webContents.send('cargar-colaboradores', respuesta); // Enviar los colaboradores completos al frontend
         }
     } catch (error) {
-        console.error('Error al listar los usuarios:', error);
+        console.error('Error al listar los colaboradores:', error);
         if (mainWindow) {
-            mainWindow.webContents.send('error-cargar-usuarios', 'Hubo un error al cargar los usuarios.');
+            mainWindow.webContents.send('error-cargar-colaboradores', 'Hubo un error al cargar los colaboradores.');
         }
     }
 });
-
 
 app.whenReady().then(() => {
     createWindow();

@@ -1,17 +1,3 @@
-.filters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.filters select, .filters input {
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
 .add-collaborator-btn {
     background-color: var(--secondary-color);
     color: var(--background-color);

@@ -44,14 +44,20 @@ function logout() {
   });
 }
 
-// renderer.js
 function adjuntarHTML(filePath, cargarTabla) {
   window.api.loadHTML(filePath); // Solicita cargar el archivo HTML
-  // Recibir el contenido del archivo HTML y adjuntarlo a innerHTML
+  
   window.api.onHTMLLoaded((data) => {
-    document.getElementById("inner-div").innerHTML = data;
-    if(cargarTabla != null){
-      cargarTabla();
+    const innerDiv = document.getElementById("inner-div");
+    
+    if (innerDiv) {
+      innerDiv.innerHTML = data; // Adjunta el HTML solo si el div existe
+      
+      if (cargarTabla) {
+        cargarTabla(); // Ejecuta cargarTabla solo después de cargar el HTML
+      }
+    } else {
+      console.error('Error: Elemento "inner-div" no encontrado en el DOM.');
     }
   });
 }
@@ -569,4 +575,66 @@ function togglePasswordVisibility(passwordFieldId, iconId) {
     icon.classList.remove("fa-eye"); // Ojo abierto
     icon.classList.add("fa-eye-slash"); // Ojo cerrado
   }
+}
+
+function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColaborador = 2, idPuestoFiltro = 0, idDepartamentoFiltro = 0, valorBusqueda = null) {
+
+  // Obtener el select por su id
+  const selectEstado = document.getElementById('estado-filtro');
+  const selectPageSize = document.getElementById('selectPageSize');
+  const selectDepartamento = document.getElementById("departamento-filtro");
+  const selectPuesto = document.getElementById("puesto-filtro");
+
+  // Verificar el valor del estado
+  if (estadoColaborador === 0 || estadoColaborador === 1) {
+    selectEstado.value = estadoColaborador;
+  } else {
+    selectEstado.value = 2;
+  }
+
+  selectPageSize.value = pageSize;
+
+  // Cargar los colaboradores
+  window.api.obtenerColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda, (respuesta) => {
+    const tbody = document.getElementById("colaboradores-body");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+
+    // Iterar sobre los colaboradores y generar las filas de la tabla
+    respuesta.colaboradores.forEach((colaborador) => {
+      const nombreCompleto = `${colaborador.nombreColaborador} ${colaborador.primerApellidoColaborador} ${colaborador.segundoApellidoColaborador}`;
+      const estadoColaborador = colaborador.estado === 1 ? "Activo" : "Inactivo";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+          <td>${nombreCompleto}</td>
+          <td>${colaborador.numTelefono}</td>
+          <td>${colaborador.correo}</td>
+          <td>${estadoColaborador}</td>
+          <td class="action-icons">
+              <button class="tooltip" value="${colaborador.idColaborador}" onclick="editarColaborador(this.value, this)">
+                  <span class="material-icons">edit</span>
+                  <span class="tooltiptext">Editar colaborador</span>
+              </button>
+              <button class="tooltip" value="${colaborador.idColaborador}" onclick="${colaborador.estado === 1 ? `eliminarColaborador(this.value, 0, 'Eliminando colaborador', '¿Está seguro que desea eliminar a este colaborador?')` : `eliminarColaborador(this.value, 1, 'Reactivando colaborador', '¿Está seguro que desea reactivar a este colaborador?')`}">
+                  <span class="material-icons">
+                      ${colaborador.estado === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
+                  </span>
+                  <span class="tooltiptext">
+                      ${colaborador.estado === 1 ? 'Eliminar colaborador' : 'Reactivar colaborador'} <!-- Cambia el tooltip dependiendo del estado -->
+                  </span>
+              </button>
+              <button class="tooltip" value="${colaborador.idColaborador}" onclick="verDetallesColaborador(this.value)">
+                  <span class="material-icons">info</span>
+                  <span class="tooltiptext">Ver detalles</span>
+              </button>
+          </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Actualizar los botones de paginación
+    actualizarPaginacion(respuesta.paginacion, ".pagination");
+
+    cerrarModal(); // Cerrar cualquier modal activo
+  });
 }

@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('api', {
 
     // Función para solicitar el HTML y recibir la respuesta
     loadHTML: (filePath) => ipcRenderer.send('leer-html', filePath),
-    onHTMLLoaded: (callback) => ipcRenderer.on('html-cargado', (event, data) => callback(data)),
+    onHTMLLoaded: (callback) => ipcRenderer.once('html-cargado', (event, data) => callback(data)),
 
     // Función para listar los usuarios y recibir la respuesta
     obtenerUsuarios: (pageSize, pageNumber, estado, idRolFiltro, valorBusqueda, callback) => {

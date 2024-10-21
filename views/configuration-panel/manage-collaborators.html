@@ -10,28 +10,24 @@
         <input type="text" placeholder="Buscar colaboradores...">
     </div>
     <div class="filters">
-        <select>
-            <option>10 por página</option>
-            <option>25 por página</option>
-            <option>50 por página</option>
+        <select id="selectPageSize" onchange="">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
         </select>
-        <select>
-            <option value="">Filtrar por departamento</option>
-            <option value="rh">Recursos Humanos</option>
-            <option value="it">IT</option>
-            <option value="ventas">Ventas</option>
+        <select id="departamento-filtro">
+
         </select>
-        <select>
-            <option value="">Filtrar por puesto</option>
-            <option value="gerente">Gerente</option>
-            <option value="analista">Analista</option>
-            <option value="desarrollador">Desarrollador</option>
+        <select id="puesto-filtro">
+
         </select>
-        <select>
+        <select id="estado-filtro">
             <option value="">Filtrar por estado</option>
             <option value="activo">Activo</option>
             <option value="inactivo">Inactivo</option>
         </select>
+        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
     </div>
     <table>
         <thead>
@@ -43,12 +39,12 @@
                 <th>Acciones</th>
             </tr>
         </thead>
-        <tbody>
-            
+        <tbody id="colaboradores-body">
+
         </tbody>
     </table>
     <div class="pagination">
-        
+
     </div>
 </div>
 </div>

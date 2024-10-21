@@ -9,6 +9,15 @@ class ColaboradorService{
     }
 
     async obtenerColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda){
+        if(estadoColaborador == 2){
+            estadoColaborador = null;
+        }
+        if(idPuestoFiltro == 0){
+            idPuestoFiltro = null;
+        }
+        if(idDepartamentoFiltro == 0){
+            idDepartamentoFiltro = null;
+        }
         return await this.#colaboradorDB.listarColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
     }
 }
