@@ -7,6 +7,7 @@ const fs = require('fs');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
 const DepartamentoController = require('./controllers/DepartamentoController');
+const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
 
 let mainWindow;  // Declarar mainWindow a nivel global
 
@@ -265,6 +266,35 @@ ipcMain.on('listar-colaboradores', async (event, { pageSize, currentPage, estado
     }
 });
 
+ipcMain.on('crear-colaborador', async (event, colaboradorData) => {
+    try {
+        // Crear un objeto Colaborador y setear los datos
+        const colaborador = new Colaborador();
+        colaborador.getIdDepartamento().setIdDepartamento(colaboradorData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
+        colaborador.getIdPuesto().setIdPuestoTrabajo(colaboradorData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
+        colaborador.setNombre(colaboradorData.nombre);
+        colaborador.setPrimerApellido(colaboradorData.primerApellido);
+        colaborador.setSegundoApellido(colaboradorData.segundoApellido);
+        colaborador.setFechaNacimiento(colaboradorData.fechaNacimiento); // Debe ser una fecha válida
+        colaborador.setNumTelefono(colaboradorData.numTelefono);
+        colaborador.setFechaIngreso(colaboradorData.fechaIngreso); // Debe ser una fecha válida
+        colaborador.setFechaSalida(colaboradorData.fechaSalida); // Debe ser una fecha válida
+        colaborador.setEstado(1); // Debe ser booleano o compatible
+        colaborador.setCorreo(colaboradorData.correo);
+        colaborador.setCedula(colaboradorData.cedula);
+
+        // Llamar al método insertarColaborador en el ColaboradorController
+        const colaboradorController = new ColaboradorController();
+        const resultado = await colaboradorController.insertarColaborador(colaborador);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-crear-colaborador', resultado); // Pasar el resultado que viene desde ColaboradorController
+    } catch (error) {
+        console.error('Error al crear colaborador:', error);
+        event.reply('respuesta-crear-colaborador', { success: false, message: error.message });
+    }
+});
+
 ipcMain.on('eliminar-colaborador', async (event, colaboradorId, estado) => {
     try {
         // Crear un objeto Usuario y setear los datos
@@ -284,35 +314,84 @@ ipcMain.on('eliminar-colaborador', async (event, colaboradorId, estado) => {
     }
 });
 
+ipcMain.on('editar-colaborador', async (event, colaboradorData) => {
+    try {
+        // Crear un objeto Colaborador y setear los datos
+        const colaborador = new Colaborador();
+        colaborador.setIdColaborador(colaboradorData.idColaborador);
+        colaborador.setNombre(colaboradorData.nombre);
+        colaborador.setPrimerApellido(colaboradorData.primerApellido);
+        colaborador.setSegundoApellido(colaboradorData.segundoApellido);
+        colaborador.setFechaNacimiento(colaboradorData.fechaNacimiento);
+        colaborador.setNumTelefono(colaboradorData.numTelefono);
+        colaborador.setFechaIngreso(colaboradorData.fechaIngreso);
+        colaborador.setFechaSalida(colaboradorData.fechaSalida);
+        colaborador.setEstado(1);
+        colaborador.setCorreo(colaboradorData.correo);
+        colaborador.setCedula(colaboradorData.cedula);
+        colaborador.setIdDepartamento(colaboradorData.idDepartamento);
+        colaborador.setIdPuesto(colaboradorData.idPuesto);
+
+        // Llamar al método de editarColaborador en el ColaboradorController
+        const colaboradorController = new ColaboradorController();
+        const resultado = await colaboradorController.editarColaborador(colaborador);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-actualizar-colaborador', resultado); // Pasar el resultado que viene desde ColaboradorController
+    } catch (error) {
+        console.error('Error al editar colaborador:', error);
+        event.reply('respuesta-editar-colaborador', { success: false, message: error.message });
+    }
+});
+
 ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const departamentoController = new DepartamentoController();
     try {
         const resultado = await departamentoController.listarDepartamentos(pageSize, currentPage, estado, valorBusqueda);
 
-        // En lugar de simplificar los datos, devolver el array completo con todos los atributos
-        const departamentosCompletos = resultado.departamentos.map(departamento => {
-            return {
-                idDepartamento: departamento.getIdDepartamento(),
-                nombreDepartamento: departamento.getNombre(),
-                descripcionDepartamento: departamento.getDescripcion(),
-                estado: departamento.getEstado()
-            };
-        });
+        // Serializar los datos de los departamentos manualmente, asegurándote de que todo es serializable
+        const departamentosCompletos = resultado.departamentos.map(departamento => ({
+            idDepartamento: departamento.getIdDepartamento(),
+            nombreDepartamento: departamento.getNombre(),
+            descripcionDepartamento: departamento.getDescripcion(),
+            estado: departamento.getEstado()
+        }));
 
-        // Preparar el objeto de respuesta que incluye los departamentos completos y los datos de paginación
         const respuesta = {
-            departamentos: departamentosCompletos,  // Lista completa de departamentos con todos los atributos
-            paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
+            departamentos: departamentosCompletos,
+            paginacion: resultado.pagination
         };
 
-        if (mainWindow) {  // Verifica que mainWindow esté definido
-            mainWindow.webContents.send('cargar-departamentos', respuesta); // Enviar los departamentos completos al frontend
-        }
+        event.reply('cargar-departamentos', respuesta);  // Usar event.reply en lugar de webContents.send
     } catch (error) {
         console.error('Error al listar los departamentos:', error);
-        if (mainWindow) {
-            mainWindow.webContents.send('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
-        }
+        event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
+    }
+});
+
+ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const puestoTrabajoController = new PuestoTrabajoController();
+
+    try {
+        const resultado = await puestoTrabajoController.getPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda);
+
+        // Serializar los datos de los puestos de trabajo manualmente para asegurarse de que todo es serializable
+        const puestosCompletos = resultado.puestos.map(puesto => ({
+            idPuestoTrabajo: puesto.getIdPuestoTrabajo(),
+            nombrePuestoTrabajo: puesto.getNombre(),
+            descripcionPuestoTrabajo: puesto.getDescripcion(),
+            estado: puesto.getEstado()
+        }));
+
+        const respuesta = {
+            puestos: puestosCompletos,  // Lista de puestos de trabajo
+            paginacion: resultado.pagination  // Datos de paginación
+        };
+
+        event.reply('cargar-puestos-trabajo', respuesta);  // Enviar la respuesta de vuelta al cliente
+    } catch (error) {
+        console.error('Error al listar los puestos de trabajo:', error);
+        event.reply('error-cargar-puestos-trabajo', 'Hubo un error al cargar los puestos de trabajo.');
     }
 });
 

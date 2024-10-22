@@ -46,13 +46,31 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
     },
 
+    crearColaborador: (colaboradorData) => ipcRenderer.send('crear-colaborador', colaboradorData),
+    // Recibir la respuesta de la creación del colaborador
+    onRespuestaCrearColaborador: (callback) => ipcRenderer.on('respuesta-crear-colaborador', (event, respuesta) => callback(respuesta)),
     eliminarColaborador: (colaboradorId, estado) => ipcRenderer.send('eliminar-colaborador', colaboradorId, estado),
     // Recibir la respuesta de la eliminación del usuario
     onRespuestaEliminarColaborador: (callback) => ipcRenderer.once('respuesta-eliminar-colaborador', (event, respuesta) => callback(respuesta)),
+    // Enviar los datos del colaborador al proceso principal
+    editarColaborador: (colaboradorData) => ipcRenderer.send('editar-colaborador', colaboradorData),
+    // Recibir la respuesta de la actualización del colaborador
+    onRespuestaActualizarColaborador: (callback) => ipcRenderer.on('respuesta-actualizar-colaborador', (event, respuesta) => callback(respuesta)),
 
     obtenerDepartamentos: (pageSize, currentPage, estado, valorBusqueda, callback) => {
-        ipcRenderer.send('listar-departamentos', { pageSize, currentPage, estado, valorBusqueda }); // Enviar el evento al proceso principal
-        ipcRenderer.once('cargar-departamentos', (event, departamentos) => callback(departamentos)); // Recibir la respuesta
+        ipcRenderer.send('listar-departamentos', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-departamentos', (event, departamentos) => {
+            // Asegúrate de que departamentos es un objeto válido y serializable
+            callback(departamentos);
+        });
+    },
+    
+    obtenerPuestosTrabajo: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-puestos-trabajo', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-puestos-trabajo', (event, respuesta) => {
+            // Asegúrate de que respuesta es un objeto válido y serializable
+            callback(respuesta);
+        });
     },    
 
     // Métodos para gestionar categorías

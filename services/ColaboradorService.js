@@ -21,6 +21,14 @@ class ColaboradorService{
         return await this.#colaboradorDB.listarColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
     }
 
+    async crearColaborador(colaborador){
+        return await this.#colaboradorDB.insertarColaboradorBD(colaborador);
+    }
+
+    async actualizarColaborador(colaborador){
+        return await this.#colaboradorDB.editarColaboradorBD(colaborador);
+    }
+
     async eliminarColaborador(colaborador){
         return await this.#colaboradorDB.eliminarColaboradorBD(colaborador);
     }

@@ -20,7 +20,7 @@ class CategoriaProductoService {
         }
         return await this.#categoriaProductoDB.crearCategoriaProductoBD(categoriaProducto);
     }
-
+    
     async actualizarCategoriaProducto(categoriaProducto) {
         if (!categoriaProducto || !categoriaProducto.id) {
             return {

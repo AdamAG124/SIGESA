@@ -167,6 +167,182 @@ class ColaboradorDB {
         }
     }
 
+    async insertarColaboradorBD(colaborador) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Usar los getters del objeto Colaborador para obtener los datos
+            const cedula = colaborador.getCedula();
+            const correo = colaborador.getCorreo();
+            const numTelefono = colaborador.getNumTelefono();
+
+            // Verificar si el colaborador ya existe
+            const existingQuery = `
+                SELECT 
+                    DSC_CEDULA, DSC_CORREO, NUM_TELEFONO 
+                FROM ${this.#table} 
+                WHERE DSC_CEDULA = ? OR DSC_CORREO = ? OR NUM_TELEFONO = ?
+            `;
+            const [existingRows] = await connection.query(existingQuery, [cedula, correo, numTelefono]);
+
+            // Comprobar si se encontró alguna coincidencia
+            if (existingRows.length > 0) {
+                const duplicateMessages = [];
+
+                // Verificar cada campo para determinar qué dato se repite
+                if (existingRows.some(row => row.DSC_CEDULA === cedula)) {
+                    duplicateMessages.push(`La cédula ${cedula} ya existe.`);
+                }
+                if (existingRows.some(row => row.DSC_CORREO === correo)) {
+                    duplicateMessages.push(`El correo ${correo} ya existe.`);
+                }
+                if (existingRows.some(row => row.NUM_TELEFONO === numTelefono)) {
+                    duplicateMessages.push(`El número de teléfono ${numTelefono} ya existe.`);
+                }
+
+                return {
+                    success: false,
+                    message: duplicateMessages.join(' ')
+                };
+            }
+
+            // Crear la consulta SQL para insertar el nuevo colaborador
+            const insertQuery = `
+                INSERT INTO ${this.#table} 
+                (ID_DEPARTAMENTO, ID_PUESTO, DSC_SEGUNDO_APELLIDO, FEC_NACIMIENTO, NUM_TELEFONO, FEC_SALIDA, ESTADO, DSC_CORREO, DSC_CEDULA, DSC_NOMBRE, DSC_PRIMER_APELLIDO) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            // Crear los parámetros de la consulta usando los valores obtenidos
+            const params = [
+                colaborador.getIdDepartamento().getIdDepartamento(),
+                colaborador.getIdPuesto().getIdPuestoTrabajo(),
+                colaborador.getSegundoApellido(),
+                colaborador.getFechaNacimiento(),
+                numTelefono,
+                colaborador.getFechaSalida(),
+                colaborador.getEstado(),
+                correo,
+                cedula,
+                colaborador.getNombre(),
+                colaborador.getPrimerApellido()
+            ];
+
+            // Ejecutar la consulta SQL para insertar el colaborador
+            const [result] = await connection.query(insertQuery, params);
+
+            // Verificar si se ha insertado un registro
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Colaborador insertado exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se pudo insertar el colaborador.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al insertar el colaborador: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Cerrar la conexión con la base de datos
+            }
+        }
+    }
+
+    async editarColaboradorBD(colaborador) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Usar los getters del objeto Colaborador para obtener los datos
+            const idColaborador = colaborador.getIdColaborador();
+            const idDepartamento = colaborador.getIdDepartamento();
+            const idPuesto = colaborador.getIdPuesto();
+            const segundoApellido = colaborador.getSegundoApellido();
+            const fechaNacimiento = colaborador.getFechaNacimiento();
+            const numTelefono = colaborador.getNumTelefono();
+            const fechaIngreso = colaborador.getFechaIngreso();
+            const fechaSalida = colaborador.getFechaSalida();
+            const estado = colaborador.getEstado();
+            const correo = colaborador.getCorreo();
+            const cedula = colaborador.getCedula();
+            const nombre = colaborador.getNombre();
+            const primerApellido = colaborador.getPrimerApellido();
+
+            // Crear la consulta SQL para actualizar los campos del colaborador
+            const query = `
+                UPDATE ${this.#table} 
+                SET 
+                    ID_DEPARTAMENTO = ?,
+                    ID_PUESTO = ?,
+                    DSC_SEGUNDO_APELLIDO = ?,
+                    FEC_NACIMIENTO = ?,
+                    NUM_TELEFONO = ?,
+                    FEC_INGRESO = ?,
+                    FEC_SALIDA = ?,
+                    ESTADO = ?,
+                    DSC_CORREO = ?,
+                    DSC_CEDULA = ?,
+                    DSC_NOMBRE = ?,
+                    DSC_PRIMER_APELLIDO = ?
+                WHERE ID_COLABORADOR = ?
+            `;
+
+            // Crear los parámetros de la consulta usando los valores obtenidos
+            const params = [
+                idDepartamento,
+                idPuesto,
+                segundoApellido,
+                fechaNacimiento,
+                numTelefono,
+                fechaIngreso,
+                fechaSalida,
+                estado,
+                correo,
+                cedula,
+                nombre,
+                primerApellido,
+                idColaborador
+            ];
+
+            // Ejecutar la consulta SQL
+            const [result] = await connection.query(query, params);
+
+            // Verificar si se ha actualizado algún registro
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Colaborador actualizado exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró el colaborador o no se realizaron cambios.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al actualizar el colaborador: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Cerrar la conexión con la base de datos
+            }
+        }
+    }
+
     async eliminarColaboradorBD(colaborador) {
         const db = new ConectarDB();
         let connection;

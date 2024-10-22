@@ -2,7 +2,7 @@
 <div class="main-content">
     <div class="content-header">
         <h1 class="content-title">Administrar Colaboradores</h1>
-        <button class="add-collaborator-btn" title="Agregar Nuevo Colaborador">
+        <button onclick="agregarColaborador()" class="add-collaborator-btn" title="Agregar Nuevo Colaborador">
             <span class="material-icons">person_add</span>
         </button>
     </div>
@@ -47,51 +47,62 @@
 
     </div>
     <!-- Modal para editar colaborador -->
-<div id="editarColaboradorModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="cerrarModal('editarColaboradorModal')">&times;</span>
-        <h2 id="modalTitle"></h2>
-        <form id="editarColaboradorForm" class="editar-colaborador-form">
-            <input type="hidden" id="idColaborador">
+    <div id="editarColaboradorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarColaboradorModal', 'editarColaboradorForm')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <form id="editarColaboradorForm" class="editar-colaborador-form">
+                <input type="hidden" id="idColaborador">
 
-            <label for="cedulaColaborador">Cédula:</label>
-            <input type="text" id="cedulaColaborador" name="cedulaColaborador" required>
+                <label for="cedulaColaborador">Cédula:</label>
+                <input type="text" onkeypress="obtenerNombrePorCedula()" id="cedulaColaborador" name="cedulaColaborador" required>
 
-            <label for="nombreColaborador">Nombre:</label>
-            <input type="text" id="nombreColaborador" name="nombreColaborador" required>
+                <label for="nombreColaborador">Nombre:</label>
+                <input type="text" id="nombreColaborador" name="nombreColaborador" required>
 
-            <label for="primerApellidoColaborador">Primer Apellido:</label>
-            <input type="text" id="primerApellidoColaborador" name="primerApellidoColaborador" required>
+                <label for="primerApellidoColaborador">Primer Apellido:</label>
+                <input type="text" id="primerApellidoColaborador" name="primerApellidoColaborador" required>
 
-            <label for="segundoApellidoColaborador">Segundo Apellido:</label>
-            <input type="text" id="segundoApellidoColaborador" name="segundoApellidoColaborador" required>
+                <label for="segundoApellidoColaborador">Segundo Apellido:</label>
+                <input type="text" id="segundoApellidoColaborador" name="segundoApellidoColaborador" required>
 
-            <label for="fechaNacimiento">Fecha de Nacimiento:</label>
-            <input type="date" id="fechaNacimiento" name="fechaNacimiento" required>
+                <label for="fechaNacimiento">Fecha de Nacimiento:</label>
+                <input type="date" id="fechaNacimiento" name="fechaNacimiento" required>
 
-            <label for="numTelefono">Número de Teléfono:</label>
-            <input type="tel" id="numTelefono" name="numTelefono" required>
+                <label for="numTelefono">Número de Teléfono:</label>
+                <input type="tel" id="numTelefono" name="numTelefono" required>
 
-            <label for="correoColaborador">Correo Electrónico:</label>
-            <input type="email" id="correoColaborador" name="correoColaborador" required>
+                <label for="correoColaborador">Correo Electrónico:</label>
+                <input type="email" id="correoColaborador" name="correoColaborador" required>
 
-            <label for="nombrePuesto">Puesto:</label>
-            <select id="nombrePuesto" name="nombrePuesto" required>
-                <!-- Opciones de puestos se llenarán aquí -->
-            </select>
+                <label for="nombrePuesto">Puesto:</label>
+                <select id="nombrePuesto" name="nombrePuesto" required>
+                    <!-- Opciones de puestos se llenarán aquí -->
+                </select>
 
-            <label for="nombreDepartamento">Departamento:</label>
-            <select id="nombreDepartamento" name="nombreDepartamento" required>
-                <!-- Opciones de departamentos se llenarán aquí -->
-            </select>
+                <label for="nombreDepartamento">Departamento:</label>
+                <select id="nombreDepartamento" name="nombreDepartamento" required>
+                    <!-- Opciones de departamentos se llenarán aquí -->
+                </select>
 
-            <label for="fechaIngreso">Fecha de Ingreso:</label>
-            <input type="date" id="fechaIngreso" name="fechaIngreso" required>
+                <label for="fechaIngreso">Fecha de Ingreso:</label>
+                <input type="date" id="fechaIngreso" name="fechaIngreso" required>
+                <p id="errorMessage" style="color: red;"></p>
 
-            <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
-        </form>
+                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+            </form>
+        </div>
     </div>
-</div>
 
 </div>
 </div>
+
+<!--<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("cedulaColaborador").addEventListener("keydown", async (event) => {
+            if (event.key === "Enter") { // Verificar si la tecla presionada es "Enter"
+                obtenerNombrePorCedula();
+            }
+        });
+    });
+</script>-->
