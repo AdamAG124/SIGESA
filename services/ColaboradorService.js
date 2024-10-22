@@ -20,6 +20,10 @@ class ColaboradorService{
         }
         return await this.#colaboradorDB.listarColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
     }
+
+    async eliminarColaborador(colaborador){
+        return await this.#colaboradorDB.eliminarColaboradorBD(colaborador);
+    }
 }
 
 // Exportar la clase

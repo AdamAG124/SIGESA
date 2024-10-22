@@ -5,6 +5,8 @@ const RolController = require('./controllers/RolController');
 const Usuario = require('./domain/Usuario');
 const fs = require('fs');
 const ColaboradorController = require('./controllers/ColaboradorController');
+const Colaborador = require('./domain/Colaborador');
+const DepartamentoController = require('./controllers/DepartamentoController');
 
 let mainWindow;  // Declarar mainWindow a nivel global
 
@@ -87,7 +89,7 @@ ipcMain.on('cambiar-vista', async (event, result) => {
 
 ipcMain.on('leer-html', (event, filePath) => {
     const fullPath = path.join(__dirname, 'views', filePath); // Construir la ruta completa del archivo
-    
+
     fs.readFile(fullPath, 'utf-8', (err, data) => {
         if (err) {
             console.error('Error al leer el archivo HTML:', err);
@@ -95,7 +97,7 @@ ipcMain.on('leer-html', (event, filePath) => {
             event.sender.send('html-cargado', { error: 'Error al leer el archivo HTML' });
             return;
         }
-        
+
         // Enviar el contenido HTML de vuelta al proceso de renderizado
         event.sender.send('html-cargado', data);
     });
@@ -262,6 +264,58 @@ ipcMain.on('listar-colaboradores', async (event, { pageSize, currentPage, estado
         }
     }
 });
+
+ipcMain.on('eliminar-colaborador', async (event, colaboradorId, estado) => {
+    try {
+        // Crear un objeto Usuario y setear los datos
+        const colaborador = new Colaborador();
+        colaborador.setIdColaborador(colaboradorId);
+        colaborador.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
+
+        // Llamar al método de actualizar en el UsuarioController
+        const colaboradorController = new ColaboradorController();
+        const resultado = await colaboradorController.eliminarColaborador(colaborador);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-eliminar-colaborador', resultado); // Pasar el resultado que viene desde UsuarioController
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        event.reply('respuesta-eliminar-usuario', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const departamentoController = new DepartamentoController();
+    try {
+        const resultado = await departamentoController.listarDepartamentos(pageSize, currentPage, estado, valorBusqueda);
+
+        // En lugar de simplificar los datos, devolver el array completo con todos los atributos
+        const departamentosCompletos = resultado.departamentos.map(departamento => {
+            return {
+                idDepartamento: departamento.getIdDepartamento(),
+                nombreDepartamento: departamento.getNombre(),
+                descripcionDepartamento: departamento.getDescripcion(),
+                estado: departamento.getEstado()
+            };
+        });
+
+        // Preparar el objeto de respuesta que incluye los departamentos completos y los datos de paginación
+        const respuesta = {
+            departamentos: departamentosCompletos,  // Lista completa de departamentos con todos los atributos
+            paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
+        };
+
+        if (mainWindow) {  // Verifica que mainWindow esté definido
+            mainWindow.webContents.send('cargar-departamentos', respuesta); // Enviar los departamentos completos al frontend
+        }
+    } catch (error) {
+        console.error('Error al listar los departamentos:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
+        }
+    }
+});
+
 
 app.whenReady().then(() => {
     createWindow();

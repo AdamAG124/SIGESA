@@ -12,6 +12,10 @@ class ColaboradorController{
         return await this.#colaboradorService.obtenerColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
     }
 
+    async eliminarColaborador(colaborador){
+        return await this.#colaboradorService.eliminarColaborador(colaborador);
+    }
+
 }
 
 module.exports = ColaboradorController;

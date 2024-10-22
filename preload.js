@@ -46,6 +46,15 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
     },
 
+    eliminarColaborador: (colaboradorId, estado) => ipcRenderer.send('eliminar-colaborador', colaboradorId, estado),
+    // Recibir la respuesta de la eliminación del usuario
+    onRespuestaEliminarColaborador: (callback) => ipcRenderer.once('respuesta-eliminar-colaborador', (event, respuesta) => callback(respuesta)),
+
+    obtenerDepartamentos: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-departamentos', { pageSize, currentPage, estado, valorBusqueda }); // Enviar el evento al proceso principal
+        ipcRenderer.once('cargar-departamentos', (event, departamentos) => callback(departamentos)); // Recibir la respuesta
+    },    
+
     // Métodos para gestionar categorías
     obtenerCategorias: (callback) => {
         ipcRenderer.send('listar-categorias'); // Enviar el evento al proceso principal

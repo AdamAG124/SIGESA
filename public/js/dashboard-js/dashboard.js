@@ -153,7 +153,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
       // Actualizar los botones de paginación
       actualizarPaginacion(respuesta.paginacion, ".pagination", 1);
 
-      cerrarModal(); // Cerrar cualquier modal activo
+      cerrarModal("editarUsuarioModal"); // Cerrar cualquier modal activo
     });
   }, 100);
 }
@@ -394,10 +394,22 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
               mostrarToastError(respuesta.message);
             }
           });
-        break;
+          break;
         case 2:
-
-        break;
+          // Enviar los datos al proceso principal a través de preload.js
+          window.api.eliminarColaborador(Number(id), Number(estado));
+          // Mostrar el resultado de la actualización al recibir la respuesta
+          window.api.onRespuestaEliminarColaborador((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              setTimeout(() => {
+                filterTable(2);
+              }, 2000);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+          break;
       }
     }
   });
@@ -561,9 +573,9 @@ function enviarCreacionUsuario(event) {
 }
 
 // Función para cerrar el modal
-function cerrarModal() {
+function cerrarModal(idModaCerrar) {
   console.log("se llamo a la función cerrar modal");
-  document.getElementById("editarUsuarioModal").style.display = "none";
+  document.getElementById(idModaCerrar).style.display = "none";
   // Limpiar los campos del formulario y resetear mensajes de error
   document.getElementById("editarUsuarioForm").reset();
   document.getElementById("passwordError").style.display = "none";
@@ -624,6 +636,8 @@ function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColabora
 
   selectPageSize.value = pageSize;
 
+  //cargarDepartamentos(selectDepartamento, "Filtrar por departamento");
+
   // Cargar los colaboradores
   window.api.obtenerColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda, (respuesta) => {
     const tbody = document.getElementById("colaboradores-body");
@@ -658,6 +672,13 @@ function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColabora
                   <span class="tooltiptext">Ver detalles</span>
               </button>
           </td>
+          <!-- Información adicional oculta -->
+          <td class="hidden-info" style="display:none;">${colaborador.cedulaColaborador}</td>
+          <td class="hidden-info" style="display:none;">${colaborador.fechaNacimiento}</td>
+          <td class="hidden-info" style="display:none;">${colaborador.fechaIngreso}</td>
+          <td class="hidden-info" style="display:none;">${colaborador.fechaSalida ? colaborador.fechaSalida : 'N/A'}</td>
+          <td class="hidden-info" style="display:none;">${colaborador.nombreDepartamento}</td>
+          <td class="hidden-info" style="display:none;">${colaborador.nombrePuesto}</td>
       `;
       tbody.appendChild(row);
     });
@@ -665,6 +686,142 @@ function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColabora
     // Actualizar los botones de paginación
     actualizarPaginacion(respuesta.paginacion, ".pagination", 2);
 
-    cerrarModal(); // Cerrar cualquier modal activo
+    cerrarModal("editarUsuarioModal"); // Cerrar cualquier modal activo
+  });
+}
+
+function editarColaborador(id, boton) {
+  const puestoSelect = document.getElementById("nombrePuesto");
+  const departamentoSelect = document.getElementById("nombreDepartamento");
+
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombreColaborador = fila.children[0].textContent;
+  const nombreDesglosado = desglosarNombreCompleto(nombreColaborador);
+  const cedulaColaborador = fila.children[5].textContent;
+  const nombre = nombreDesglosado.nombre;
+  const primerApellidoColaborador = nombreDesglosado.primerApellido;
+  const segundoApellidoColaborador = nombreDesglosado.segundoApellido;
+  const fechaNacimiento = fila.children[6].textContent;
+  const fechaNacimientoFormateada = formatearFecha(fechaNacimiento);
+  const numTelefono = fila.children[1].textContent;
+  const correoColaborador = fila.children[2].textContent;
+  const puestoColaborador = fila.children[10].textContent;
+  const departamentoColaborador = fila.children[9].textContent;
+  const fechaIngreso = fila.children[7].textContent;
+  const fechaIngresoFormateada = formatearFecha(fechaIngreso);
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idColaborador").value = id;
+  document.getElementById("nombreColaborador").value = nombre;
+  document.getElementById("cedulaColaborador").value = cedulaColaborador;
+  document.getElementById("primerApellidoColaborador").value = primerApellidoColaborador;
+  document.getElementById("segundoApellidoColaborador").value = segundoApellidoColaborador;
+  document.getElementById("fechaNacimiento").value = fechaNacimientoFormateada;
+  document.getElementById("numTelefono").value = numTelefono;
+  document.getElementById("correoColaborador").value = correoColaborador;
+  document.getElementById("fechaIngreso").value = fechaIngresoFormateada;
+
+  // Crear un array para almacenar los textos de las opciones del select de puestos y departamentos
+  const opcionesPuestosArray = [];
+  const opcionesDepartamentosArray = [];
+
+  for (let i = 0; i < puestoSelect.options.length; i++) {
+    const option = puestoSelect.options[i];
+    opcionesPuestosArray.push(option.textContent); // Guardar el texto en el array
+  }
+
+  for (let i = 0; i < departamentoSelect.options.length; i++) {
+    const option = departamentoSelect.options[i];
+    opcionesDepartamentosArray.push(option.textContent); // Guardar el texto en el array
+  }
+
+  // Insertar las opciones del select de puestos y preseleccionar el puesto del colaborador
+  puestoSelect.innerHTML = ""; // Limpiar las opciones existentes
+  for (let i = 0; i < opcionesPuestosArray.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = opcionesPuestosArray[i];
+    puestoSelect.appendChild(option);
+  }
+  puestoSelect.value = opcionesPuestosArray.indexOf(puestoColaborador);
+
+  // Insertar las opciones del select de departamentos y preseleccionar el departamento del colaborador
+  departamentoSelect.innerHTML = ""; // Limpiar las opciones existentes
+  for (let i = 0; i < opcionesDepartamentosArray.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = opcionesDepartamentosArray[i];
+    departamentoSelect.appendChild(option);
+  }
+  departamentoSelect.value = opcionesDepartamentosArray.indexOf(departamentoColaborador);
+
+  // Cambiar el título del modal a "Editar Colaborador"
+  document.getElementById("modalTitle").innerText = "Editar Colaborador";
+  //document.getElementById("buttonModal").onclick = enviarEdicionColaborador;
+
+  // Mostrar el modal
+  document.getElementById("editarColaboradorModal").style.display = "block";
+}
+
+function desglosarNombreCompleto(nombreCompleto) {
+  // Dividir el nombre completo en partes utilizando los espacios como separadores
+  const partes = nombreCompleto.split(' ');
+
+  let nombre = '';
+  let primerApellido = '';
+  let segundoApellido = '';
+
+  // Si hay 3 o más partes, asumimos la estructura: nombre + primer apellido + segundo apellido
+  if (partes.length >= 3) {
+    nombre = partes.slice(0, partes.length - 2).join(' ');  // Todo lo que no sea apellidos
+    primerApellido = partes[partes.length - 2]; // Penúltima parte
+    segundoApellido = partes[partes.length - 1]; // Última parte
+  } else if (partes.length === 2) {
+    // Si hay exactamente 2 partes, tomamos el primer elemento como nombre y el segundo como primer apellido
+    nombre = partes[0];
+    primerApellido = partes[1];
+    segundoApellido = ''; // No hay segundo apellido
+  } else if (partes.length === 1) {
+    // Si hay solo una parte, lo tratamos todo como el nombre
+    nombre = partes[0];
+    primerApellido = '';
+    segundoApellido = '';
+  }
+
+  return {
+    nombre: nombre,
+    primerApellido: primerApellido,
+    segundoApellido: segundoApellido
+  };
+}
+
+// Función para formatear las fechas en yyyy-MM-dd
+function formatearFecha(fecha) {
+  if (!fecha) return 'N/A'; // Maneja el caso de fecha vacía o nula
+  const date = new Date(fecha);
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2); // Añadir ceros iniciales
+  const day = ('0' + date.getDate()).slice(-2); // Añadir ceros iniciales
+  return `${year}-${month}-${day}`;
+}
+
+function cargarDepartamentos(idSelect, mensajeQuemado) {
+  window.api.obtenerDepartamentos((pageSize = null, currentPage = null, estado = 2, valorBusqueda = null, respuesta) => {
+    const roleSelect = document.getElementById(idSelect);
+    roleSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    roleSelect.appendChild(option);
+
+    respuesta.departamentos.forEach((departamento) => {
+      const option = document.createElement("option");
+      option.value = departamento.idDepartamento; // Asumiendo que tu objeto role tiene un idRole
+      option.textContent = departamento.nombreDepartamento;
+      roleSelect.appendChild(option);
+    });
   });
 }
