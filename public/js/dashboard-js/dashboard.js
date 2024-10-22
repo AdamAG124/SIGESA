@@ -93,7 +93,7 @@ function mostrarToastConfirmacion(titulo) {
   });
 }
 
-function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFiltro = 0, valorBusqueda = null) {
+function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFiltro = 0, valorBusqueda = null) {
 
   // Obtener el select por su id
   const selectEstado = document.getElementById('filtrado-estado');
@@ -624,7 +624,7 @@ function togglePasswordVisibility(passwordFieldId, iconId) {
   }
 }
 
-function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColaborador = 2, idPuestoFiltro = 0, idDepartamentoFiltro = 0, valorBusqueda = null) {
+function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColaborador = 1, idPuestoFiltro = 0, idDepartamentoFiltro = 0, valorBusqueda = null) {
 
   // Obtener el select por su id
   const selectEstado = document.getElementById('estado-filtro');
