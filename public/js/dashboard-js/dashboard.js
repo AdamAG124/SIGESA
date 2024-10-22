@@ -46,13 +46,13 @@ function logout() {
 
 function adjuntarHTML(filePath, cargarTabla) {
   window.api.loadHTML(filePath); // Solicita cargar el archivo HTML
-  
+
   window.api.onHTMLLoaded((data) => {
     const innerDiv = document.getElementById("inner-div");
-    
+
     if (innerDiv) {
       innerDiv.innerHTML = data; // Adjunta el HTML solo si el div existe
-      
+
       if (cargarTabla) {
         cargarTabla(); // Ejecuta cargarTabla solo después de cargar el HTML
       }
@@ -151,7 +151,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
       });
 
       // Actualizar los botones de paginación
-      actualizarPaginacion(respuesta.paginacion, ".pagination");
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 1);
 
       cerrarModal(); // Cerrar cualquier modal activo
     });
@@ -159,7 +159,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
 }
 
 
-function actualizarPaginacion(pagination, idInnerDiv) {
+function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   const paginacionDiv = document.querySelector(idInnerDiv);
 
   // Limpiar el contenido previo de paginación
@@ -170,7 +170,11 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
   firstPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
   firstPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado, pagination.idRol);
+    if (moduloPaginar === 1) {
+      cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado, pagination.idRol);
+    }else if(moduloPaginar === 2){
+      cargarColaboradoresTabla(pagination.pageSize, 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
+    }
   });
   paginacionDiv.appendChild(firstPageButton);
 
@@ -179,7 +183,11 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   prevPageButton.innerHTML = `<span class="material-icons">navigate_before</span>`;
   prevPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
   prevPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idRol);
+    if (moduloPaginar === 1) {
+      cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idRol);
+    }else if(moduloPaginar === 2){
+      cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
+    }
   });
   paginacionDiv.appendChild(prevPageButton);
 
@@ -204,7 +212,11 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   nextPageButton.innerHTML = `<span class="material-icons">navigate_next</span>`;
   nextPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
   nextPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idRol);
+    if (moduloPaginar === 1) {
+      cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idRol);
+    }else if(moduloPaginar === 2){
+      cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
+    }
   });
   paginacionDiv.appendChild(nextPageButton);
 
@@ -213,7 +225,11 @@ function actualizarPaginacion(pagination, idInnerDiv) {
   lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
   lastPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
   lastPageButton.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idRol);
+    if(moduloPaginar === 1){
+      cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idRol);
+    }else if(moduloPaginar === 2){
+      cargarColaboradoresTabla(pagination.pageSize, 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
+    }
   });
   paginacionDiv.appendChild(lastPageButton);
 }
@@ -633,7 +649,7 @@ function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColabora
     });
 
     // Actualizar los botones de paginación
-    actualizarPaginacion(respuesta.paginacion, ".pagination");
+    actualizarPaginacion(respuesta.paginacion, ".pagination", 2);
 
     cerrarModal(); // Cerrar cualquier modal activo
   });
