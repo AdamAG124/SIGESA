@@ -5,22 +5,22 @@
     </button>
 </div>
 <div class="search-bar">
-    <input id="search-bar" type="text" onkeypress="filterTable()" placeholder="Buscar usuarios...">
+    <input id="search-bar" type="text" onkeypress="filterTable(1)" placeholder="Buscar usuarios...">
 </div>
 <div class="filters">
     <!--<label for="selectPageSize">Cantidad de registros</label>-->
-    <select id="selectPageSize" onchange="filterTable()">
+    <select id="selectPageSize" onchange="filterTable(1)">
         <option value="5">5 por página</option>
         <option value="10">10 por página</option>
         <option value="25">25 por página</option>
         <option value="50">50 por página</option>
     </select>
     <!--<label for="filtrado-role">Filtrar por tipo de usuario</label>-->
-    <select id="filtrado-role" onchange="filterTable()">
+    <select id="filtrado-role" onchange="filterTable(1)">
 
     </select>
     <!--<label for="filtrado-estado">Filtrar por estado</label>-->
-    <select name="" id="filtrado-estado" onchange="filterTable()">
+    <select name="" id="filtrado-estado" onchange="filterTable(1)">
         <option value="2">Todos</option>
         <option value="1">Activos</option>
         <option value="0">Inactivos</option>

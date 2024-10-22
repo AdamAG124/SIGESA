@@ -7,25 +7,25 @@
         </button>
     </div>
     <div class="search-bar">
-        <input type="text" placeholder="Buscar colaboradores...">
+        <input id="search-bar" type="text" placeholder="Buscar colaboradores..." onkeypress="filterTable(2)">
     </div>
     <div class="filters">
-        <select id="selectPageSize" onchange="">
+        <select id="selectPageSize" onchange="filterTable(2)">
             <option value="5">5 por página</option>
             <option value="10">10 por página</option>
             <option value="25">25 por página</option>
             <option value="50">50 por página</option>
         </select>
-        <select id="departamento-filtro">
+        <select id="departamento-filtro" onchange="filterTable(2)">
 
         </select>
-        <select id="puesto-filtro">
+        <select id="puesto-filtro" onchange="filterTable(2)">
 
         </select>
-        <select id="estado-filtro">
-            <option value="">Filtrar por estado</option>
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
+        <select id="estado-filtro" onchange="filterTable(2)">
+            <option value="2">Filtrar por estado</option>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
         </select>
         <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
     </div>

@@ -43,7 +43,7 @@ contextBridge.exposeInMainWorld('api', {
 
     obtenerColaboradores: (pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda, callback) => {
         ipcRenderer.send('listar-colaboradores', { pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }); // Enviar el evento al proceso principal
-        ipcRenderer.on('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
+        ipcRenderer.once('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
     },
 
     // Métodos para gestionar categorías

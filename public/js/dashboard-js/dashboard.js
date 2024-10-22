@@ -137,7 +137,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 2, idRolFil
                         <span class="material-icons">edit</span>
                         <span class="tooltiptext">Editar usuario</span>
                     </button>
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="${usuario.estado === 1 ? `eliminarUsuario(this.value, 0, 'Eliminando usuario', '¿Está seguro que desea eliminar a este usuario?')` : `eliminarUsuario(this.value, 1, 'Reactivando usuario', '¿Está seguro que desea reactivar a este usuario?')`}">
+                    <button class="tooltip" value="${usuario.idUsuario}" onclick="${usuario.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando usuario', '¿Está seguro que desea eliminar a este usuario?', 1)` : `actualizarEstado(this.value, 1, 'Reactivando usuario', '¿Está seguro que desea reactivar a este usuario?', 1)`}">
                         <span class="material-icons">
                           ${usuario.estado === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
                         </span>
@@ -172,7 +172,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   firstPageButton.addEventListener("click", () => {
     if (moduloPaginar === 1) {
       cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado, pagination.idRol);
-    }else if(moduloPaginar === 2){
+    } else if (moduloPaginar === 2) {
       cargarColaboradoresTabla(pagination.pageSize, 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
     }
   });
@@ -185,7 +185,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   prevPageButton.addEventListener("click", () => {
     if (moduloPaginar === 1) {
       cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idRol);
-    }else if(moduloPaginar === 2){
+    } else if (moduloPaginar === 2) {
       cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
     }
   });
@@ -214,7 +214,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   nextPageButton.addEventListener("click", () => {
     if (moduloPaginar === 1) {
       cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idRol);
-    }else if(moduloPaginar === 2){
+    } else if (moduloPaginar === 2) {
       cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
     }
   });
@@ -225,17 +225,24 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
   lastPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
   lastPageButton.addEventListener("click", () => {
-    if(moduloPaginar === 1){
+    if (moduloPaginar === 1) {
       cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idRol);
-    }else if(moduloPaginar === 2){
-      cargarColaboradoresTabla(pagination.pageSize, 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
+    } else if (moduloPaginar === 2) {
+      cargarColaboradoresTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
     }
   });
   paginacionDiv.appendChild(lastPageButton);
 }
 
-function filterTable() {
-  cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
+function filterTable(moduloFiltrar) {
+  switch (moduloFiltrar) {
+    case 1:
+      cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
+      break;
+    case 2:
+      cargarColaboradoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), Number(document.getElementById("puesto-filtro").value), Number(document.getElementById("departamento-filtro").value), document.getElementById("search-bar").value);
+      break;
+  }
 }
 
 function editarUsuario(id, boton) {
@@ -343,7 +350,7 @@ function enviarEdicionUsuario() {
         if (respuesta.success) {
           mostrarToastConfirmacion(respuesta.message);
           setTimeout(() => {
-            filterTable();
+            filterTable(1);
           }, 2000);
         } else if (respuesta.message === "El nombre de usuario ya está en uso.") {
           document.getElementById("nombreUsuario").style.border = "2px solid red";
@@ -359,7 +366,7 @@ function enviarEdicionUsuario() {
 }
 
 
-function eliminarUsuario(id, estado, title, message) {
+function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
   Swal.fire({
     title: title,
     text: message,
@@ -371,20 +378,27 @@ function eliminarUsuario(id, estado, title, message) {
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
-      // Enviar los datos al proceso principal a través de preload.js
-      window.api.eliminarUsuario(Number(id), Number(estado));
+      switch (moduloEstadoActualizar) {
+        case 1:
+          // Enviar los datos al proceso principal a través de preload.js
+          window.api.eliminarUsuario(Number(id), Number(estado));
 
-      // Mostrar el resultado de la actualización al recibir la respuesta
-      window.api.onRespuestaEliminarUsuario((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            filterTable();
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
+          // Mostrar el resultado de la actualización al recibir la respuesta
+          window.api.onRespuestaEliminarUsuario((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              setTimeout(() => {
+                filterTable(1);
+              }, 2000);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+        break;
+        case 2:
+
+        break;
+      }
     }
   });
 }
@@ -526,7 +540,7 @@ function enviarCreacionUsuario(event) {
         if (respuesta.success) {
           mostrarToastConfirmacion(respuesta.message);
           setTimeout(() => {
-            filterTable();
+            filterTable(1);
           }, 2000);
         } else if (respuesta.message === "El nombre de usuario ya está en uso.") {
           document.getElementById("nombreUsuario").style.border = "2px solid red";
@@ -631,7 +645,7 @@ function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColabora
                   <span class="material-icons">edit</span>
                   <span class="tooltiptext">Editar colaborador</span>
               </button>
-              <button class="tooltip" value="${colaborador.idColaborador}" onclick="${colaborador.estado === 1 ? `eliminarColaborador(this.value, 0, 'Eliminando colaborador', '¿Está seguro que desea eliminar a este colaborador?')` : `eliminarColaborador(this.value, 1, 'Reactivando colaborador', '¿Está seguro que desea reactivar a este colaborador?')`}">
+              <button class="tooltip" value="${colaborador.idColaborador}" onclick="${colaborador.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando colaborador', '¿Está seguro que desea eliminar a este colaborador?', 2)` : `actualizarEstado(this.value, 1, 'Reactivando colaborador', '¿Está seguro que desea reactivar a este colaborador?', 2)`}">
                   <span class="material-icons">
                       ${colaborador.estado === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
                   </span>
