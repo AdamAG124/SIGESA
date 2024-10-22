@@ -953,6 +953,7 @@ function agregarColaborador() {
   const option1 = document.createElement("option");
   option1.value = "0";
   option1.textContent = "Seleccione un departamento";
+  departamentoDestinoSelect.appendChild(option1);
   for (let i = 1; i < opcionesDepartamentosArray.length; i++) {
     const option = document.createElement("option");
     option.value = i;
