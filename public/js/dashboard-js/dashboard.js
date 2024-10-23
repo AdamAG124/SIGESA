@@ -706,6 +706,10 @@ async function editarColaborador(id, boton) {
   const puestoDestinoSelect = document.getElementById("nombrePuesto");
   const departamentoDestinoSelect = document.getElementById("nombreDepartamento");
 
+  document.getElementById("nombreColaborador").disabled = true;
+  document.getElementById("primerApellidoColaborador").disabled = true;
+  document.getElementById("segundoApellidoColaborador").disabled = true;
+
   // Obtener la fila del botón clicado
   const fila = boton.closest('tr');
 
@@ -789,6 +793,42 @@ function enviarEdicionColaborador() {
   const fechaIngreso = document.getElementById("fechaIngreso").value;
   const puestoColaborador = document.getElementById("nombrePuesto").value;
   const departamentoColaborador = document.getElementById("nombreDepartamento").value;
+
+  const camposVacios = [];
+
+  // Validar que todos los campos estén llenos
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreColaborador") },
+    { value: cedulaColaborador, element: document.getElementById("cedulaColaborador") },
+    { value: primerApellidoColaborador, element: document.getElementById("primerApellidoColaborador") },
+    { value: segundoApellidoColaborador, element: document.getElementById("segundoApellidoColaborador") },
+    { value: fechaNacimientoFormateada, element: document.getElementById("fechaNacimiento") },
+    { value: numTelefono, element: document.getElementById("numTelefono") },
+    { value: correoColaborador, element: document.getElementById("correoColaborador") },
+    { value: fechaIngreso, element: document.getElementById("fechaIngreso") },
+    { value: puestoColaborador, element: document.getElementById("nombrePuesto") },
+    { value: departamentoColaborador, element: document.getElementById("nombreDepartamento") },
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
 
   // Crear objeto colaborador con los datos
   const colaboradorData = {
