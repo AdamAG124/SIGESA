@@ -1,0 +1,38 @@
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Proveedores</h1>
+        <button class="add-supplier-btn" title="Agregar Nuevo Proveedor">
+            <span class="material-icons">add_business</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar colaboradores..." onkeypress="filterTable(3)"> <!--debe de ir 3 porque espara el modulo de proveedores, tiene que modificar la función para que llame al método de cargar proveedores cuando reciba ese 3-->
+    </div>
+    <div class="filters">
+        <select onchange="filterTable(3)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select onchange="filterTable(3)">
+            <option value="2">Filtrar por estado</option>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+        </select>
+        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="proveedores-body">
+
+        </tbody>
+    </table>
+</div>
+</div>
