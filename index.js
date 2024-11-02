@@ -2,12 +2,15 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const UsuarioController = require('./controllers/UsuarioController');
 const RolController = require('./controllers/RolController');
-const Usuario = require('./domain/Usuario');
-const fs = require('fs');
-const ColaboradorController = require('./controllers/ColaboradorController');
-const Colaborador = require('./domain/Colaborador');
 const DepartamentoController = require('./controllers/DepartamentoController');
 const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
+const ColaboradorController = require('./controllers/ColaboradorController');
+const ProveedorController = require('./controllers/ProveedorController');
+const Usuario = require('./domain/Usuario');
+const Colaborador = require('./domain/Colaborador');
+const fs = require('fs');
+
+
 
 let mainWindow;  // Declarar mainWindow a nivel global
 
