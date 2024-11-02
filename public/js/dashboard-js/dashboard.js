@@ -937,7 +937,7 @@ function cargarDepartamentos(idSelect, mensajeQuemado) {
 }
 
 function cargarPuestos(idSelect, mensajeQuemado) {
-  window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 2, valorBusqueda = null, (respuesta) => {
+  window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
     //const departamentoSelect = document.getElementById(idSelect);
     idSelect.innerHTML = ""; // Limpiar las opciones existentes

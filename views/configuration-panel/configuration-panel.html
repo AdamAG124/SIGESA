@@ -29,7 +29,7 @@
             <h2 class="config-title">Administrar categorías de productos</h2>
             <p class="config-description">Configura y organiza las categorías de los productos.</p>
         </div>
-        <div class="config-card">
+        <div onclick="adjuntarHTML('/configuration-panel/proveedores-admin.html', 0)" class="config-card"> <!--a la función del onclick le pase 0, para probar que el HTML si se adunta, pero se le tiene que pasar el nombre de la función que carga los proveedores en la tabla-->
             <span class="material-icons config-icon">local_shipping</span>
             <h2 class="config-title" onclick="adjuntarHTML('/configuration-panel/manage-proveedores.html', () => cargarProveedoresTabla())">Administrar proveedores</h2>
             <p class="config-description">Gestiona la información y los registros de los proveedores.</p>
