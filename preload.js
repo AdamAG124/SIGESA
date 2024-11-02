@@ -64,14 +64,14 @@ contextBridge.exposeInMainWorld('api', {
             callback(departamentos);
         });
     },
-    
+
     obtenerPuestosTrabajo: (pageSize, currentPage, estado, valorBusqueda, callback) => {
         ipcRenderer.send('listar-puestos-trabajo', { pageSize, currentPage, estado, valorBusqueda });
         ipcRenderer.once('cargar-puestos-trabajo', (event, respuesta) => {
             // Asegúrate de que respuesta es un objeto válido y serializable
             callback(respuesta);
         });
-    },    
+    },
 
     // Métodos para gestionar categorías
     obtenerCategorias: (callback) => {
@@ -99,6 +99,22 @@ contextBridge.exposeInMainWorld('api', {
     onRespuestaEliminarCategoria: (callback) => {
         ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta));
     },
+
+    obtenerProveedores: (pageSize, currentPage, estado, callback) => {
+        // Enviar la solicitud para listar proveedores
+        ipcRenderer.send('listar-proveedores', { pageSize, currentPage, estado });
+
+        // Escuchar la respuesta
+        ipcRenderer.once('cargar-proveedores', (event, proveedores) => {
+            callback(proveedores);
+        });
+
+        // Manejo de errores de la respuesta
+        ipcRenderer.once('error-cargar-proveedores', (event, errorMessage) => {
+            callback({ error: errorMessage });
+        });
+    },
+
 
 
 });

@@ -472,3 +472,48 @@ ipcMain.on('crear-categoria', async (event, categoriaData) => {
     }
 });
 
+
+ipcMain.on('listar-proveedores', async (event, { pageSize, pageNumber, estado }) => {
+    const controller = new ProveedorController();
+
+    // // Validación de parámetros
+    // if (typeof pageSize !== 'number' || pageSize <= 0) {
+    //     return mainWindow?.webContents.send('error-cargar-proveedores', 'El tamaño de página debe ser un número positivo.');
+    // }
+     if (typeof pageNumber !== 'number' || pageNumber <= 0) {
+         pageNumber = 1;
+     }
+    // if (![0, 1].includes(estado)) {
+    //     return mainWindow?.webContents.send('error-cargar-proveedores', 'El estado debe ser 0 (inactivo) o 1 (activo).');
+    // }
+
+    try {
+        // Llamar al método listarProveedores con los parámetros recibidos
+        const resultado = await controller.listarProveedores(pageSize, pageNumber, estado);
+
+        // Simplificar la lista de proveedores
+        const proveedoresSimplificados = resultado.proveedores.map(proveedor => ({
+            idProveedor: proveedor.getIdProveedor(),
+            nombre: proveedor.getNombre(),
+            provincia: proveedor.getProvincia(),
+            canton: proveedor.getCanton(),
+            distrito: proveedor.getDistrito(),
+            direccion: proveedor.getDireccion(),
+            estado: proveedor.getEstado()
+        }));
+
+        // Preparar el objeto de respuesta que incluye los proveedores y los datos de paginación
+        const respuesta = {
+            proveedores: proveedoresSimplificados,
+            paginacion: resultado.pagination
+        };
+
+        // Enviar los datos de vuelta al frontend
+        mainWindow?.webContents.send('cargar-proveedores', respuesta);
+
+    } catch (error) {
+        console.error('Error al listar los proveedores:', error);
+        mainWindow?.webContents.send('error-cargar-proveedores', `Hubo un error al cargar los proveedores: ${error.message}`);
+    }
+});
+

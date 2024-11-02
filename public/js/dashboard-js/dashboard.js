@@ -97,7 +97,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFil
 
   // Obtener el select por su id
   const selectEstado = document.getElementById('filtrado-estado');
-  const selectPageSize = document.getElementById('selectPageSize');
+
   const selectRoles = document.getElementById("filtrado-role");
 
   // Verificar el valor del estado
@@ -158,6 +158,95 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFil
   }, 100);
 }
 
+function cargarProveedoresTabla(pageSize = 10, pageNumber = 1, estado = 1) {
+  const selectEstado = document.getElementById('estado-filtro');
+  const selectPageSize = document.getElementById('selectPageSize');
+
+  // Validar pageNumber
+  if (typeof pageNumber !== 'number' || pageNumber <= 0) {
+    pageNumber = 1; // Establecer el valor predeterminado
+  }
+
+  // Verificar el valor del estado y establecerlo
+  estado = (estado === 0 || estado === 1) ? estado : 0;
+  selectEstado.value = estado;
+  selectPageSize.value = pageSize;
+
+  window.api.obtenerProveedores(pageSize, pageNumber, estado, (respuesta) => {
+    const tbody = document.getElementById("proveedores-body");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+
+    // Manejo de errores en la respuesta
+    if (respuesta.error) {
+      const mensajeError = document.createElement("tr");
+      mensajeError.innerHTML = `
+          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+              Error: ${respuesta.error}
+          </td>
+      `;
+      tbody.appendChild(mensajeError);
+      return; // Terminar la función si hay un error
+    }
+
+    // Verificar que 'proveedores' es un arreglo
+    if (!Array.isArray(respuesta.proveedores)) {
+      const mensajeError = document.createElement("tr");
+      mensajeError.innerHTML = `
+          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+              Error: La respuesta no contiene una lista de proveedores válida.
+          </td>
+      `;
+      tbody.appendChild(mensajeError);
+      return; // Terminar la función si hay un error
+    }
+
+    // Iterar sobre los proveedores y agregarlos a la tabla
+    if (respuesta.proveedores.length === 0) {
+      const mensaje = document.createElement("tr");
+      mensaje.innerHTML = `
+          <td colspan="3" style="text-align: center; color: gray; font-style: italic;">
+              No hay proveedores registrados
+          </td>
+      `;
+      tbody.appendChild(mensaje);
+      return;
+    } else {
+      respuesta.proveedores.forEach((proveedor) => {
+        const nombre = `${proveedor.nombre}`;
+        const estadoTexto = proveedor.estado === 1 ? "Activo" : "Inactivo";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${nombre}</td>
+          <td>${estadoTexto}</td>
+          <td class="action-icons">
+              <button class="tooltip" value="${proveedor.idProveedor}" onclick="editarProveedor(this.value, this)">
+                  <span class="material-icons">edit</span>
+                  <span class="tooltiptext">Editar proveedor</span>
+              </button>
+              <button class="tooltip" value="${proveedor.idProveedor}" onclick="${proveedor.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando proveedor', '¿Está seguro que desea eliminar a este proveedor?', 1)` : `actualizarEstado(this.value, 1, 'Reactivando proveedor', '¿Está seguro que desea reactivar a este proveedor?', 1)`}">
+                  <span class="material-icons">${proveedor.estado === 1 ? 'delete' : 'restore'}</span>
+                  <span class="tooltiptext">${proveedor.estado === 1 ? 'Eliminar proveedor' : 'Reactivar proveedor'}</span>
+              </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Actualizar los botones de paginación
+    if (respuesta.paginacion) {
+      actualizarPaginacion(respuesta.paginacion, "#pagination", 3); // Asegúrate de usar el selector correcto
+    } else {
+      console.warn('No se proporcionaron datos de paginación.');
+    }
+
+    // Cerrar cualquier modal activo
+    cerrarModal("editarProveedorModal", "editarProveedorForm");
+  });
+}
+
+
 
 function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   const paginacionDiv = document.querySelector(idInnerDiv);
@@ -165,74 +254,59 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   // Limpiar el contenido previo de paginación
   paginacionDiv.innerHTML = "";
 
+  // Función para cargar la tabla según el módulo
+  const cargarTabla = (page) => {
+    switch (moduloPaginar) {
+      case 1:
+        cargarUsuariosTabla(pagination.pageSize, page, pagination.estado, pagination.idRol);
+        break;
+      case 2:
+        cargarColaboradoresTabla(pagination.pageSize, page, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda);
+        break;
+      case 3:
+        cargarProveedoresTabla(pagination.pageSize, page, pagination.estado);
+        break;
+      default:
+        console.warn('Módulo de paginación desconocido:', moduloPaginar);
+        break;
+    }
+  };
+
   // Botón "Primera página"
   const firstPageButton = document.createElement("button");
   firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
-  firstPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
-  firstPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    }
-  });
+  firstPageButton.disabled = pagination.currentPage === 1;
+  firstPageButton.addEventListener("click", () => cargarTabla(1));
   paginacionDiv.appendChild(firstPageButton);
 
   // Botón "Página anterior"
   const prevPageButton = document.createElement("button");
   prevPageButton.innerHTML = `<span class="material-icons">navigate_before</span>`;
-  prevPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
-  prevPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    }
-  });
+  prevPageButton.disabled = pagination.currentPage === 1;
+  prevPageButton.addEventListener("click", () => cargarTabla(pagination.currentPage - 1));
   paginacionDiv.appendChild(prevPageButton);
 
-  // Páginas numeradas
-  //for (let i = 1; i <= pagination.totalPages; i++) {
+  // Mostrar información de la página actual
   const pageSpan = document.createElement("span");
-  pageSpan.textContent = pagination.currentPage + ' de ' + pagination.totalPages;
-  pageSpan.setAttribute('data-value', pagination.currentPage);
+  pageSpan.textContent = `${pagination.currentPage} de ${pagination.totalPages}`;
   pageSpan.classList.add("currentPage");
-  /*if (i === pagination.currentPage) {
-    pageSpan.classList.add("active"); // Añadir clase activa para la página actual
-  }
-  pageSpan.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, i, pagination.estado);
-  });
-  paginacionDiv.appendChild(pageSpan);
-}*/
   paginacionDiv.appendChild(pageSpan);
 
   // Botón "Siguiente página"
   const nextPageButton = document.createElement("button");
   nextPageButton.innerHTML = `<span class="material-icons">navigate_next</span>`;
-  nextPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
-  nextPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    }
-  });
+  nextPageButton.disabled = pagination.currentPage === pagination.totalPages;
+  nextPageButton.addEventListener("click", () => cargarTabla(pagination.currentPage + 1));
   paginacionDiv.appendChild(nextPageButton);
 
   // Botón "Última página"
   const lastPageButton = document.createElement("button");
   lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
-  lastPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
-  lastPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    }
-  });
+  lastPageButton.disabled = pagination.currentPage === pagination.totalPages;
+  lastPageButton.addEventListener("click", () => cargarTabla(pagination.totalPages));
   paginacionDiv.appendChild(lastPageButton);
 }
+
 
 function filterTable(moduloFiltrar) {
   switch (moduloFiltrar) {
@@ -241,6 +315,9 @@ function filterTable(moduloFiltrar) {
       break;
     case 2:
       cargarColaboradoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), Number(document.getElementById("puesto-filtro").value), Number(document.getElementById("departamento-filtro").value), document.getElementById("search-bar").value);
+      break;
+    case 3:
+      cargarProveedoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value));
       break;
   }
 }

@@ -8,7 +8,9 @@ class ProveedorController{
         this.#proveedorService = new ProveedorService();
     }
 
-    async listarProveedores(pageSize, currentPage) {
-        return await this.#proveedorService.listarProveedores(pageSize, currentPage);
+    async listarProveedores(pageSize, currentPage, estadoProveedor) {
+        return await this.#proveedorService.listarProveedores(pageSize, currentPage, estadoProveedor);
     }
 }
+// Exportar la clase
+module.exports = ProveedorController;
