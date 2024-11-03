@@ -8,8 +8,8 @@ class ProveedorService{
         this.#proveedorDB = new ProveedorDB();
     }
 
-    async listarProveedores(pageSize, currentPage, estadoProveedor){
-        return await this.#proveedorDB.listarProveedores(pageSize, currentPage, estadoProveedor);
+    async listarProveedores(pageSize, currentPage, estadoProveedor, valorBusqueda){
+        return await this.#proveedorDB.listarProveedores(pageSize, currentPage, estadoProveedor, valorBusqueda);
     }
 }
 // Exportar la clase

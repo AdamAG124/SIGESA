@@ -8,7 +8,7 @@ class ProveedorDB {
         this.#table = 'SIGM_PROVEEDOR';
     }
 
-    async listarProveedores(pageSize, currentPage, estadoProveedor) {
+    async listarProveedores(pageSize, currentPage, estadoProveedor, valorBusqueda) {
         const db = new ConectarDB();
         let connection;
         try {
@@ -17,16 +17,16 @@ class ProveedorDB {
             // Calcular el OFFSET para la paginación
             const offset = (currentPage - 1) * pageSize;
 
-            // Consultar todas las categorías
+            // Consultar todos los proveedores
             let query = `
                 SELECT
-                 P.ID_PROVEEDOR AS idProveedor,
-                 P.DSC_NOMBRE AS nombre,
-                 P.DSC_PROVINCIA AS provincia,
-                 P.DSC_CANTON AS canton,
-                 P.DSC_DISTRITO AS distrito,  
-                 P.DSC_DIRECCION AS direccion, 
-                 P.ESTADO AS estado
+                    P.ID_PROVEEDOR AS idProveedor,
+                    P.DSC_NOMBRE AS nombre,
+                    P.DSC_PROVINCIA AS provincia,
+                    P.DSC_CANTON AS canton,
+                    P.DSC_DISTRITO AS distrito,  
+                    P.DSC_DIRECCION AS direccion, 
+                    P.ESTADO AS estado
                 FROM
                     ${this.#table} P
             `;
@@ -38,16 +38,19 @@ class ProveedorDB {
                 whereClauseAdded = true;
             }
 
+            if (valorBusqueda !== null) {
+                const likeCondition = ` P.DSC_NOMBRE LIKE '${valorBusqueda}%' `;
+                query += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
+            }
+
             if (pageSize && currentPage) {
                 query += ` LIMIT ${pageSize} OFFSET ${offset}`;
             }
-            console.log(pageSize, currentPage, estadoProveedor, offset);
 
             const [rows] = await connection.query(query);
 
             const proveedores = rows.map(proveedorDB => {
                 const proveedor = new Proveedor();
-                // Setear la información en el objeto Proveedor
                 proveedor.setIdProveedor(proveedorDB.idProveedor);
                 proveedor.setNombre(proveedorDB.nombre);
                 proveedor.setProvincia(proveedorDB.provincia);
@@ -55,26 +58,26 @@ class ProveedorDB {
                 proveedor.setDistrito(proveedorDB.distrito);
                 proveedor.setDireccion(proveedorDB.direccion);
                 proveedor.setEstado(proveedorDB.estado);
-
                 return proveedor;
             });
 
-            let countQuery = `
-                SELECT COUNT(*) as total
-                FROM ${this.#table} P
-            `;
+            // Consulta para contar total de proveedores
+            let countQuery = `SELECT COUNT(*) AS total FROM ${this.#table} P`;
             if (estadoProveedor !== null) {
                 countQuery += ` WHERE P.ESTADO = ${estadoProveedor}`;
                 whereClauseAdded = true;
             }
 
-            if (pageSize && currentPage) {
-                countQuery += ` LIMIT ${pageSize} OFFSET ${offset}`;
+            if (valorBusqueda !== null) {
+                const likeCondition = ` P.DSC_NOMBRE LIKE '${valorBusqueda}%' `;
+                countQuery += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
             }
-            
+
             const [countResult] = await connection.query(countQuery);
-            const totalRecords = countResult[0].total;
-        
+
+            // Verificar que countResult tenga resultados
+            const totalRecords = countResult.length > 0 ? countResult[0].total : 0;
+
             // Calcular el número total de páginas
             const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
 
@@ -83,14 +86,15 @@ class ProveedorDB {
                 proveedores,
                 pagination: {
                     currentPage: currentPage || 1,
-                    pageSize: pageSize || totalRecords, // Si no hay paginación, el tamaño de la página es el total
+                    pageSize: pageSize || totalRecords,
                     totalPages,
                     totalRecords,
                     firstPage: 1,
+                    estado: estadoProveedor,
+                    valorBusqueda,
                     lastPage: totalPages
                 }
             };
-
 
         } catch (error) {
             console.error('Error al listar proveedores:', error);
@@ -100,10 +104,11 @@ class ProveedorDB {
             };
         } finally {
             if (connection) {
-                await connection.end(); // Asegúrate de cerrar la conexión
+                await connection.end();
             }
         }
     }
+
 }
 
 // Exportar la clase

@@ -7,8 +7,10 @@
         </button>
     </div>
     <div class="search-bar">
-        <input id="search-bar" type="text" placeholder="Buscar colaboradores..." onclick="filterTable(3)"> <!--debe de ir 3 porque espara el modulo de proveedores, tiene que modificar la función para que llame al método de cargar proveedores cuando reciba ese 3-->
+        <input id="search-bar" type="text" placeholder="Buscar colaboradores..." onkeydown="checkEmpty(event)" oninput="checkEmpty(event)">
+        <button onclick="filterTable(3)" class="search-btn">Buscar</button>
     </div>
+    
     <div class="filters">
         <select id="selectPageSize" onchange="filterTable(3)">
             <option value="5">5 por página</option>
@@ -17,7 +19,6 @@
             <option value="50">50 por página</option>
         </select>
         <select id="estado-filtro" onchange="filterTable(3)">
-            <option value="2">Filtrar por estado</option>
             <option value="1">Activo</option>
             <option value="0">Inactivo</option>
         </select>
@@ -35,7 +36,7 @@
 
         </tbody>
     </table>
-    <div id="pagination">
+    <div class="pagination">
         
     </div>
 

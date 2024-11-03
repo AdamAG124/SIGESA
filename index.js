@@ -473,24 +473,18 @@ ipcMain.on('crear-categoria', async (event, categoriaData) => {
 });
 
 
-ipcMain.on('listar-proveedores', async (event, { pageSize, pageNumber, estado }) => {
+ipcMain.on('listar-proveedores', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new ProveedorController();
 
-    // // Validación de parámetros
-    // if (typeof pageSize !== 'number' || pageSize <= 0) {
-    //     return mainWindow?.webContents.send('error-cargar-proveedores', 'El tamaño de página debe ser un número positivo.');
-    // }
-     if (typeof pageNumber !== 'number' || pageNumber <= 0) {
-         pageNumber = 1;
+     if (typeof currentPage !== 'number' || currentPage <= 0) {
+        currentPage = 1;
      }
-    // if (![0, 1].includes(estado)) {
-    //     return mainWindow?.webContents.send('error-cargar-proveedores', 'El estado debe ser 0 (inactivo) o 1 (activo).');
-    // }
+
 
     try {
         // Llamar al método listarProveedores con los parámetros recibidos
-        const resultado = await controller.listarProveedores(pageSize, pageNumber, estado);
-
+        const resultado = await controller.listarProveedores(pageSize, currentPage, estado, valorBusqueda);
+    
         // Simplificar la lista de proveedores
         const proveedoresSimplificados = resultado.proveedores.map(proveedor => ({
             idProveedor: proveedor.getIdProveedor(),

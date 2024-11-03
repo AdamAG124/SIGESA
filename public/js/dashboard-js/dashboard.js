@@ -158,13 +158,25 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFil
   }, 100);
 }
 
-function cargarProveedoresTabla(pageSize = 10, pageNumber = 1, estado = 1) {
+function checkEmpty(event) {
+  const searchValue = document.getElementById("search-bar").value.trim();
+
+  if (searchValue === "") {
+    filterTable(3); // Llama a filterTable solo si el campo está vacío
+  }
+
+  if (event.key === "Enter") {
+    filterTable(3); // Llama a filterTable cuando se presiona "Enter"
+  }
+}
+
+function cargarProveedoresTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
   const selectPageSize = document.getElementById('selectPageSize');
 
   // Validar pageNumber
-  if (typeof pageNumber !== 'number' || pageNumber <= 0) {
-    pageNumber = 1; // Establecer el valor predeterminado
+  if (typeof currentPage !== 'number' || currentPage <= 0) {
+    currentPage = 1; // Establecer el valor predeterminado
   }
 
   // Verificar el valor del estado y establecerlo
@@ -172,7 +184,7 @@ function cargarProveedoresTabla(pageSize = 10, pageNumber = 1, estado = 1) {
   selectEstado.value = estado;
   selectPageSize.value = pageSize;
 
-  window.api.obtenerProveedores(pageSize, pageNumber, estado, (respuesta) => {
+  window.api.obtenerProveedores(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
     const tbody = document.getElementById("proveedores-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
 
@@ -234,13 +246,11 @@ function cargarProveedoresTabla(pageSize = 10, pageNumber = 1, estado = 1) {
       });
     }
 
-    // Actualizar los botones de paginación
     if (respuesta.paginacion) {
-      actualizarPaginacion(respuesta.paginacion, "#pagination", 3); // Asegúrate de usar el selector correcto
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 3);
     } else {
-      console.warn('No se proporcionaron datos de paginación.');
+      console.warn('No se proporcionaron datos de paginación o respuesta está vacía.');
     }
-
     // Cerrar cualquier modal activo
     cerrarModal("editarProveedorModal", "editarProveedorForm");
   });
@@ -256,6 +266,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
 
   // Función para cargar la tabla según el módulo
   const cargarTabla = (page) => {
+    if (page < 1 || page > pagination.totalPages) return; // Validar el rango de página
     switch (moduloPaginar) {
       case 1:
         cargarUsuariosTabla(pagination.pageSize, page, pagination.estado, pagination.idRol);
@@ -264,7 +275,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
         cargarColaboradoresTabla(pagination.pageSize, page, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda);
         break;
       case 3:
-        cargarProveedoresTabla(pagination.pageSize, page, pagination.estado);
+        cargarProveedoresTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
       default:
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -276,19 +287,28 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   const firstPageButton = document.createElement("button");
   firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
   firstPageButton.disabled = pagination.currentPage === 1;
-  firstPageButton.addEventListener("click", () => cargarTabla(1));
+  firstPageButton.addEventListener("click", () => {
+    if (!firstPageButton.disabled) {
+      cargarTabla(1);
+    }
+  });
   paginacionDiv.appendChild(firstPageButton);
 
   // Botón "Página anterior"
   const prevPageButton = document.createElement("button");
   prevPageButton.innerHTML = `<span class="material-icons">navigate_before</span>`;
   prevPageButton.disabled = pagination.currentPage === 1;
-  prevPageButton.addEventListener("click", () => cargarTabla(pagination.currentPage - 1));
+  prevPageButton.addEventListener("click", () => {
+    if (!prevPageButton.disabled) {
+      cargarTabla(pagination.currentPage - 1);
+    }
+  });
   paginacionDiv.appendChild(prevPageButton);
 
   // Mostrar información de la página actual
   const pageSpan = document.createElement("span");
   pageSpan.textContent = `${pagination.currentPage} de ${pagination.totalPages}`;
+  pageSpan.setAttribute('data-value', pagination.currentPage);
   pageSpan.classList.add("currentPage");
   paginacionDiv.appendChild(pageSpan);
 
@@ -296,14 +316,22 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   const nextPageButton = document.createElement("button");
   nextPageButton.innerHTML = `<span class="material-icons">navigate_next</span>`;
   nextPageButton.disabled = pagination.currentPage === pagination.totalPages;
-  nextPageButton.addEventListener("click", () => cargarTabla(pagination.currentPage + 1));
+  nextPageButton.addEventListener("click", () => {
+    if (!nextPageButton.disabled) {
+      cargarTabla(pagination.currentPage + 1);
+    }
+  });
   paginacionDiv.appendChild(nextPageButton);
 
   // Botón "Última página"
   const lastPageButton = document.createElement("button");
   lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
   lastPageButton.disabled = pagination.currentPage === pagination.totalPages;
-  lastPageButton.addEventListener("click", () => cargarTabla(pagination.totalPages));
+  lastPageButton.addEventListener("click", () => {
+    if (!lastPageButton.disabled) {
+      cargarTabla(pagination.totalPages);
+    }
+  });
   paginacionDiv.appendChild(lastPageButton);
 }
 
@@ -317,7 +345,7 @@ function filterTable(moduloFiltrar) {
       cargarColaboradoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), Number(document.getElementById("puesto-filtro").value), Number(document.getElementById("departamento-filtro").value), document.getElementById("search-bar").value);
       break;
     case 3:
-      cargarProveedoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value));
+      cargarProveedoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
   }
 }

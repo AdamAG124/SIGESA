@@ -169,6 +169,20 @@ header {
     border-radius: 4px;
 }
 
+.search-bar button {
+    background-color: var(--secondary-color);
+    color: var(--background-color);
+    border: none;
+    padding: 10px 15px; /* Añadir un poco de padding al botón */
+    border-radius: 4px; /* Bordes redondeados para el botón */
+    cursor: pointer; /* Cambiar cursor al pasar sobre el botón */
+    transition: background-color 0.3s ease; /* Transición suave para el color de fondo */
+}
+
+.search-bar button:hover {
+    background-color: #7a1bd2; /* Color del botón al pasar el ratón */
+}
+
 table {
     width: 100%;
     border-collapse: collapse;

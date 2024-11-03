@@ -100,20 +100,31 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta));
     },
 
-    obtenerProveedores: (pageSize, currentPage, estado, callback) => {
+    obtenerProveedores: (pageSize, currentPage, estado, valorBusqueda, callback) => {
         // Enviar la solicitud para listar proveedores
-        ipcRenderer.send('listar-proveedores', { pageSize, currentPage, estado });
+        ipcRenderer.send('listar-proveedores', { pageSize, currentPage, estado, valorBusqueda });
+
+        // Definir el callback para manejar la respuesta
+        const proveedoresCallback = (event, proveedores) => {
+            callback(proveedores);
+            // Remover el listener una vez que se ha procesado la respuesta
+            ipcRenderer.removeListener('cargar-proveedores', proveedoresCallback);
+        };
 
         // Escuchar la respuesta
-        ipcRenderer.once('cargar-proveedores', (event, proveedores) => {
-            callback(proveedores);
-        });
+        ipcRenderer.on('cargar-proveedores', proveedoresCallback);
 
         // Manejo de errores de la respuesta
-        ipcRenderer.once('error-cargar-proveedores', (event, errorMessage) => {
+        const errorCallback = (event, errorMessage) => {
             callback({ error: errorMessage });
-        });
+            // También puedes remover el listener de error si solo lo necesitas una vez
+            ipcRenderer.removeListener('error-cargar-proveedores', errorCallback);
+        };
+
+        // Escuchar los errores
+        ipcRenderer.on('error-cargar-proveedores', errorCallback);
     },
+
 
 
 
