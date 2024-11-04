@@ -5,7 +5,7 @@ class CategoriaProductoDB {
     #table;
 
     constructor() {
-        this.#table = 'categoriaproducto';
+        this.#table = 'sigm_categoria_producto';
     }
 
     async obtenerCategorias() {
@@ -18,10 +18,10 @@ class CategoriaProductoDB {
             // Consultar todas las categorías
             const [rows] = await connection.query(`
                 SELECT 
-                    id_categoria,
-                    nombre,
-                    descripcion,
-                    estado
+                    ID_CATEGORIA_PRODUCTO,
+                    DSC_NOMBRE,
+                    DSC_DESCRIPCION,
+                    ESTADO
                 FROM 
                     ${this.#table}
             `);
@@ -64,7 +64,7 @@ class CategoriaProductoDB {
             const estado = categoria.getEstado() || 1; // Asumimos estado 1 por defecto
 
             // Construimos la consulta SQL
-            const query = `INSERT INTO ${this.#table} (nombre, descripcion, estado) VALUES (?, ?, ?)`;
+            const query = `INSERT INTO ${this.#table} (DSC_NOMBRE, DSC_DESCRIPCION, ESTADO) VALUES (?, ?, ?)`;
             const params = [nombre, descripcion, estado];
 
             // Ejecutar la consulta
@@ -107,7 +107,7 @@ class CategoriaProductoDB {
             const estado = categoria.getEstado();
 
             // Construimos la consulta SQL
-            const query = `UPDATE ${this.#table} SET nombre = ?, descripcion = ?, estado = ? WHERE id_categoria = ?`;
+            const query = `UPDATE ${this.#table} SET DSC_NOMBRE = ?, DSC_DESCRIPCION = ?, ESTADO = ? WHERE ID_CATEGORIA_PRODUCTO = ?`;
             const params = [nombre, descripcion, estado, idCategoria];
 
             // Ejecutar la consulta
@@ -144,7 +144,7 @@ class CategoriaProductoDB {
             connection = await db.conectar();
 
             // Construimos la consulta SQL
-            const query = `UPDATE ${this.#table} SET estado = 0 WHERE id_categoria = ?`; // Cambiamos estado a 0 (inactivo)
+            const query = `UPDATE ${this.#table} SET estado = 0 WHERE ID_CATEGORIA_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)
             const params = [idCategoria];
 
             // Ejecutar la consulta
