@@ -1,40 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Categories</title>
-    <link rel="stylesheet" href="../../public/css/styles.css">
-</head>
-<body>
-    <h1>Manage Categories</h1>
-    <form id="formCrearCategoria">
-        <input type="text" id="nombreCategoria" placeholder="Category Name" required>
-        <input type="text" id="descripcionCategoria" placeholder="Category Description" required>
-        <button type="submit">Create Category</button>
-    </form>
-    <form id="formActualizarCategoria" style="display:none;">
-        <input type="hidden" id="idCategoria">
-        <input type="text" id="nombreCategoriaActualizar" placeholder="Category Name" required>
-        <input type="text" id="descripcionCategoriaActualizar" placeholder="Category Description" required>
-        <button type="submit">Update Category</button>
-    </form>
-    <form id="formEliminarCategoria" style="display:none;">
-        <input type="hidden" id="idCategoriaEliminar">
-        <button type="submit">Delete Category</button>
-    </form>
-    <div>
-        <label for="estado-filtro">Estado:</label>
-        <select id="estado-filtro">
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/colaboradores.css">
+<body onload="cargarCategoriasTabla()">
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Categorías de Productos</h1>
+        <button onclick="agregarCategoria()" class="add-categories-btn" title="Agregar Nueva Categoría">
+            <span class="material-icons">add_circle</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar categorías..." onkeypress="filterTable(4)">
+    </div>
+    <div class="filters">
+        <select id="selectPageSize" onchange="filterTable(4)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estado-filtro" onchange="filterTable(4)">
+            <option value="2">Filtrar por estado</option>
             <option value="1">Activo</option>
             <option value="0">Inactivo</option>
-            <option value="2">Todos</option>
         </select>
-        <input type="text" id="search-bar" placeholder="Buscar...">
-        <button onclick="filterTable(3)">Filtrar</button>
+        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
     </div>
-    <ul id="listaCategorias"></ul>
-    <div class="pagination"></div>
-    <script src="../../public/js/manage-categories.js"></script>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre de la Categoría</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="categoriesBody">
+
+        </tbody>
+    </table>
+    <div class="pagination">
+
+    </div>
+    <!-- Modal para editar categoría -->
+    <div id="editarCategoriaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarCategoriaModal', 'editarCategoriaForm')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <form id="editarCategoriaForm" class="editar-categoria-form">
+                <input type="hidden" id="idCategoria">
+
+                <label for="nombreCategoria">Nombre de la Categoría:</label>
+                <input type="text" id="nombreCategoria" name="nombreCategoria" required>
+
+                <label for="descripcionCategoria">Descripción:</label>
+                <textarea id="descripcionCategoria" name="descripcionCategoria" required></textarea>
+
+                <p id="errorMessage" style="color: red;"></p>
+
+                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</div>
 </body>
-</html>

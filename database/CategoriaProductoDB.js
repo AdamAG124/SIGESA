@@ -1,5 +1,5 @@
 const ConectarDB = require('./ConectarDB');
-const Categoria = require('../domain/Categoria'); // Importamos la clase Categoria
+const Categoria = require('../domain/CategoriaProducto'); // Importamos la clase Categoria
 
 class CategoriaProductoDB {
     #table;
@@ -8,15 +8,14 @@ class CategoriaProductoDB {
         this.#table = 'sigm_categoria_producto';
     }
 
-    async obtenerCategorias() {
+    async obtenerCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda) {
         const db = new ConectarDB();
         let connection;
 
         try {
             connection = await db.conectar();
 
-            // Consultar todas las categorías
-            const [rows] = await connection.query(`
+            let query = `
                 SELECT 
                     ID_CATEGORIA_PRODUCTO,
                     DSC_NOMBRE,
@@ -24,29 +23,38 @@ class CategoriaProductoDB {
                     ESTADO
                 FROM 
                     ${this.#table}
-            `);
+                WHERE 1=1
+            `;
 
-            // Crear un array para almacenar los objetos Categoria
+            if (estadoCategoria !== null) {
+                query += ` AND ESTADO = ${estadoCategoria}`;
+            }
+
+            if (valorBusqueda) {
+                query += ` AND DSC_NOMBRE LIKE '%${valorBusqueda}%'`;
+            }
+
+            query += ` LIMIT ${pageSize} OFFSET ${(currentPage - 1) * pageSize}`;
+
+            const [rows] = await connection.query(query);
+
             const categorias = rows.map(categoriaDB => {
                 const categoria = new Categoria();
-
-                // Setear la información en el objeto Categoria
-                categoria.setIdCategoria(categoriaDB.id_categoria);
-                categoria.setNombre(categoriaDB.nombre);
-                categoria.setDescripcion(categoriaDB.descripcion);
-                categoria.setEstado(categoriaDB.estado);
-
+                categoria.setIdCategoria(categoriaDB.ID_CATEGORIA_PRODUCTO);
+                categoria.setNombre(categoriaDB.DSC_NOMBRE);
+                categoria.setDescripcion(categoriaDB.DSC_DESCRIPCION);
+                categoria.setEstado(categoriaDB.ESTADO);
                 return categoria;
             });
 
-            return categorias; // Retornar solo el array de objetos Categoria
+            return categorias;
 
         } catch (error) {
             console.error('Error en la consulta a la base de datos:', error.message);
-            return []; // Retornar un array vacío en caso de error
+            return [];
         } finally {
             if (connection) {
-                await connection.end(); // Asegúrate de cerrar la conexión
+                await connection.end();
             }
         }
     }
