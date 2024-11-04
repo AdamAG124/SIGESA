@@ -149,7 +149,7 @@ class CategoriaProductoDB {
         let connection;
 
         try {
-            connection = await db.conectar();
+            connection = await db.conectar();1
 
             // Construimos la consulta SQL
             const query = `UPDATE ${this.#table} SET estado = 0 WHERE ID_CATEGORIA_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)

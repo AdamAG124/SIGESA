@@ -75,16 +75,15 @@ contextBridge.exposeInMainWorld('api', {
   
 
 
-    obtenerCategorias: (pageSize, currentPage, estado, valorBusqueda, callback) => {
-        ipcRenderer.send('listar-categorias', { pageSize, currentPage, estado, valorBusqueda });
+    obtenerCategorias: (pageSize, currentPage, estadoCategoria, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-categorias', { pageSize, currentPage, estadoCategoria, valorBusqueda });
         ipcRenderer.once('cargar-categorias', (event, categorias) => callback(categorias));
     },
     crearCategoria: (categoriaData) => ipcRenderer.send('crear-categoria', categoriaData),
     onRespuestaCrearCategoria: (callback) => ipcRenderer.on('respuesta-crear-categoria', (event, respuesta) => callback(respuesta)),
-    actualizarCategoria: (categoriaData) => ipcRenderer.send('actualizar-categoria', categoriaData),
+    editarCategoria: (categoriaData) => ipcRenderer.send('actualizar-categoria', categoriaData),
     onRespuestaActualizarCategoria: (callback) => ipcRenderer.on('respuesta-actualizar-categoria', (event, respuesta) => callback(respuesta)),
     eliminarCategoria: (categoriaId) => ipcRenderer.send('eliminar-categoria', categoriaId),
     onRespuestaEliminarCategoria: (callback) => ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta)),
-
 
 });

@@ -1,64 +1,57 @@
 <link rel="stylesheet" href="../../public/CSS/dashboard-css/colaboradores.css">
 <body onload="cargarCategoriasTabla()">
-<div class="main-content">
-    <div class="content-header">
-        <h1 class="content-title">Administrar Categorías de Productos</h1>
-        <button onclick="agregarCategoria()" class="add-categories-btn" title="Agregar Nueva Categoría">
-            <span class="material-icons">add_circle</span>
-        </button>
+    <div class="main-content">
+        <div class="content-header">
+            <h1 class="content-title">Administrar Categorías de Productos</h1>
+            <button onclick="agregarCategoria()" class="add-collaborator-btn" title="Agregar Nueva Categoría">
+                <span class="material-icons">add_circle</span>
+            </button>
+        </div>
+        <div class="search-bar">
+            <input id="search-bar" type="text" placeholder="Buscar categorías..." onkeypress="filterTable(3)">
+        </div>
+        <div class="filters">
+            <select id="selectPageSize" onchange="filterTable(3)">
+                <option value="5">5 por página</option>
+                <option value="10">10 por página</option>
+                <option value="25">25 por página</option>
+                <option value="50">50 por página</option>
+            </select>
+            <select id="estado-filtro" onchange="filterTable(3)">
+                <option value="2">Filtrar por estado</option>
+                <option value="1">Activo</option>
+                <option value="0">Inactivo</option>
+            </select>
+            <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre de la Categoría</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="categoriesBody">
+            </tbody>
+        </table>
+        <div class="pagination"></div>
     </div>
-    <div class="search-bar">
-        <input id="search-bar" type="text" placeholder="Buscar categorías..." onkeypress="filterTable(4)">
-    </div>
-    <div class="filters">
-        <select id="selectPageSize" onchange="filterTable(4)">
-            <option value="5">5 por página</option>
-            <option value="10">10 por página</option>
-            <option value="25">25 por página</option>
-            <option value="50">50 por página</option>
-        </select>
-        <select id="estado-filtro" onchange="filterTable(4)">
-            <option value="2">Filtrar por estado</option>
-            <option value="1">Activo</option>
-            <option value="0">Inactivo</option>
-        </select>
-        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre de la Categoría</th>
-                <th>Descripción</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="categoriesBody">
-
-        </tbody>
-    </table>
-    <div class="pagination">
-
-    </div>
+    
     <!-- Modal para editar categoría -->
     <div id="editarCategoriaModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="cerrarModal('editarCategoriaModal', 'editarCategoriaForm')">&times;</span>
             <h2 id="modalTitle"></h2>
-            <form id="editarCategoriaForm" class="editar-categoria-form">
+            <form id="editarCategoriaForm">
                 <input type="hidden" id="idCategoria">
-
-                <label for="nombreCategoria">Nombre de la Categoría:</label>
+                <label for="nombreCategoria">Nombre:</label>
                 <input type="text" id="nombreCategoria" name="nombreCategoria" required>
-
                 <label for="descripcionCategoria">Descripción:</label>
-                <textarea id="descripcionCategoria" name="descripcionCategoria" required></textarea>
-
+                <input type="text" id="descripcionCategoria" name="descripcionCategoria" required>
                 <p id="errorMessage" style="color: red;"></p>
-
                 <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
             </form>
         </div>
     </div>
-</div>
-</body>

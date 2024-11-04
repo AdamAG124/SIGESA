@@ -411,16 +411,13 @@ app.on('window-all-closed', () => {
 });
 
 
-
-
-
-ipcMain.on('listar-categorias', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+ipcMain.on('listar-categorias', async (event, { pageSize, currentPage, estadoCategoria, valorBusqueda }) => {
     const controller = new CategoriaProductoController();
-    const categorias = await controller.listarCategorias(pageSize, currentPage, estado, valorBusqueda);
+    const categorias = await controller.listarCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda);
     const categoriasSimplificadas = categorias.map(categoria => {
         return {
             idCategoria: categoria.getIdCategoria(),
-            nombreCategoria: categoria.getNombre(),
+            nombre: categoria.getNombre(),
             descripcion: categoria.getDescripcion(),
             estado: categoria.getEstado()
         };
@@ -434,7 +431,7 @@ ipcMain.on('listar-categorias', async (event, { pageSize, currentPage, estado, v
 ipcMain.on('crear-categoria', async (event, categoriaData) => {
     try {
         const categoria = new CategoriaProducto();
-        categoria.setNombre(categoriaData.nombreCategoria);
+        categoria.setNombre(categoriaData.nombre);
         categoria.setDescripcion(categoriaData.descripcion);
 
         const categoriaController = new CategoriaProductoController();
@@ -451,7 +448,7 @@ ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
     try {
         const categoria = new CategoriaProducto();
         categoria.setIdCategoria(categoriaData.idCategoria);
-        categoria.setNombre(categoriaData.nombreCategoria);
+        categoria.setNombre(categoriaData.nombre);
         categoria.setDescripcion(categoriaData.descripcion);
 
         const categoriaController = new CategoriaProductoController();
@@ -466,28 +463,14 @@ ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
 
 ipcMain.on('eliminar-categoria', async (event, categoriaId) => {
     try {
-        const categoria = new CategoriaProducto();
-        categoria.setIdCategoria(categoriaId);
-
         const categoriaController = new CategoriaProductoController();
-        const resultado = await categoriaController.eliminarCategoria(categoria);
+        const resultado = await categoriaController.eliminarCategoria(categoriaId);
 
         event.reply('respuesta-eliminar-categoria', resultado);
     } catch (error) {
         console.error('Error al eliminar categoría:', error);
         event.reply('respuesta-eliminar-categoria', { success: false, message: error.message });
     }
-});
-
-app.whenReady().then(() => {
-    createWindow();
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-});
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
 });
 
 

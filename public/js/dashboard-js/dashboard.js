@@ -1146,54 +1146,93 @@ async function obtenerNombrePorCedula() {
     return null; // Retornar null en caso de error
   }
 }
-
 function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estadoCategoria = 1, valorBusqueda = null) {
-    const selectEstado = document.getElementById('estado-filtro');
-    const selectPageSize = document.getElementById('selectPageSize');
+  const selectEstado = document.getElementById('estado-filtro');
+  const selectPageSize = document.getElementById('selectPageSize');
+  if (estadoCategoria === 0 || estadoCategoria === 1) {
+      selectEstado.value = estadoCategoria;
+  } else {
+      selectEstado.value = 2;
+  }
+  selectPageSize.value = pageSize;
+  setTimeout(() => {
+      window.api.obtenerCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda, (respuesta) => {
+          const tbody = document.getElementById("categoriesBody");
+          tbody.innerHTML = ""; // Limpiar contenido previo
+          respuesta.categorias.forEach((categoria) => {
+              const estadoCategoria = categoria.estado === 1 ? "Activo" : "Inactivo";
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                  <td>${categoria.nombre}</td>
+                  <td>${categoria.descripcion}</td>
+                  <td>${estadoCategoria}</td>
+                  <td class="action-icons">
+                      <button class="tooltip" value="${categoria.idCategoria}" onclick="editarCategoria(this.value, this)">
+                          <span class="material-icons">edit</span>
+                          <span class="tooltiptext">Editar categoría</span>
+                      </button>
+                      <button class="tooltip" value="${categoria.idCategoria}" onclick="${categoria.estado === 1 ? `actualizarEstadoCategoria(this.value, 0, 'Eliminando categoría', '¿Está seguro que desea eliminar esta categoría?')` : `actualizarEstadoCategoria(this.value, 1, 'Reactivando categoría', '¿Está seguro que desea reactivar esta categoría?')`}">
+                          <span class="material-icons">
+                              ${categoria.estado === 1 ? 'delete' : 'restore'}
+                          </span>
+                          <span class="tooltiptext">
+                              ${categoria.estado === 1 ? 'Eliminar categoría' : 'Reactivar categoría'}
+                          </span>
+                      </button>
+                  </td>
+              `;
+              tbody.appendChild(row);
+          });
+          actualizarPaginacion(respuesta.paginacion, ".pagination", 3);
+          cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+      });
+  }, 100);
+}
 
-    if (estadoCategoria === 0 || estadoCategoria === 1) {
-        selectEstado.value = estadoCategoria;
-    } else {
-        selectEstado.value = 2;
-    }
+function agregarCategoria() {
+  document.getElementById("modalTitle").innerText = "Crear Categoría";
+  document.getElementById("buttonModal").onclick = enviarCreacionCategoria;
+  document.getElementById("editarCategoriaModal").style.display = "block";
+  document.getElementById("estadoCategoria").style.display = "none"; // Hide the state selection
+}
 
-    selectPageSize.value = pageSize;
-
-    setTimeout(() => {
-        window.api.obtenerCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda, (respuesta) => {
-            const tbody = document.getElementById("categoriesBody");
-            tbody.innerHTML = ""; // Limpiar contenido previo
-
-            respuesta.categorias.forEach((categoria) => {
-                const estadoCategoria = categoria.estado === 1 ? "Activo" : "Inactivo";
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${categoria.nombre}</td>
-                    <td>${categoria.descripcion}</td>
-                    <td>${estadoCategoria}</td>
-                    <td class="action-icons">
-                        <button class="tooltip" value="${categoria.idCategoria}" onclick="editarCategoria(this.value, this)">
-                            <span class="material-icons">edit</span>
-                            <span class="tooltiptext">Editar categoría</span>
-                        </button>
-                        <button class="tooltip" value="${categoria.idCategoria}" onclick="${categoria.estado === 1 ? `actualizarEstadoCategoria(this.value, 0, 'Eliminando categoría', '¿Está seguro que desea eliminar esta categoría?')` : `actualizarEstadoCategoria(this.value, 1, 'Reactivando categoría', '¿Está seguro que desea reactivar esta categoría?')`}">
-                            <span class="material-icons">
-                                ${categoria.estado === 1 ? 'delete' : 'restore'}
-                            </span>
-                            <span class="tooltiptext">
-                                ${categoria.estado === 1 ? 'Eliminar categoría' : 'Reactivar categoría'}
-                            </span>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            actualizarPaginacion(respuesta.paginacion, ".pagination", 3);
-            cerrarModal("editarCategoriaModal", "editarCategoriaForm");
-        });
-    }, 100);
+function enviarCreacionCategoria() {
+  const nombreCategoria = document.getElementById("nombreCategoria").value.trim();
+  const descripcionCategoria = document.getElementById("descripcionCategoria").value.trim();
+  if (!nombreCategoria || !descripcionCategoria) {
+      document.getElementById("errorMessage").textContent = "Por favor, llene todos los campos.";
+      return;
+  }
+  const categoriaData = {
+      nombre: nombreCategoria,
+      descripcion: descripcionCategoria,
+      estado: 1 // Always set the state to active
+  };
+  Swal.fire({
+      title: "Creando categoría",
+      text: "¿Está seguro que desea crear esta nueva categoría?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
+  }).then((result) => {
+      if (result.isConfirmed) {
+          window.api.crearCategoria(categoriaData);
+          window.api.onRespuestaCrearCategoria((respuesta) => {
+              if (respuesta.success) {
+                  mostrarToastConfirmacion(respuesta.message);
+                  setTimeout(() => {
+                      filterTable(3);
+                      cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+                  }, 2000);
+              } else {
+                  mostrarToastError(respuesta.message);
+              }
+          });
+      }
+  });
 }
 
 function editarCategoria(id, boton) {
@@ -1214,117 +1253,78 @@ function enviarEdicionCategoria() {
   const id = document.getElementById("idCategoria").value;
   const nombreCategoria = document.getElementById("nombreCategoria").value;
   const descripcionCategoria = document.getElementById("descripcionCategoria").value;
-
   if (!nombreCategoria || !descripcionCategoria) {
-    document.getElementById("errorMessage").textContent = "Por favor, llene todos los campos.";
-    return;
+      document.getElementById("errorMessage").textContent = "Por favor, llene todos los campos.";
+      return;
   }
-
   const categoriaData = {
-    idCategoria: id,
-    nombre: nombreCategoria,
-    descripcion: descripcionCategoria,
+      idCategoria: id,
+      nombre: nombreCategoria,
+      descripcion: descripcionCategoria,
   };
-
   Swal.fire({
-    title: "Editando categoría",
-    text: "¿Está seguro que desea editar esta categoría?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
+      title: "Editando categoría",
+      text: "¿Está seguro que desea editar esta categoría?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
   }).then((result) => {
-    if (result.isConfirmed) {
-      window.api.editarCategoria(categoriaData);
-      window.api.onRespuestaActualizarCategoria((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            cerrarModal("editarCategoriaModal", "editarCategoriaForm");
-            filterTable(3);
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-    }
-  });
-}
-
-function agregarCategoria() {
-  document.getElementById("modalTitle").innerText = "Crear Categoría";
-  document.getElementById("buttonModal").onclick = enviarCreacionCategoria;
-  document.getElementById("editarCategoriaModal").style.display = "block";
-  document.getElementById("estadoCategoria").style.display = "none"; // Hide the state selection
-}
-
-function enviarCreacionCategoria() {
-  const nombreCategoria = document.getElementById("nombreCategoria").value.trim();
-  const descripcionCategoria = document.getElementById("descripcionCategoria").value.trim();
-
-  if (!nombreCategoria || !descripcionCategoria) {
-    document.getElementById("errorMessage").textContent = "Por favor, llene todos los campos.";
-    return;
-  }
-
-  const categoriaData = {
-    nombre: nombreCategoria,
-    descripcion: descripcionCategoria,
-    estado: 1 // Always set the state to active
-  };
-
-  Swal.fire({
-    title: "Creando categoría",
-    text: "¿Está seguro que desea crear esta nueva categoría?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      window.api.crearCategoria(categoriaData);
-      window.api.onRespuestaCrearCategoria((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            filterTable(3);
-            cerrarModal("editarCategoriaModal", "editarCategoriaForm");
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-    }
+      if (result.isConfirmed) {
+          window.api.editarCategoria(categoriaData);
+          window.api.onRespuestaActualizarCategoria((respuesta) => {
+              if (respuesta.success) {
+                  mostrarToastConfirmacion(respuesta.message);
+                  setTimeout(() => {
+                      cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+                      filterTable(3);
+                  }, 2000);
+              } else {
+                  mostrarToastError(respuesta.message);
+              }
+          });
+      }
   });
 }
 
 function actualizarEstadoCategoria(id, estado, title, message) {
   Swal.fire({
-    title: title,
-    text: message,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
+      title: title,
+      text: message,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
   }).then((result) => {
-    if (result.isConfirmed) {
-      window.api.actualizarEstadoCategoria(id, estado);
-      window.api.onRespuestaActualizarEstadoCategoria((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            filterTable(3);
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-    }
+      if (result.isConfirmed) {
+          window.api.eliminarCategoria(id);
+          window.api.onRespuestaEliminarCategoria((respuesta) => {
+              if (respuesta.success) {
+                  mostrarToastConfirmacion(respuesta.message);
+                  setTimeout(() => {
+                      filterTable(3);
+                  }, 2000);
+              } else {
+                  mostrarToastError(respuesta.message);
+              }
+          });
+      }
   });
+}
+
+function filterTable(moduloFiltrar) {
+  switch (moduloFiltrar) {
+      case 3:
+          cargarCategoriasTabla(
+              Number(document.getElementById("selectPageSize").value),
+              Number(document.querySelector('.currentPage').getAttribute('data-value')),
+              Number(document.getElementById("estado-filtro").value),
+              document.getElementById("search-bar").value
+          );
+          break;
+  }
 }
