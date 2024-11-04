@@ -8,6 +8,7 @@ const ColaboradorController = require('./controllers/ColaboradorController');
 const ProveedorController = require('./controllers/ProveedorController');
 const Usuario = require('./domain/Usuario');
 const Colaborador = require('./domain/Colaborador');
+const Proveedor = require('./domain/Proveedor')
 const fs = require('fs');
 
 
@@ -511,3 +512,64 @@ ipcMain.on('listar-proveedores', async (event, { pageSize, currentPage, estado, 
     }
 });
 
+ipcMain.on('crear-proveedor', async (event, proveedorData) => {
+    try {
+        // Crear un objeto Colaborador y setear los datos
+        const proveedor = new Proveedor();
+        proveedor.setNombre(proveedorData.nombre); 
+        proveedor.setProvincia(proveedorData.provincia);
+        proveedor.setCanton(proveedorData.canton);
+        proveedor.setDistrito(proveedorData.distrito);
+        proveedor.setDireccion(proveedorData.direccion);
+        proveedor.setEstado(1);
+
+        const proveedorController = new ProveedorController();
+        const resultado = await proveedorController.insertarProveedor(proveedor);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-crear-proveedor', resultado);
+    } catch (error) {
+        console.error('Error al crear proveedor:', error);
+        event.reply('respuesta-crear-proveedor', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('editar-proveedor', async (event, proveedorData) => {
+    try {
+        // Crear un objeto Colaborador y setear los datos
+        const proveedor = new Proveedor();
+        proveedor.setIdProveedor(proveedorData.idProveedor);
+        proveedor.setNombre(proveedorData.nombre);
+        proveedor.setProvincia(proveedorData.provincia);
+        proveedor.setCanton(proveedorData.canton);
+        proveedor.setDistrito(proveedorData.distrito);
+        proveedor.setDireccion(proveedorData.direccion);
+        proveedor.setEstado(1);
+
+        const proveedorController = new ProveedorController();
+        const resultado = await proveedorController.actualizarProveedor(proveedor);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-actualizar-proveedor', resultado); 
+    } catch (error) {
+        console.error('Error al editar proveedor:', error);
+        event.reply('respuesta-editar-proveedor', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-proveedor', async (event, proveedorId, estado) => {
+    try {
+        const proveedor = new Proveedor();
+        proveedor.setIdProveedor(proveedorId);
+        proveedor.setEstado(estado);
+
+        const proveedorController = new ProveedorController();
+        const resultado = await proveedorController.eliminarProveedor(proveedor);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-eliminar-proveedor', resultado);
+    } catch (error) {
+        console.error('Error al eliminar proveedor:', error);
+        event.reply('respuesta-eliminar-proveedor', { success: false, message: error.message });
+    }
+});

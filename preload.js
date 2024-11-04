@@ -125,7 +125,13 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.on('error-cargar-proveedores', errorCallback);
     },
 
-
+    crearProveedor: (proveedorData) => ipcRenderer.send('crear-proveedor', proveedorData),
+    onRespuestaCrearProveedor: (callback) => ipcRenderer.on('respuesta-crear-proveedor', (event, respuesta) => callback(respuesta)),
+    editarProveedor: (proveedorData) => ipcRenderer.send('editar-proveedor', proveedorData),
+    onRespuestaActualizarProveedor: (callback) => ipcRenderer.on('respuesta-actualizar-proveedor', (event, respuesta) => callback(respuesta)),
+    eliminarProveedor: (proveedorId, estado) => ipcRenderer.send('eliminar-proveedor', proveedorId, estado),
+    onRespuestaEliminarProveedor: (callback) => ipcRenderer.once('respuesta-eliminar-proveedor', (event, respuesta) => callback(respuesta)),
+    
 
 
 });

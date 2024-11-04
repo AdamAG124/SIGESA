@@ -236,11 +236,16 @@ function cargarProveedoresTabla(pageSize = 10, currentPage = 1, estado = 1, valo
                   <span class="material-icons">edit</span>
                   <span class="tooltiptext">Editar proveedor</span>
               </button>
-              <button class="tooltip" value="${proveedor.idProveedor}" onclick="${proveedor.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando proveedor', '¿Está seguro que desea eliminar a este proveedor?', 1)` : `actualizarEstado(this.value, 1, 'Reactivando proveedor', '¿Está seguro que desea reactivar a este proveedor?', 1)`}">
+              <button class="tooltip" value="${proveedor.idProveedor}" onclick="${proveedor.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando proveedor', '¿Está seguro que desea eliminar a este proveedor?', 3)` : `actualizarEstado(this.value, 1, 'Reactivando proveedor', '¿Está seguro que desea reactivar a este proveedor?', 3)`}">
                   <span class="material-icons">${proveedor.estado === 1 ? 'delete' : 'restore'}</span>
                   <span class="tooltiptext">${proveedor.estado === 1 ? 'Eliminar proveedor' : 'Reactivar proveedor'}</span>
               </button>
           </td>
+          <!-- Información adicional oculta -->
+          <td class="hidden-info" style="display:none;">${proveedor.provincia}</td>
+          <td class="hidden-info" style="display:none;">${proveedor.canton}</td>
+          <td class="hidden-info" style="display:none;">${proveedor.distrito}</td>
+          <td class="hidden-info" style="display:none;">${proveedor.direccion}</td>
         `;
         tbody.appendChild(row);
       });
@@ -256,6 +261,183 @@ function cargarProveedoresTabla(pageSize = 10, currentPage = 1, estado = 1, valo
   });
 }
 
+function agregarProveedor() {
+
+  // Cambiar el título del modal a "Editar Colaborador"
+  document.getElementById("modalTitle").innerText = "Crear Proveedor";
+  document.getElementById("buttonModal").onclick = enviarCreacionProveedor;
+  // Mostrar el modal
+  document.getElementById("editarProveedorModal").style.display = "block";
+}
+
+function enviarCreacionProveedor() {
+  // Asignar valores extraídos a los campos del formulario de creación
+  const id = document.getElementById("idProveedor").value; // Aunque no se usa, lo dejamos por si es necesario más adelante
+  const nombre = document.getElementById("nombreProveedor").value.trim();
+  const provincia = document.getElementById("provincia").value.trim();
+  const canton = document.getElementById("canton").value.trim();
+  const distrito = document.getElementById("distrito").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  // Validar que todos los campos estén llenos
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreProveedor") },
+    { value: provincia, element: document.getElementById("provincia") },
+    { value: canton, element: document.getElementById("canton") },
+    { value: distrito, element: document.getElementById("distrito") },
+    { value: direccion, element: document.getElementById("direccion") },
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto proveedor con los datos del formulario
+  const proveedorData = {
+    nombre: nombre,
+    provincia: provincia,
+    canton: canton,
+    distrito: distrito,
+    direccion: direccion,
+  };
+
+  Swal.fire({
+    title: "Creando Proveedor",
+    text: "¿Está seguro que desea crear este nuevo proveedor?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearProveedor(proveedorData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearProveedor((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          filterTable(3); // Actualiza la tabla inmediatamente
+          cerrarModal("editarProveedorModal", "editarProveedorForm"); // Cierra el modal
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
+
+async function editarProveedor(id, boton) {
+
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombreProveedor = fila.children[0].textContent;
+  const provincia = fila.children[3].textContent;
+  const canton = fila.children[4].textContent;
+  const distrito = fila.children[5].textContent;
+  const direccion = fila.children[6].textContent;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idProveedor").value = id;
+  document.getElementById("nombreProveedor").value = nombreProveedor;
+  document.getElementById("provincia").value = provincia;
+  document.getElementById("canton").value = canton;
+  document.getElementById("distrito").value = distrito;
+  document.getElementById("direccion").value = direccion;
+
+  // Cambiar el título del modal a "Editar Proveedor"
+  document.getElementById("modalTitle").innerText = "Editar Proveedor";
+  document.getElementById("buttonModal").onclick = enviarEdicionProveedor;
+  // Mostrar el modal
+  document.getElementById("editarProveedorModal").style.display = "block";
+}
+
+function enviarEdicionProveedor() {
+  // Obtener valores del formulario
+  const id = document.getElementById("idProveedor").value.trim();
+  const nombre = document.getElementById("nombreProveedor").value.trim();
+  const provincia = document.getElementById("provincia").value.trim();
+  const canton = document.getElementById("canton").value.trim();
+  const distrito = document.getElementById("distrito").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+
+  // Validar campos vacíos y espacios en blanco
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreProveedor") },
+    { value: provincia, element: document.getElementById("provincia") },
+    { value: canton, element: document.getElementById("canton") },
+    { value: distrito, element: document.getElementById("distrito") },
+    { value: direccion, element: document.getElementById("direccion") },
+  ];
+
+  const camposInvalidos = inputs.filter(input => input.value === "");
+
+  // Manejo de bordes y mensajes de error
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposInvalidos.length > 0) {
+    camposInvalidos.forEach(input => {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+    });
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    inputs.forEach(input => input.element.style.border = ""); // Resetear bordes
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear objeto proveedor
+  const proveedorData = { idProveedor: id, nombre, provincia, canton, distrito, direccion };
+
+  // Confirmar la edición
+  Swal.fire({
+    title: "Editando proveedor",
+    text: "¿Está seguro que desea editar este proveedor?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.api.editarProveedor(proveedorData);
+
+      // Manejar la respuesta de la edición
+      window.api.onRespuestaActualizarProveedor((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          cerrarModal("editarProveedorModal", "editarProveedorForm");
+          filterTable(3);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
 
 
 function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
@@ -283,15 +465,16 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
     }
   };
 
+  // Función para cargar la primera página y actualizar la paginación
+  const loadFirstPage = () => {
+    cargarTabla(1);
+  };
+
   // Botón "Primera página"
   const firstPageButton = document.createElement("button");
   firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
   firstPageButton.disabled = pagination.currentPage === 1;
-  firstPageButton.addEventListener("click", () => {
-    if (!firstPageButton.disabled) {
-      cargarTabla(1);
-    }
-  });
+  firstPageButton.addEventListener("click", loadFirstPage);
   paginacionDiv.appendChild(firstPageButton);
 
   // Botón "Página anterior"
@@ -337,15 +520,17 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
 
 
 function filterTable(moduloFiltrar) {
+  // Siempre cargar la primera página al aplicar un filtro
+  const pageSize = Number(document.getElementById("selectPageSize").value);
   switch (moduloFiltrar) {
     case 1:
-      cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
+      cargarUsuariosTabla(pageSize, 1, Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
       break;
     case 2:
-      cargarColaboradoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), Number(document.getElementById("puesto-filtro").value), Number(document.getElementById("departamento-filtro").value), document.getElementById("search-bar").value);
+      cargarColaboradoresTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), Number(document.getElementById("puesto-filtro").value), Number(document.getElementById("departamento-filtro").value), document.getElementById("search-bar").value);
       break;
     case 3:
-      cargarProveedoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      cargarProveedoresTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
   }
 }
@@ -515,6 +700,19 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
             }
           });
           break;
+
+        case 3:
+          window.api.eliminarProveedor(Number(id), Number(estado));
+
+          window.api.onRespuestaEliminarProveedor((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              filterTable(moduloEstadoActualizar);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+          break;
       }
     }
   });
@@ -679,21 +877,41 @@ function enviarCreacionUsuario(event) {
 
 // Función para cerrar el modal
 function cerrarModal(idModalCerrar, idFormReset) {
+  const modal = document.getElementById(idModalCerrar);
+  const form = document.getElementById(idFormReset);
+
+  // Cerrar el modal
+  modal.style.display = "none";
+
+  // Limpiar campos del formulario
+  form.reset();
+
+  // Manejo de errores y estilos específicos para el formulario de editar usuario
   if (idFormReset === "editarUsuarioForm") {
-    document.getElementById(idModalCerrar).style.display = "none";
-    // Limpiar los campos del formulario y resetear mensajes de error
-    document.getElementById(idFormReset).reset();
-    document.getElementById("passwordError").style.display = "none";
-    document.getElementById("newPassword").style.border = "";
-    document.getElementById("confirmPassword").style.border = "";
-    document.getElementById("nombreUsuario").style.border = "";
-    document.getElementById("colaboradorName").style.border = "";
-  } else if (idFormReset === "editarColaboradorForm") {
-    document.getElementById(idModalCerrar).style.display = "none";
-    // Limpiar los campos del formulario y resetear mensajes de error
-    document.getElementById(idFormReset).reset();
+    ocultarErrores();
   }
 }
+
+function ocultarErrores() {
+  const errorElements = [
+    document.getElementById("passwordError"),
+    document.getElementById("newPassword"),
+    document.getElementById("confirmPassword"),
+    document.getElementById("nombreUsuario"),
+    document.getElementById("colaboradorName")
+  ];
+
+  errorElements.forEach(element => {
+    if (element) {
+      if (element.id === "passwordError") {
+        element.style.display = "none";
+      } else {
+        element.style.border = "";
+      }
+    }
+  });
+}
+
 
 function cargarRoles(idSelect, mensajeQuemado) {
   window.api.obtenerRoles((roles) => {
