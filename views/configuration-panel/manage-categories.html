@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Categories</title>
+    <link rel="stylesheet" href="../../public/css/styles.css">
+</head>
+<body>
+    <h1>Manage Categories</h1>
+    <form id="formCrearCategoria">
+        <input type="text" id="nombreCategoria" placeholder="Category Name" required>
+        <input type="text" id="descripcionCategoria" placeholder="Category Description" required>
+        <button type="submit">Create Category</button>
+    </form>
+    <form id="formActualizarCategoria" style="display:none;">
+        <input type="hidden" id="idCategoria">
+        <input type="text" id="nombreCategoriaActualizar" placeholder="Category Name" required>
+        <input type="text" id="descripcionCategoriaActualizar" placeholder="Category Description" required>
+        <button type="submit">Update Category</button>
+    </form>
+    <form id="formEliminarCategoria" style="display:none;">
+        <input type="hidden" id="idCategoriaEliminar">
+        <button type="submit">Delete Category</button>
+    </form>
+    <div>
+        <label for="estado-filtro">Estado:</label>
+        <select id="estado-filtro">
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+            <option value="2">Todos</option>
+        </select>
+        <input type="text" id="search-bar" placeholder="Buscar...">
+        <button onclick="filterTable(3)">Filtrar</button>
+    </div>
+    <ul id="listaCategorias"></ul>
+    <div class="pagination"></div>
+    <script src="../../public/js/manage-categories.js"></script>
+</body>
+</html>

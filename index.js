@@ -9,6 +9,9 @@ const Colaborador = require('./domain/Colaborador');
 const DepartamentoController = require('./controllers/DepartamentoController');
 const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
 
+const CategoriaProductoController = require('./controllers/CategoriaProductoController');
+const CategoriaProducto = require('./domain/CategoriaProducto');
+
 let mainWindow;  // Declarar mainWindow a nivel global
 
 async function getStore() {
@@ -407,13 +410,18 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.on('listar-categorias', async (event) => {
+
+
+
+
+ipcMain.on('listar-categorias', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new CategoriaProductoController();
-    const categorias = await controller.listarCategorias();
+    const categorias = await controller.listarCategorias(pageSize, currentPage, estado, valorBusqueda);
     const categoriasSimplificadas = categorias.map(categoria => {
         return {
             idCategoria: categoria.getIdCategoria(),
-            nombreCategoria: categoria.getNombreCategoria(),
+            nombreCategoria: categoria.getNombre(),
+            descripcion: categoria.getDescripcion(),
             estado: categoria.getEstado()
         };
     });
@@ -423,11 +431,28 @@ ipcMain.on('listar-categorias', async (event) => {
     }
 });
 
+ipcMain.on('crear-categoria', async (event, categoriaData) => {
+    try {
+        const categoria = new CategoriaProducto();
+        categoria.setNombre(categoriaData.nombreCategoria);
+        categoria.setDescripcion(categoriaData.descripcion);
+
+        const categoriaController = new CategoriaProductoController();
+        const resultado = await categoriaController.crearCategoria(categoria);
+
+        event.reply('respuesta-crear-categoria', resultado);
+    } catch (error) {
+        console.error('Error al crear categoría:', error);
+        event.reply('respuesta-crear-categoria', { success: false, message: error.message });
+    }
+});
+
 ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
     try {
-        const categoria = new Categoria();
+        const categoria = new CategoriaProducto();
         categoria.setIdCategoria(categoriaData.idCategoria);
-        categoria.setNombreCategoria(categoriaData.nombreCategoria);
+        categoria.setNombre(categoriaData.nombreCategoria);
+        categoria.setDescripcion(categoriaData.descripcion);
 
         const categoriaController = new CategoriaProductoController();
         const resultado = await categoriaController.actualizarCategoria(categoria);
@@ -441,7 +466,7 @@ ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
 
 ipcMain.on('eliminar-categoria', async (event, categoriaId) => {
     try {
-        const categoria = new Categoria();
+        const categoria = new CategoriaProducto();
         categoria.setIdCategoria(categoriaId);
 
         const categoriaController = new CategoriaProductoController();
@@ -454,18 +479,15 @@ ipcMain.on('eliminar-categoria', async (event, categoriaId) => {
     }
 });
 
-ipcMain.on('crear-categoria', async (event, categoriaData) => {
-    try {
-        const categoria = new Categoria();
-        categoria.setNombreCategoria(categoriaData.nombreCategoria);
-
-        const categoriaController = new CategoriaProductoController();
-        const resultado = await categoriaController.crearCategoria(categoria);
-
-        event.reply('respuesta-crear-categoria', resultado);
-    } catch (error) {
-        console.error('Error al crear categoría:', error);
-        event.reply('respuesta-crear-categoria', { success: false, message: error.message });
-    }
+app.whenReady().then(() => {
+    createWindow();
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
 });
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit();
+});
+
 

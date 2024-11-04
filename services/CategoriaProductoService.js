@@ -7,40 +7,42 @@ class CategoriaProductoService {
         this.#categoriaProductoDB = new CategoriaProductoDB();
     }
 
-    async obtenerCategoriasProductos() {
-        return await this.#categoriaProductoDB.obtenerCategoriasProductos();
+    async obtenerCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda) {
+        if (estadoCategoria == 2) {
+            estadoCategoria = null;
+        }
+        return await this.#categoriaProductoDB.obtenerCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda);
     }
 
-    async crearCategoriaProducto(categoriaProducto) {
-        if (!categoriaProducto || !categoriaProducto.nombre) {
+    async crearCategoria(categoria) {
+        if (!categoria || !categoria.getNombre()) {
             return {
                 success: false,
                 message: 'Por favor, proporciona todos los campos requeridos.'
             };
         }
-        return await this.#categoriaProductoDB.crearCategoriaProductoBD(categoriaProducto);
-    }
-    
-    async actualizarCategoriaProducto(categoriaProducto) {
-        if (!categoriaProducto || !categoriaProducto.id) {
-            return {
-                success: false,
-                message: 'Por favor, proporciona todos los campos requeridos.'
-            };
-        }
-        return await this.#categoriaProductoDB.actualizarCategoriaProductoBD(categoriaProducto);
+        return await this.#categoriaProductoDB.crearCategoriaBD(categoria);
     }
 
-    async eliminarCategoriaProducto(categoriaProducto) {
-        if (!categoriaProducto || !categoriaProducto.id) {
+    async actualizarCategoria(categoria) {
+        if (!categoria || !categoria.getIdCategoria()) {
             return {
                 success: false,
                 message: 'Por favor, proporciona todos los campos requeridos.'
             };
         }
-        return await this.#categoriaProductoDB.eliminarCategoriaProductoBD(categoriaProducto);
+        return await this.#categoriaProductoDB.actualizarCategoriaBD(categoria);
+    }
+
+    async eliminarCategoria(categoria) {
+        if (!categoria || !categoria.getIdCategoria()) {
+            return {
+                success: false,
+                message: 'Por favor, proporciona todos los campos requeridos.'
+            };
+        }
+        return await this.#categoriaProductoDB.eliminarCategoriaBD(categoria.getIdCategoria());
     }
 }
 
-// Exportar la clase
 module.exports = CategoriaProductoService;

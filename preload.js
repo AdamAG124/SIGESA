@@ -72,33 +72,19 @@ contextBridge.exposeInMainWorld('api', {
             callback(respuesta);
         });
     },    
+  
 
-    // Métodos para gestionar categorías
-    obtenerCategorias: (callback) => {
-        ipcRenderer.send('listar-categorias'); // Enviar el evento al proceso principal
-        ipcRenderer.on('cargar-categorias', (event, categorias) => callback(categorias)); // Recibir la respuesta
+
+    obtenerCategorias: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-categorias', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-categorias', (event, categorias) => callback(categorias));
     },
-
-    // Método para enviar la información del nuevo usuario al proceso principal para su creación
     crearCategoria: (categoriaData) => ipcRenderer.send('crear-categoria', categoriaData),
-    // Recibir la respuesta de la creación de la categoría
-    onRespuestaCrearCategoria: (callback) => {
-        ipcRenderer.on('respuesta-crear-categoria', (event, respuesta) => callback(respuesta));
-    },
-
-    // Método para enviar los datos de edición de categoría al proceso principal
+    onRespuestaCrearCategoria: (callback) => ipcRenderer.on('respuesta-crear-categoria', (event, respuesta) => callback(respuesta)),
     actualizarCategoria: (categoriaData) => ipcRenderer.send('actualizar-categoria', categoriaData),
-    // Recibir la respuesta de la actualización de la categoría
-    onRespuestaActualizarCategoria: (callback) => {
-        ipcRenderer.on('respuesta-actualizar-categoria', (event, respuesta) => callback(respuesta));
-    },
-
-    // Método para enviar el id de categoría al proceso principal para su eliminación
+    onRespuestaActualizarCategoria: (callback) => ipcRenderer.on('respuesta-actualizar-categoria', (event, respuesta) => callback(respuesta)),
     eliminarCategoria: (categoriaId) => ipcRenderer.send('eliminar-categoria', categoriaId),
-    // Recibir la respuesta de la eliminación de la categoría
-    onRespuestaEliminarCategoria: (callback) => {
-        ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta));
-    },
+    onRespuestaEliminarCategoria: (callback) => ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta)),
 
 
 });
