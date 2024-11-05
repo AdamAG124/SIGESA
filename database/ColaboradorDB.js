@@ -12,15 +12,55 @@ class ColaboradorDB {
     async listarColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda) {
         const db = new ConectarDB();
         let connection;
-
+    
         try {
             connection = await db.conectar();
-
-            // Calcular el OFFSET para la paginación
+    
             const offset = (currentPage - 1) * pageSize;
-
-            // Construir la consulta SQL principal
-            let query = `
+            
+            // Base SQL query para listado y conteo
+            const baseQuery = `
+                FROM ${this.#table} C
+                INNER JOIN SIGM_DEPARTAMENTO D ON C.ID_DEPARTAMENTO = D.ID_DEPARTAMENTO
+                INNER JOIN SIGM_PUESTO_TRABAJO P ON C.ID_PUESTO = P.ID_PUESTO_TRABAJO
+            `;
+            
+            // Inicializar condiciones del filtro
+            let conditions = [];
+            let params = [];
+    
+            if (estadoColaborador !== null) {
+                conditions.push(`C.ESTADO = ?`);
+                params.push(estadoColaborador);
+            }
+    
+            if (idPuestoFiltro !== null) {
+                conditions.push(`C.ID_PUESTO = ?`);
+                params.push(idPuestoFiltro);
+            }
+    
+            if (idDepartamentoFiltro !== null) {
+                conditions.push(`C.ID_DEPARTAMENTO = ?`);
+                params.push(idDepartamentoFiltro);
+            }
+    
+            if (valorBusqueda !== null) {
+                conditions.push(`
+                    (
+                        C.DSC_NOMBRE LIKE ? OR
+                        C.DSC_PRIMER_APELLIDO LIKE ? OR
+                        C.DSC_SEGUNDO_APELLIDO LIKE ?
+                    )
+                `);
+                const searchParam = `${valorBusqueda}%`;
+                params.push(searchParam, searchParam, searchParam);
+            }
+    
+            // Añadir las condiciones a los queries
+            const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+            
+            // Query principal con paginación
+            const query = `
                 SELECT 
                     C.ID_COLABORADOR AS idColaborador, C.ID_DEPARTAMENTO AS idDepartamento,
                     C.ID_PUESTO AS idPuesto, C.DSC_SEGUNDO_APELLIDO AS segundoApellido,
@@ -30,56 +70,16 @@ class ColaboradorDB {
                     C.DSC_PRIMER_APELLIDO AS primerApellido,
                     D.DSC_NOMBRE_DEPARTAMENTO AS nombreDepartamento,
                     P.DSC_NOMBRE AS nombrePuesto
-                FROM 
-                    ${this.#table} C
-                INNER JOIN 
-                    SIGM_DEPARTAMENTO D ON C.ID_DEPARTAMENTO = D.ID_DEPARTAMENTO
-                INNER JOIN 
-                    SIGM_PUESTO_TRABAJO P ON C.ID_PUESTO = P.ID_PUESTO_TRABAJO
+                ${baseQuery}
+                ${whereClause}
+                LIMIT ? OFFSET ?
             `;
-
-            // Variable para verificar si ya se ha añadido una condición
-            let whereClauseAdded = false;
-
-            // Añadir condiciones según los filtros
-            if (estadoColaborador !== null) {
-                query += ` WHERE C.ESTADO = ${estadoColaborador}`;
-                whereClauseAdded = true;
-            }
-
-            if (idPuestoFiltro !== null) {
-                query += whereClauseAdded ? ` AND C.ID_PUESTO = ${idPuestoFiltro}` : ` WHERE C.ID_PUESTO = ${idPuestoFiltro}`;
-                whereClauseAdded = true;
-            }
-
-            if (idDepartamentoFiltro !== null) {
-                query += whereClauseAdded ? ` AND C.ID_DEPARTAMENTO = ${idDepartamentoFiltro}` : ` WHERE C.ID_DEPARTAMENTO = ${idDepartamentoFiltro}`;
-                whereClauseAdded = true;
-            }
-
-            if (valorBusqueda !== null) {
-                const likeCondition = `
-                    (
-                        C.DSC_NOMBRE LIKE '${valorBusqueda}%' OR
-                        C.DSC_PRIMER_APELLIDO LIKE '${valorBusqueda}%' OR
-                        C.DSC_SEGUNDO_APELLIDO LIKE '${valorBusqueda}%'
-                    )
-                `;
-                query += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
-            }
-
-            // Añadir la cláusula de LIMIT y OFFSET solo si se solicita paginación
-            if (pageSize && currentPage) {
-                query += ` LIMIT ${pageSize} OFFSET ${offset}`;
-            }
-
-            // Ejecutar la consulta SQL para obtener los colaboradores
-            const [rows] = await connection.query(query);
-
-            // Crear un array para almacenar los objetos Colaborador
+            params.push(pageSize, offset);
+    
+            const [rows] = await connection.query(query, params);
+    
             const colaboradores = rows.map(colaboradorDB => {
                 const colaborador = new Colaborador();
-
                 colaborador.setIdColaborador(colaboradorDB.idColaborador);
                 colaborador.setNombre(colaboradorDB.nombreColaborador);
                 colaborador.setPrimerApellido(colaboradorDB.primerApellido);
@@ -93,56 +93,22 @@ class ColaboradorDB {
                 colaborador.setCedula(colaboradorDB.cedula);
                 colaborador.getIdDepartamento().setNombre(colaboradorDB.nombreDepartamento);
                 colaborador.getIdPuesto().setNombre(colaboradorDB.nombrePuesto);
-
+    
                 return colaborador;
             });
-
-            // Obtener el total de colaboradores para la paginación
-            let countQuery = `
-                SELECT COUNT(*) as total
-                FROM ${this.#table} C
-                INNER JOIN SIGM_DEPARTAMENTO D ON C.ID_DEPARTAMENTO = D.ID_DEPARTAMENTO
-                INNER JOIN SIGM_PUESTO_TRABAJO P ON C.ID_PUESTO = P.ID_PUESTO_TRABAJO
-            `;
-
-            // Añadir las mismas condiciones de los filtros al query de conteo
-            whereClauseAdded = false;
-            if (estadoColaborador !== null) {
-                countQuery += ` WHERE C.ESTADO = ${estadoColaborador}`;
-                whereClauseAdded = true;
-            }
-
-            if (idPuestoFiltro !== null) {
-                countQuery += whereClauseAdded ? ` AND C.ID_PUESTO = ${idPuestoFiltro}` : ` WHERE C.ID_PUESTO = ${idPuestoFiltro}`;
-                whereClauseAdded = true;
-            }
-
-            if (idDepartamentoFiltro !== null) {
-                countQuery += whereClauseAdded ? ` AND C.ID_DEPARTAMENTO = ${idDepartamentoFiltro}` : ` WHERE C.ID_DEPARTAMENTO = ${idDepartamentoFiltro}`;
-                whereClauseAdded = true;
-            }
-
-            if (valorBusqueda !== null) {
-                const likeCondition = `
-                    C.DSC_NOMBRE LIKE '${valorBusqueda}%' OR
-                    C.DSC_PRIMER_APELLIDO LIKE '${valorBusqueda}%'
-                `;
-                countQuery += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
-            }
-
-            // Ejecutar la consulta para contar el total de colaboradores
-            const [countResult] = await connection.query(countQuery);
+    
+            // Query para conteo total con filtros aplicados
+            const countQuery = `SELECT COUNT(*) as total ${baseQuery} ${whereClause}`;
+            const [countResult] = await connection.query(countQuery, params.slice(0, -2)); // Excluye LIMIT y OFFSET para el conteo
+    
             const totalRecords = countResult[0].total;
-
-            // Calcular el número total de páginas
             const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
-
-            // Retornar los colaboradores y los datos de paginación
+    
             return {
                 colaboradores,
                 pagination: {
                     currentPage: currentPage || 1,
-                    pageSize: pageSize || totalRecords, // Si no hay paginación, el tamaño de la página es el total
+                    pageSize: pageSize || totalRecords,
                     totalPages,
                     totalRecords,
                     firstPage: 1,
@@ -153,7 +119,7 @@ class ColaboradorDB {
                     lastPage: totalPages
                 }
             };
-
+    
         } catch (error) {
             console.error('Error al listar colaboradores:', error);
             return {
@@ -162,7 +128,7 @@ class ColaboradorDB {
             };
         } finally {
             if (connection) {
-                await connection.end(); // Cerrar la conexión
+                await connection.end();
             }
         }
     }

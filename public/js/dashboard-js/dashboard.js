@@ -451,7 +451,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
     if (page < 1 || page > pagination.totalPages) return; // Validar el rango de página
     switch (moduloPaginar) {
       case 1:
-        cargarUsuariosTabla(pagination.pageSize, page, pagination.estado, pagination.idRol);
+        cargarUsuariosTabla(pagination.pageSize, page, pagination.estado, pagination.idRol, pagination.valorBusqueda);
         break;
       case 2:
         cargarColaboradoresTabla(pagination.pageSize, page, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda);
@@ -593,11 +593,19 @@ function editarUsuario(id, boton) {
 
 
 function enviarEdicionUsuario() {
+  const nombreUsuario = document.getElementById("nombreUsuario").value;
   const newPassword = document.getElementById("newPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
   const passwordError = document.getElementById("passwordError");
   const newPasswordInput = document.getElementById("newPassword");
   const confirmPasswordInput = document.getElementById("confirmPassword");
+  const roleName = document.getElementById("roleName").value;
+
+  if (!nombreUsuario || !roleName) {
+    passwordError.innerText = "Por favor, complete todos los campos.";
+    passwordError.style.display = "block";
+    return; // Detener el envío del formulario si hay campos vacíos
+  }
 
   // Reiniciar el estilo de los campos y el mensaje de error
   passwordError.style.display = "none";
