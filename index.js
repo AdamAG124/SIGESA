@@ -6,9 +6,11 @@ const DepartamentoController = require('./controllers/DepartamentoController');
 const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const ProveedorController = require('./controllers/ProveedorController');
+const CategoriaProductoController = require('./controllers/CategoriaProductoController');
 const Usuario = require('./domain/Usuario');
 const Colaborador = require('./domain/Colaborador');
 const Proveedor = require('./domain/Proveedor')
+const CategoriaProducto = require('./domain/CategoriaProducto');
 const fs = require('fs');
 
 
@@ -411,27 +413,39 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.on('listar-categorias', async (event) => {
-    const controller = new CategoriaProductoController();
-    const categorias = await controller.listarCategorias();
-    const categoriasSimplificadas = categorias.map(categoria => {
-        return {
-            idCategoria: categoria.getIdCategoria(),
-            nombreCategoria: categoria.getNombreCategoria(),
-            estado: categoria.getEstado()
-        };
-    });
+ipcMain.on('listar-categorias', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    try {
+        const controller = new CategoriaProductoController(pageSize, currentPage, estado, valorBusqueda);
+        const resultado = await controller.listarCategorias(pageSize, currentPage, estado, valorBusqueda);
+        const categoriasSimplificadas = resultado.categorias.map(categoria => {
+            return {
+                idCategoria: categoria.getIdCategoria(),
+                nombreCategoria: categoria.getNombre(),
+                descripcionCategoria: categoria.getDescripcion(),
+                estado: categoria.getEstado()
+            };
+        });
 
-    if (mainWindow) {
-        mainWindow.webContents.send('cargar-categorias', categoriasSimplificadas);
+        const respuesta = {
+            categorias: categoriasSimplificadas,  // Lista de puestos de trabajo
+            paginacion: resultado.pagination  // Datos de paginación
+        };
+
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-categorias', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar las categorías de productos:', error);
+        mainWindow.webContents.send('error-cargar-puestos-trabajo', 'Hubo un error al cargar las categorías de productos.');
     }
 });
 
 ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
     try {
-        const categoria = new Categoria();
-        categoria.setIdCategoria(categoriaData.idCategoria);
-        categoria.setNombreCategoria(categoriaData.nombreCategoria);
+        const categoria = new CategoriaProducto();
+        categoria.setIdCategoria(categoriaData.id);
+        categoria.setNombre(categoriaData.nombre);
+        categoria.setDescripcion(categoriaData.descripcion);
 
         const categoriaController = new CategoriaProductoController();
         const resultado = await categoriaController.actualizarCategoria(categoria);
@@ -443,12 +457,15 @@ ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
     }
 });
 
-ipcMain.on('eliminar-categoria', async (event, categoriaId) => {
-    try {
-        const categoria = new Categoria();
-        categoria.setIdCategoria(categoriaId);
 
+ipcMain.on('eliminar-categoria', async (event, categoriaId, estado) => {
+    try {
         const categoriaController = new CategoriaProductoController();
+
+        const categoria = new CategoriaProducto();
+        categoria.setIdCategoria(categoriaId);
+        categoria.setEstado(estado);  // Guardar el estado que viene desde el select con id estado
+
         const resultado = await categoriaController.eliminarCategoria(categoria);
 
         event.reply('respuesta-eliminar-categoria', resultado);
@@ -460,8 +477,10 @@ ipcMain.on('eliminar-categoria', async (event, categoriaId) => {
 
 ipcMain.on('crear-categoria', async (event, categoriaData) => {
     try {
-        const categoria = new Categoria();
-        categoria.setNombreCategoria(categoriaData.nombreCategoria);
+        const categoria = new CategoriaProducto();
+        categoria.setNombre(categoriaData.nombre);
+        categoria.setDescripcion(categoriaData.descripcion);
+        categoria.setEstado(1);  // Por defecto, las categorías se crean con estado activo
 
         const categoriaController = new CategoriaProductoController();
         const resultado = await categoriaController.crearCategoria(categoria);
@@ -477,15 +496,15 @@ ipcMain.on('crear-categoria', async (event, categoriaData) => {
 ipcMain.on('listar-proveedores', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new ProveedorController();
 
-     if (typeof currentPage !== 'number' || currentPage <= 0) {
+    if (typeof currentPage !== 'number' || currentPage <= 0) {
         currentPage = 1;
-     }
+    }
 
 
     try {
         // Llamar al método listarProveedores con los parámetros recibidos
         const resultado = await controller.listarProveedores(pageSize, currentPage, estado, valorBusqueda);
-    
+
         // Simplificar la lista de proveedores
         const proveedoresSimplificados = resultado.proveedores.map(proveedor => ({
             idProveedor: proveedor.getIdProveedor(),
@@ -516,7 +535,7 @@ ipcMain.on('crear-proveedor', async (event, proveedorData) => {
     try {
         // Crear un objeto Colaborador y setear los datos
         const proveedor = new Proveedor();
-        proveedor.setNombre(proveedorData.nombre); 
+        proveedor.setNombre(proveedorData.nombre);
         proveedor.setProvincia(proveedorData.provincia);
         proveedor.setCanton(proveedorData.canton);
         proveedor.setDistrito(proveedorData.distrito);
@@ -550,7 +569,7 @@ ipcMain.on('editar-proveedor', async (event, proveedorData) => {
         const resultado = await proveedorController.actualizarProveedor(proveedor);
 
         // Enviar respuesta al frontend
-        event.reply('respuesta-actualizar-proveedor', resultado); 
+        event.reply('respuesta-actualizar-proveedor', resultado);
     } catch (error) {
         console.error('Error al editar proveedor:', error);
         event.reply('respuesta-editar-proveedor', { success: false, message: error.message });

@@ -459,6 +459,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 3:
         cargarProveedoresTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
+      case 4:
+        cargarCategoriasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
+        break;
       default:
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
         break;
@@ -531,6 +534,9 @@ function filterTable(moduloFiltrar) {
       break;
     case 3:
       cargarProveedoresTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      break;
+    case 4:
+      cargarCategoriasTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
   }
 }
@@ -668,7 +674,7 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
   Swal.fire({
     title: title,
     text: message,
-    icon: "question",
+    icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#4a4af4",
     cancelButtonColor: "#d33",
@@ -716,6 +722,19 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
             if (respuesta.success) {
               mostrarToastConfirmacion(respuesta.message);
               filterTable(moduloEstadoActualizar);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+          break;
+        case 4:
+          window.api.eliminarCategoria(Number(id), Number(estado));
+          window.api.onRespuestaEliminarCategoria((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              setTimeout(() => {
+                filterTable(4);
+              }, 2000);
             } else {
               mostrarToastError(respuesta.message);
             }
@@ -1461,4 +1480,215 @@ async function obtenerNombrePorCedula() {
     console.error('Error al obtener datos:', error); // Manejo de errores
     return null; // Retornar null en caso de error
   }
+}
+
+function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+  const selectEstado = document.getElementById('estado-filtro');
+  const selectPageSize = document.getElementById('selectPageSize');
+  if (estado === 0 || estado === 1) {
+    selectEstado.value = estado;
+  } else {
+    selectEstado.value = 2;
+  }
+  selectPageSize.value = pageSize;
+  setTimeout(() => {
+    window.api.obtenerCategorias(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+      console.log(estado);
+      const tbody = document.getElementById("categoriesBody");
+      tbody.innerHTML = ""; // Limpiar contenido previo
+      respuesta.categorias.forEach((categoria) => {
+        const estadoCategoria = categoria.estado === 1 ? "Activo" : "Inactivo";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+                  <td>${categoria.nombreCategoria}</td>
+                  <td>${categoria.descripcionCategoria}</td>
+                  <td>${estadoCategoria}</td>
+                  <td class="action-icons">
+                      <button class="tooltip" value="${categoria.idCategoria}" onclick="editarCategoria(this.value, this)">
+                          <span class="material-icons">edit</span>
+                          <span class="tooltiptext">Editar categoría</span>
+                      </button>
+                      <button class="tooltip" value="${categoria.idCategoria}" onclick="${categoria.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando categoría', '¿Está seguro que desea eliminar esta categoría?', 4)` : `actualizarEstado(this.value, 1, 'Reactivando categoría', '¿Está seguro que desea reactivar esta categoría?', 4)`}">
+                          <span class="material-icons">
+                              ${categoria.estado === 1 ? 'delete' : 'restore'}
+                          </span>
+                          <span class="tooltiptext">
+                              ${categoria.estado === 1 ? 'Eliminar categoría' : 'Reactivar categoría'}
+                          </span>
+                      </button>
+                  </td>
+              `;
+        tbody.appendChild(row);
+      });
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
+      cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+    });
+  }, 100);
+}
+
+function agregarCategoria() {
+  document.getElementById("modalTitle").innerText = "Crear Categoría";
+  document.getElementById("buttonModal").onclick = enviarCreacionCategoria;
+  // Mostrar el modal
+  document.getElementById("editarCategoriaModal").style.display = "block";
+}
+
+function enviarCreacionCategoria() {
+  const nombre = document.getElementById("nombreCategoria").value;
+  const descripcion = document.getElementById("Descripcion").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreCategoria") },
+    { value: descripcion, element: document.getElementById("Descripcion") }
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const categoriaData = {
+    nombre: nombre,
+    descripcion: descripcion
+  };
+
+  Swal.fire({
+    title: "Creando categoría",
+    text: "¿Está seguro que desea crear esta nueva categoría?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearCategoria(categoriaData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearCategoria((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(4);
+            cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+          }, 2000);
+          // Aquí puedes hacer alguna acción adicional, como redirigir o limpiar el formulario
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
+async function editarCategoria(id, boton) {
+
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombreCategoria = fila.children[0].textContent;
+  const descripcionCategoria = fila.children[1].textContent;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idCategoria").value = id;
+  document.getElementById("nombreCategoria").value = nombreCategoria;
+  document.getElementById("Descripcion").value = descripcionCategoria;
+  // Cambiar el título del modal a "Editar Proveedor"
+  document.getElementById("modalTitle").innerText = "Editar Categoría";
+  document.getElementById("buttonModal").onclick = enviarEdicionCategoria;
+  // Mostrar el modal
+  document.getElementById("editarCategoriaModal").style.display = "block";
+}
+
+function enviarEdicionCategoria() {
+  const id = document.getElementById("idCategoria").value;
+  const nombre = document.getElementById("nombreCategoria").value;
+  const descripcion = document.getElementById("Descripcion").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreCategoria") },
+    { value: descripcion, element: document.getElementById("Descripcion") }
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const categoriaData = {
+    id: id,
+    nombre: nombre,
+    descripcion: descripcion
+  };
+
+  Swal.fire({
+    title: "Editando categoría",
+    text: "¿Está seguro que desea editar esta categoría?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.editarCategoria(categoriaData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaActualizarCategoria((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(4);
+            cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+          }, 2000);
+          // Aquí puedes hacer alguna acción adicional, como redirigir o limpiar el formulario
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });    
+    }else{
+      mostrarToastError(respuesta.message);
+    }
+  });
 }

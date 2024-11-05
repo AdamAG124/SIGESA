@@ -1,4 +1,4 @@
-const CategoriaService = require('../services/CategoriaService');
+const CategoriaService = require('../services/CategoriaProductoService');
 
 class CategoriaProductoController {
     #categoriaService;
@@ -7,8 +7,8 @@ class CategoriaProductoController {
         this.#categoriaService = new CategoriaService();
     }
 
-    async listarCategorias() {
-        return await this.#categoriaService.obtenerCategorias();
+    async listarCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda) {
+        return await this.#categoriaService.obtenerCategoriasProductos(pageSize, currentPage, estadoCategoria, valorBusqueda);
     }
 
     async crearCategoria(categoria) {
