@@ -209,10 +209,17 @@ class CategoriaProductoDB {
             const [result] = await connection.query(query, params);
 
             if (result.affectedRows > 0) {
-                return {
-                    success: true,
-                    message: 'Categoría eliminada exitosamente.'
-                };
+                if (idCategoria.getEstado() === 0) {
+                    return {
+                        success: true,
+                        message: 'Categoría eliminado exitosamente.'
+                    };
+                } else {
+                    return {
+                        success: true,
+                        message: 'Categoría reactivado exitosamente.'
+                    };
+                }
             } else {
                 return {
                     success: false,
