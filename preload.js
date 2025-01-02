@@ -64,26 +64,65 @@ contextBridge.exposeInMainWorld('api', {
             callback(departamentos);
         });
     },
-    
+
     obtenerPuestosTrabajo: (pageSize, currentPage, estado, valorBusqueda, callback) => {
         ipcRenderer.send('listar-puestos-trabajo', { pageSize, currentPage, estado, valorBusqueda });
         ipcRenderer.once('cargar-puestos-trabajo', (event, respuesta) => {
             // Asegúrate de que respuesta es un objeto válido y serializable
             callback(respuesta);
         });
-    },    
-  
-
-
-    obtenerCategorias: (pageSize, currentPage, estadoCategoria, valorBusqueda, callback) => {
-        ipcRenderer.send('listar-categorias', { pageSize, currentPage, estadoCategoria, valorBusqueda });
-        ipcRenderer.once('cargar-categorias', (event, categorias) => callback(categorias));
     },
+
+    // Métodos para gestionar categorías
+    obtenerCategorias: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-categorias',  { pageSize, currentPage, estado, valorBusqueda }); // Enviar el evento al proceso principal
+        ipcRenderer.once('cargar-categorias', (event, respuesta) => callback(respuesta)); // Recibir la respuesta
+    },
+
+    // Método para enviar la información del nuevo usuario al proceso principal para su creación
     crearCategoria: (categoriaData) => ipcRenderer.send('crear-categoria', categoriaData),
     onRespuestaCrearCategoria: (callback) => ipcRenderer.on('respuesta-crear-categoria', (event, respuesta) => callback(respuesta)),
+
+    // Método para enviar los datos de edición de categoría al proceso principal
     editarCategoria: (categoriaData) => ipcRenderer.send('actualizar-categoria', categoriaData),
     onRespuestaActualizarCategoria: (callback) => ipcRenderer.on('respuesta-actualizar-categoria', (event, respuesta) => callback(respuesta)),
-    eliminarCategoria: (categoriaId) => ipcRenderer.send('eliminar-categoria', categoriaId),
+
+    // Método para enviar el id de categoría al proceso principal para su eliminación
+    eliminarCategoria: (categoriaId, estado) => ipcRenderer.send('eliminar-categoria', categoriaId, estado),
     onRespuestaEliminarCategoria: (callback) => ipcRenderer.on('respuesta-eliminar-categoria', (event, respuesta) => callback(respuesta)),
+
+    obtenerProveedores: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        // Enviar la solicitud para listar proveedores
+        ipcRenderer.send('listar-proveedores', { pageSize, currentPage, estado, valorBusqueda });
+
+        // Definir el callback para manejar la respuesta
+        const proveedoresCallback = (event, proveedores) => {
+            callback(proveedores);
+            // Remover el listener una vez que se ha procesado la respuesta
+            ipcRenderer.removeListener('cargar-proveedores', proveedoresCallback);
+        };
+
+        // Escuchar la respuesta
+        ipcRenderer.on('cargar-proveedores', proveedoresCallback);
+
+        // Manejo de errores de la respuesta
+        const errorCallback = (event, errorMessage) => {
+            callback({ error: errorMessage });
+            // También puedes remover el listener de error si solo lo necesitas una vez
+            ipcRenderer.removeListener('error-cargar-proveedores', errorCallback);
+        };
+
+        // Escuchar los errores
+        ipcRenderer.on('error-cargar-proveedores', errorCallback);
+    },
+
+    crearProveedor: (proveedorData) => ipcRenderer.send('crear-proveedor', proveedorData),
+    onRespuestaCrearProveedor: (callback) => ipcRenderer.on('respuesta-crear-proveedor', (event, respuesta) => callback(respuesta)),
+    editarProveedor: (proveedorData) => ipcRenderer.send('editar-proveedor', proveedorData),
+    onRespuestaActualizarProveedor: (callback) => ipcRenderer.on('respuesta-actualizar-proveedor', (event, respuesta) => callback(respuesta)),
+    eliminarProveedor: (proveedorId, estado) => ipcRenderer.send('eliminar-proveedor', proveedorId, estado),
+    onRespuestaEliminarProveedor: (callback) => ipcRenderer.once('respuesta-eliminar-proveedor', (event, respuesta) => callback(respuesta)),
+    
+
 
 });

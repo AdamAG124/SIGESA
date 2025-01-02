@@ -229,6 +229,7 @@ class UsuarioDB {
                     firstPage: 1,
                     estado: estadoUsuario,
                     idRol: idRolFiltro,
+                    valorBusqueda,
                     lastPage: totalPages
                 }
             };

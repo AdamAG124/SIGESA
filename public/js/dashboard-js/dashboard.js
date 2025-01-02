@@ -97,7 +97,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFil
 
   // Obtener el select por su id
   const selectEstado = document.getElementById('filtrado-estado');
-  const selectPageSize = document.getElementById('selectPageSize');
+
   const selectRoles = document.getElementById("filtrado-role");
 
   // Verificar el valor del estado
@@ -158,6 +158,287 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFil
   }, 100);
 }
 
+function checkEmpty(event) {
+  const searchValue = document.getElementById("search-bar").value.trim();
+
+  if (searchValue === "") {
+    filterTable(3); // Llama a filterTable solo si el campo está vacío
+  }
+
+  if (event.key === "Enter") {
+    filterTable(3); // Llama a filterTable cuando se presiona "Enter"
+  }
+}
+
+function cargarProveedoresTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+  const selectEstado = document.getElementById('estado-filtro');
+  const selectPageSize = document.getElementById('selectPageSize');
+
+  // Validar pageNumber
+  if (typeof currentPage !== 'number' || currentPage <= 0) {
+    currentPage = 1; // Establecer el valor predeterminado
+  }
+
+  // Verificar el valor del estado y establecerlo
+  estado = (estado === 0 || estado === 1) ? estado : 0;
+  selectEstado.value = estado;
+  selectPageSize.value = pageSize;
+
+  window.api.obtenerProveedores(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+    const tbody = document.getElementById("proveedores-body");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+
+    // Manejo de errores en la respuesta
+    if (respuesta.error) {
+      const mensajeError = document.createElement("tr");
+      mensajeError.innerHTML = `
+          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+              Error: ${respuesta.error}
+          </td>
+      `;
+      tbody.appendChild(mensajeError);
+      return; // Terminar la función si hay un error
+    }
+
+    // Verificar que 'proveedores' es un arreglo
+    if (!Array.isArray(respuesta.proveedores)) {
+      const mensajeError = document.createElement("tr");
+      mensajeError.innerHTML = `
+          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+              Error: La respuesta no contiene una lista de proveedores válida.
+          </td>
+      `;
+      tbody.appendChild(mensajeError);
+      return; // Terminar la función si hay un error
+    }
+
+    // Iterar sobre los proveedores y agregarlos a la tabla
+    if (respuesta.proveedores.length === 0) {
+      const mensaje = document.createElement("tr");
+      mensaje.innerHTML = `
+          <td colspan="3" style="text-align: center; color: gray; font-style: italic;">
+              No hay proveedores registrados
+          </td>
+      `;
+      tbody.appendChild(mensaje);
+      return;
+    } else {
+      respuesta.proveedores.forEach((proveedor) => {
+        const nombre = `${proveedor.nombre}`;
+        const estadoTexto = proveedor.estado === 1 ? "Activo" : "Inactivo";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${nombre}</td>
+          <td>${estadoTexto}</td>
+          <td class="action-icons">
+              <button class="tooltip" value="${proveedor.idProveedor}" onclick="editarProveedor(this.value, this)">
+                  <span class="material-icons">edit</span>
+                  <span class="tooltiptext">Editar proveedor</span>
+              </button>
+              <button class="tooltip" value="${proveedor.idProveedor}" onclick="${proveedor.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando proveedor', '¿Está seguro que desea eliminar a este proveedor?', 3)` : `actualizarEstado(this.value, 1, 'Reactivando proveedor', '¿Está seguro que desea reactivar a este proveedor?', 3)`}">
+                  <span class="material-icons">${proveedor.estado === 1 ? 'delete' : 'restore'}</span>
+                  <span class="tooltiptext">${proveedor.estado === 1 ? 'Eliminar proveedor' : 'Reactivar proveedor'}</span>
+              </button>
+          </td>
+          <!-- Información adicional oculta -->
+          <td class="hidden-info" style="display:none;">${proveedor.provincia}</td>
+          <td class="hidden-info" style="display:none;">${proveedor.canton}</td>
+          <td class="hidden-info" style="display:none;">${proveedor.distrito}</td>
+          <td class="hidden-info" style="display:none;">${proveedor.direccion}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    if (respuesta.paginacion) {
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 3);
+    } else {
+      console.warn('No se proporcionaron datos de paginación o respuesta está vacía.');
+    }
+    // Cerrar cualquier modal activo
+    cerrarModal("editarProveedorModal", "editarProveedorForm");
+  });
+}
+
+function agregarProveedor() {
+
+  // Cambiar el título del modal a "Editar Colaborador"
+  document.getElementById("modalTitle").innerText = "Crear Proveedor";
+  document.getElementById("buttonModal").onclick = enviarCreacionProveedor;
+  // Mostrar el modal
+  document.getElementById("editarProveedorModal").style.display = "block";
+}
+
+function enviarCreacionProveedor() {
+  // Asignar valores extraídos a los campos del formulario de creación
+  const id = document.getElementById("idProveedor").value; // Aunque no se usa, lo dejamos por si es necesario más adelante
+  const nombre = document.getElementById("nombreProveedor").value.trim();
+  const provincia = document.getElementById("provincia").value.trim();
+  const canton = document.getElementById("canton").value.trim();
+  const distrito = document.getElementById("distrito").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  // Validar que todos los campos estén llenos
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreProveedor") },
+    { value: provincia, element: document.getElementById("provincia") },
+    { value: canton, element: document.getElementById("canton") },
+    { value: distrito, element: document.getElementById("distrito") },
+    { value: direccion, element: document.getElementById("direccion") },
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto proveedor con los datos del formulario
+  const proveedorData = {
+    nombre: nombre,
+    provincia: provincia,
+    canton: canton,
+    distrito: distrito,
+    direccion: direccion,
+  };
+
+  Swal.fire({
+    title: "Creando Proveedor",
+    text: "¿Está seguro que desea crear este nuevo proveedor?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearProveedor(proveedorData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearProveedor((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          filterTable(3); // Actualiza la tabla inmediatamente
+          cerrarModal("editarProveedorModal", "editarProveedorForm"); // Cierra el modal
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
+
+async function editarProveedor(id, boton) {
+
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombreProveedor = fila.children[0].textContent;
+  const provincia = fila.children[3].textContent;
+  const canton = fila.children[4].textContent;
+  const distrito = fila.children[5].textContent;
+  const direccion = fila.children[6].textContent;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idProveedor").value = id;
+  document.getElementById("nombreProveedor").value = nombreProveedor;
+  document.getElementById("provincia").value = provincia;
+  document.getElementById("canton").value = canton;
+  document.getElementById("distrito").value = distrito;
+  document.getElementById("direccion").value = direccion;
+
+  // Cambiar el título del modal a "Editar Proveedor"
+  document.getElementById("modalTitle").innerText = "Editar Proveedor";
+  document.getElementById("buttonModal").onclick = enviarEdicionProveedor;
+  // Mostrar el modal
+  document.getElementById("editarProveedorModal").style.display = "block";
+}
+
+function enviarEdicionProveedor() {
+  // Obtener valores del formulario
+  const id = document.getElementById("idProveedor").value.trim();
+  const nombre = document.getElementById("nombreProveedor").value.trim();
+  const provincia = document.getElementById("provincia").value.trim();
+  const canton = document.getElementById("canton").value.trim();
+  const distrito = document.getElementById("distrito").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+
+  // Validar campos vacíos y espacios en blanco
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreProveedor") },
+    { value: provincia, element: document.getElementById("provincia") },
+    { value: canton, element: document.getElementById("canton") },
+    { value: distrito, element: document.getElementById("distrito") },
+    { value: direccion, element: document.getElementById("direccion") },
+  ];
+
+  const camposInvalidos = inputs.filter(input => input.value === "");
+
+  // Manejo de bordes y mensajes de error
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposInvalidos.length > 0) {
+    camposInvalidos.forEach(input => {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+    });
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    inputs.forEach(input => input.element.style.border = ""); // Resetear bordes
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear objeto proveedor
+  const proveedorData = { idProveedor: id, nombre, provincia, canton, distrito, direccion };
+
+  // Confirmar la edición
+  Swal.fire({
+    title: "Editando proveedor",
+    text: "¿Está seguro que desea editar este proveedor?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.api.editarProveedor(proveedorData);
+
+      // Manejar la respuesta de la edición
+      window.api.onRespuestaActualizarProveedor((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          cerrarModal("editarProveedorModal", "editarProveedorForm");
+          filterTable(3);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
 
 function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   const paginacionDiv = document.querySelector(idInnerDiv);
@@ -165,63 +446,65 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   // Limpiar el contenido previo de paginación
   paginacionDiv.innerHTML = "";
 
+  // Función para cargar la tabla según el módulo
+  const cargarTabla = (page) => {
+    if (page < 1 || page > pagination.totalPages) return; // Validar el rango de página
+    switch (moduloPaginar) {
+      case 1:
+        cargarUsuariosTabla(pagination.pageSize, page, pagination.estado, pagination.idRol, pagination.valorBusqueda);
+        break;
+      case 2:
+        cargarColaboradoresTabla(pagination.pageSize, page, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda);
+        break;
+      case 3:
+        cargarProveedoresTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
+        break;
+      case 4:
+        cargarCategoriasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
+        break;
+      default:
+        console.warn('Módulo de paginación desconocido:', moduloPaginar);
+        break;
+    }
+  };
+
+  // Función para cargar la primera página y actualizar la paginación
+  const loadFirstPage = () => {
+    cargarTabla(1);
+  };
+
   // Botón "Primera página"
   const firstPageButton = document.createElement("button");
   firstPageButton.innerHTML = `<span class="material-icons">first_page</span>`;
-  firstPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
-  firstPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, 1, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    } else if (moduloPaginar === 3) {
-      cargarCategoriasTabla(pagination.pageSize, 1, pagination.estado, pagination.valorBusqueda);
-    }
-  });
+  firstPageButton.disabled = pagination.currentPage === 1;
+  firstPageButton.addEventListener("click", loadFirstPage);
   paginacionDiv.appendChild(firstPageButton);
 
   // Botón "Página anterior"
   const prevPageButton = document.createElement("button");
   prevPageButton.innerHTML = `<span class="material-icons">navigate_before</span>`;
-  prevPageButton.disabled = pagination.currentPage === 1; // Deshabilitar si ya estamos en la primera página
+  prevPageButton.disabled = pagination.currentPage === 1;
   prevPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    } else if (moduloPaginar === 3) {
-      cargarCategoriasTabla(pagination.pageSize, pagination.currentPage - 1, pagination.estado, pagination.valorBusqueda);
+    if (!prevPageButton.disabled) {
+      cargarTabla(pagination.currentPage - 1);
     }
   });
   paginacionDiv.appendChild(prevPageButton);
 
-  // Páginas numeradas
-  //for (let i = 1; i <= pagination.totalPages; i++) {
+  // Mostrar información de la página actual
   const pageSpan = document.createElement("span");
-  pageSpan.textContent = pagination.currentPage + ' de ' + pagination.totalPages;
+  pageSpan.textContent = `${pagination.currentPage} de ${pagination.totalPages}`;
   pageSpan.setAttribute('data-value', pagination.currentPage);
   pageSpan.classList.add("currentPage");
-  /*if (i === pagination.currentPage) {
-    pageSpan.classList.add("active"); // Añadir clase activa para la página actual
-  }
-  pageSpan.addEventListener("click", () => {
-    cargarUsuariosTabla(pagination.pageSize, i, pagination.estado);
-  });
-  paginacionDiv.appendChild(pageSpan);
-}*/
   paginacionDiv.appendChild(pageSpan);
 
   // Botón "Siguiente página"
   const nextPageButton = document.createElement("button");
   nextPageButton.innerHTML = `<span class="material-icons">navigate_next</span>`;
-  nextPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
+  nextPageButton.disabled = pagination.currentPage === pagination.totalPages;
   nextPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    } else if (moduloPaginar === 3) {
-      cargarCategoriasTabla(pagination.pageSize, pagination.currentPage + 1, pagination.estado, pagination.valorBusqueda);
+    if (!nextPageButton.disabled) {
+      cargarTabla(pagination.currentPage + 1);
     }
   });
   paginacionDiv.appendChild(nextPageButton);
@@ -229,29 +512,31 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   // Botón "Última página"
   const lastPageButton = document.createElement("button");
   lastPageButton.innerHTML = `<span class="material-icons">last_page</span>`;
-  lastPageButton.disabled = pagination.currentPage === pagination.totalPages; // Deshabilitar si ya estamos en la última página
+  lastPageButton.disabled = pagination.currentPage === pagination.totalPages;
   lastPageButton.addEventListener("click", () => {
-    if (moduloPaginar === 1) {
-      cargarUsuariosTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idRol);
-    } else if (moduloPaginar === 2) {
-      cargarColaboradoresTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.idPuesto, pagination.idDepartamento, pagination.valorBusqueda)
-    } else if (moduloPaginar === 3) {
-      cargarCategoriasTabla(pagination.pageSize, pagination.totalPages, pagination.estado, pagination.valorBusqueda);
+    if (!lastPageButton.disabled) {
+      cargarTabla(pagination.totalPages);
     }
   });
   paginacionDiv.appendChild(lastPageButton);
 }
 
+
 function filterTable(moduloFiltrar) {
+  // Siempre cargar la primera página al aplicar un filtro
+  const pageSize = Number(document.getElementById("selectPageSize").value);
   switch (moduloFiltrar) {
     case 1:
-      cargarUsuariosTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
+      cargarUsuariosTabla(pageSize, 1, Number(document.getElementById("filtrado-estado").value), Number(document.getElementById("filtrado-role").value), document.getElementById("search-bar").value);
       break;
     case 2:
-      cargarColaboradoresTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), Number(document.getElementById("puesto-filtro").value), Number(document.getElementById("departamento-filtro").value), document.getElementById("search-bar").value);
+      cargarColaboradoresTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), Number(document.getElementById("puesto-filtro").value), Number(document.getElementById("departamento-filtro").value), document.getElementById("search-bar").value);
       break;
     case 3:
-      cargarCategoriasTabla(Number(document.getElementById("selectPageSize").value), Number(document.querySelector('.currentPage').getAttribute('data-value')), Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      cargarProveedoresTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      break;
+    case 4:
+      cargarCategoriasTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
   }
 }
@@ -314,11 +599,19 @@ function editarUsuario(id, boton) {
 
 
 function enviarEdicionUsuario() {
+  const nombreUsuario = document.getElementById("nombreUsuario").value;
   const newPassword = document.getElementById("newPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
   const passwordError = document.getElementById("passwordError");
   const newPasswordInput = document.getElementById("newPassword");
   const confirmPasswordInput = document.getElementById("confirmPassword");
+  const roleName = document.getElementById("roleName").value;
+
+  if (!nombreUsuario || !roleName) {
+    passwordError.innerText = "Por favor, complete todos los campos.";
+    passwordError.style.display = "block";
+    return; // Detener el envío del formulario si hay campos vacíos
+  }
 
   // Reiniciar el estilo de los campos y el mensaje de error
   passwordError.style.display = "none";
@@ -381,7 +674,7 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
   Swal.fire({
     title: title,
     text: message,
-    icon: "question",
+    icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#4a4af4",
     cancelButtonColor: "#d33",
@@ -415,6 +708,32 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
               mostrarToastConfirmacion(respuesta.message);
               setTimeout(() => {
                 filterTable(2);
+              }, 2000);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+          break;
+
+        case 3:
+          window.api.eliminarProveedor(Number(id), Number(estado));
+
+          window.api.onRespuestaEliminarProveedor((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              filterTable(moduloEstadoActualizar);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+          break;
+        case 4:
+          window.api.eliminarCategoria(Number(id), Number(estado));
+          window.api.onRespuestaEliminarCategoria((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              setTimeout(() => {
+                filterTable(4);
               }, 2000);
             } else {
               mostrarToastError(respuesta.message);
@@ -585,25 +904,41 @@ function enviarCreacionUsuario(event) {
 
 // Función para cerrar el modal
 function cerrarModal(idModalCerrar, idFormReset) {
+  const modal = document.getElementById(idModalCerrar);
+  const form = document.getElementById(idFormReset);
+
+  // Cerrar el modal
+  modal.style.display = "none";
+
+  // Limpiar campos del formulario
+  form.reset();
+
+  // Manejo de errores y estilos específicos para el formulario de editar usuario
   if (idFormReset === "editarUsuarioForm") {
-    document.getElementById(idModalCerrar).style.display = "none";
-    // Limpiar los campos del formulario y resetear mensajes de error
-    document.getElementById(idFormReset).reset();
-    document.getElementById("passwordError").style.display = "none";
-    document.getElementById("newPassword").style.border = "";
-    document.getElementById("confirmPassword").style.border = "";
-    document.getElementById("nombreUsuario").style.border = "";
-    document.getElementById("colaboradorName").style.border = "";
-  } else if (idFormReset === "editarColaboradorForm") {
-    document.getElementById(idModalCerrar).style.display = "none";
-    // Limpiar los campos del formulario y resetear mensajes de error
-    document.getElementById(idFormReset).reset();
-  } else if (idFormReset === "editarCategoriaForm") {
-    document.getElementById(idModalCerrar).style.display = "none";
-    // Limpiar los campos del formulario y resetear mensajes de error
-    document.getElementById(idFormReset).reset();
+    ocultarErrores();
   }
 }
+
+function ocultarErrores() {
+  const errorElements = [
+    document.getElementById("passwordError"),
+    document.getElementById("newPassword"),
+    document.getElementById("confirmPassword"),
+    document.getElementById("nombreUsuario"),
+    document.getElementById("colaboradorName")
+  ];
+
+  errorElements.forEach(element => {
+    if (element) {
+      if (element.id === "passwordError") {
+        element.style.display = "none";
+      } else {
+        element.style.border = "";
+      }
+    }
+  });
+}
+
 
 function cargarRoles(idSelect, mensajeQuemado) {
   window.api.obtenerRoles((roles) => {
@@ -952,7 +1287,7 @@ function cargarDepartamentos(idSelect, mensajeQuemado) {
 }
 
 function cargarPuestos(idSelect, mensajeQuemado) {
-  window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 2, valorBusqueda = null, (respuesta) => {
+  window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
     //const departamentoSelect = document.getElementById(idSelect);
     idSelect.innerHTML = ""; // Limpiar las opciones existentes
@@ -1146,32 +1481,34 @@ async function obtenerNombrePorCedula() {
     return null; // Retornar null en caso de error
   }
 }
-function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estadoCategoria = 1, valorBusqueda = null) {
+
+function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
   const selectPageSize = document.getElementById('selectPageSize');
-  if (estadoCategoria === 0 || estadoCategoria === 1) {
-      selectEstado.value = estadoCategoria;
+  if (estado === 0 || estado === 1) {
+    selectEstado.value = estado;
   } else {
-      selectEstado.value = 2;
+    selectEstado.value = 2;
   }
   selectPageSize.value = pageSize;
   setTimeout(() => {
-      window.api.obtenerCategorias(pageSize, currentPage, estadoCategoria, valorBusqueda, (respuesta) => {
-          const tbody = document.getElementById("categoriesBody");
-          tbody.innerHTML = ""; // Limpiar contenido previo
-          respuesta.categorias.forEach((categoria) => {
-              const estadoCategoria = categoria.estado === 1 ? "Activo" : "Inactivo";
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                  <td>${categoria.nombre}</td>
-                  <td>${categoria.descripcion}</td>
+    window.api.obtenerCategorias(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+      console.log(estado);
+      const tbody = document.getElementById("categoriesBody");
+      tbody.innerHTML = ""; // Limpiar contenido previo
+      respuesta.categorias.forEach((categoria) => {
+        const estadoCategoria = categoria.estado === 1 ? "Activo" : "Inactivo";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+                  <td>${categoria.nombreCategoria}</td>
+                  <td>${categoria.descripcionCategoria}</td>
                   <td>${estadoCategoria}</td>
                   <td class="action-icons">
                       <button class="tooltip" value="${categoria.idCategoria}" onclick="editarCategoria(this.value, this)">
                           <span class="material-icons">edit</span>
                           <span class="tooltiptext">Editar categoría</span>
                       </button>
-                      <button class="tooltip" value="${categoria.idCategoria}" onclick="${categoria.estado === 1 ? `actualizarEstadoCategoria(this.value, 0, 'Eliminando categoría', '¿Está seguro que desea eliminar esta categoría?')` : `actualizarEstadoCategoria(this.value, 1, 'Reactivando categoría', '¿Está seguro que desea reactivar esta categoría?')`}">
+                      <button class="tooltip" value="${categoria.idCategoria}" onclick="${categoria.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando categoría', '¿Está seguro que desea eliminar esta categoría?', 4)` : `actualizarEstado(this.value, 1, 'Reactivando categoría', '¿Está seguro que desea reactivar esta categoría?', 4)`}">
                           <span class="material-icons">
                               ${categoria.estado === 1 ? 'delete' : 'restore'}
                           </span>
@@ -1181,150 +1518,177 @@ function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estadoCategoria =
                       </button>
                   </td>
               `;
-              tbody.appendChild(row);
-          });
-          actualizarPaginacion(respuesta.paginacion, ".pagination", 3);
-          cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+        tbody.appendChild(row);
       });
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
+      cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+    });
   }, 100);
 }
 
 function agregarCategoria() {
   document.getElementById("modalTitle").innerText = "Crear Categoría";
   document.getElementById("buttonModal").onclick = enviarCreacionCategoria;
+  // Mostrar el modal
   document.getElementById("editarCategoriaModal").style.display = "block";
-  document.getElementById("estadoCategoria").style.display = "none"; // Hide the state selection
 }
 
 function enviarCreacionCategoria() {
-  const nombreCategoria = document.getElementById("nombreCategoria").value.trim();
-  const descripcionCategoria = document.getElementById("descripcionCategoria").value.trim();
-  if (!nombreCategoria || !descripcionCategoria) {
-      document.getElementById("errorMessage").textContent = "Por favor, llene todos los campos.";
-      return;
+  const nombre = document.getElementById("nombreCategoria").value;
+  const descripcion = document.getElementById("Descripcion").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreCategoria") },
+    { value: descripcion, element: document.getElementById("Descripcion") }
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
   }
+
+  // Crear el objeto categoría con los datos del formulario
   const categoriaData = {
-      nombre: nombreCategoria,
-      descripcion: descripcionCategoria,
-      estado: 1 // Always set the state to active
+    nombre: nombre,
+    descripcion: descripcion
   };
+
   Swal.fire({
-      title: "Creando categoría",
-      text: "¿Está seguro que desea crear esta nueva categoría?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#4a4af4",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, continuar",
-      cancelButtonText: "Cancelar",
+    title: "Creando categoría",
+    text: "¿Está seguro que desea crear esta nueva categoría?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
   }).then((result) => {
-      if (result.isConfirmed) {
-          window.api.crearCategoria(categoriaData);
-          window.api.onRespuestaCrearCategoria((respuesta) => {
-              if (respuesta.success) {
-                  mostrarToastConfirmacion(respuesta.message);
-                  setTimeout(() => {
-                      filterTable(3);
-                      cerrarModal("editarCategoriaModal", "editarCategoriaForm");
-                  }, 2000);
-              } else {
-                  mostrarToastError(respuesta.message);
-              }
-          });
-      }
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearCategoria(categoriaData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearCategoria((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(4);
+            cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+          }, 2000);
+          // Aquí puedes hacer alguna acción adicional, como redirigir o limpiar el formulario
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
   });
 }
 
-function editarCategoria(id, boton) {
+async function editarCategoria(id, boton) {
+
+  // Obtener la fila del botón clicado
   const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
   const nombreCategoria = fila.children[0].textContent;
   const descripcionCategoria = fila.children[1].textContent;
 
+  // Asignar valores extraídos a los campos del formulario de edición
   document.getElementById("idCategoria").value = id;
   document.getElementById("nombreCategoria").value = nombreCategoria;
-  document.getElementById("descripcionCategoria").value = descripcionCategoria;
-
+  document.getElementById("Descripcion").value = descripcionCategoria;
+  // Cambiar el título del modal a "Editar Proveedor"
   document.getElementById("modalTitle").innerText = "Editar Categoría";
   document.getElementById("buttonModal").onclick = enviarEdicionCategoria;
+  // Mostrar el modal
   document.getElementById("editarCategoriaModal").style.display = "block";
 }
 
 function enviarEdicionCategoria() {
   const id = document.getElementById("idCategoria").value;
-  const nombreCategoria = document.getElementById("nombreCategoria").value;
-  const descripcionCategoria = document.getElementById("descripcionCategoria").value;
-  if (!nombreCategoria || !descripcionCategoria) {
-      document.getElementById("errorMessage").textContent = "Por favor, llene todos los campos.";
-      return;
+  const nombre = document.getElementById("nombreCategoria").value;
+  const descripcion = document.getElementById("Descripcion").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreCategoria") },
+    { value: descripcion, element: document.getElementById("Descripcion") }
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
   }
+
+  // Crear el objeto categoría con los datos del formulario
   const categoriaData = {
-      idCategoria: id,
-      nombre: nombreCategoria,
-      descripcion: descripcionCategoria,
+    id: id,
+    nombre: nombre,
+    descripcion: descripcion
   };
-  Swal.fire({
-      title: "Editando categoría",
-      text: "¿Está seguro que desea editar esta categoría?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#4a4af4",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, continuar",
-      cancelButtonText: "Cancelar",
-  }).then((result) => {
-      if (result.isConfirmed) {
-          window.api.editarCategoria(categoriaData);
-          window.api.onRespuestaActualizarCategoria((respuesta) => {
-              if (respuesta.success) {
-                  mostrarToastConfirmacion(respuesta.message);
-                  setTimeout(() => {
-                      cerrarModal("editarCategoriaModal", "editarCategoriaForm");
-                      filterTable(3);
-                  }, 2000);
-              } else {
-                  mostrarToastError(respuesta.message);
-              }
-          });
-      }
-  });
-}
 
-function actualizarEstadoCategoria(id, estado, title, message) {
   Swal.fire({
-      title: title,
-      text: message,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#4a4af4",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, continuar",
-      cancelButtonText: "Cancelar",
+    title: "Editando categoría",
+    text: "¿Está seguro que desea editar esta categoría?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
   }).then((result) => {
-      if (result.isConfirmed) {
-          window.api.eliminarCategoria(id);
-          window.api.onRespuestaEliminarCategoria((respuesta) => {
-              if (respuesta.success) {
-                  mostrarToastConfirmacion(respuesta.message);
-                  setTimeout(() => {
-                      filterTable(3);
-                  }, 2000);
-              } else {
-                  mostrarToastError(respuesta.message);
-              }
-          });
-      }
-  });
-}
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.editarCategoria(categoriaData);
 
-function filterTable(moduloFiltrar) {
-  switch (moduloFiltrar) {
-      case 3:
-          cargarCategoriasTabla(
-              Number(document.getElementById("selectPageSize").value),
-              Number(document.querySelector('.currentPage').getAttribute('data-value')),
-              Number(document.getElementById("estado-filtro").value),
-              document.getElementById("search-bar").value
-          );
-          break;
-  }
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaActualizarCategoria((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(4);
+            cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+          }, 2000);
+          // Aquí puedes hacer alguna acción adicional, como redirigir o limpiar el formulario
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });    
+    }else{
+      mostrarToastError(respuesta.message);
+    }
+  });
 }
