@@ -1592,7 +1592,6 @@ function enviarCreacionCategoria() {
             filterTable(4);
             cerrarModal("editarCategoriaModal", "editarCategoriaForm");
           }, 2000);
-          // Aquí puedes hacer alguna acción adicional, como redirigir o limpiar el formulario
         } else {
           mostrarToastError(respuesta.message);
         }

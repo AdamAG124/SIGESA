@@ -110,89 +110,62 @@ class CategoriaProductoDB {
         }
     }
 
-    async crearCategoriaBD(categoria) {
-        const db = new ConectarDB();
-        let connection;
-
-        try {
-            connection = await db.conectar();
-
-            // Obtén los atributos del objeto Categoria
-            const nombre = categoria.getNombre();
-            const descripcion = categoria.getDescripcion();
-            const estado = categoria.getEstado();
-
-            // Construimos la consulta SQL
-            const query = `INSERT INTO ${this.#table} (DSC_NOMBRE, DSC_DESCRIPCION, ESTADO) VALUES (?, ?, ?)`;
-            const params = [nombre, descripcion, estado];
-
-            // Ejecutar la consulta
-            const [result] = await connection.query(query, params);
-
-            if (result.affectedRows > 0) {
-                return {
-                    success: true,
-                    message: 'Categoría creada exitosamente.'
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'No se pudo crear la categoría.'
-                };
-            }
-        } catch (error) {
-            return {
-                success: false,
-                message: 'Error al crear la categoría: ' + error.message
-            };
-        } finally {
-            if (connection) {
-                await connection.end(); // Asegurarse de cerrar la conexión
-            }
-        }
-    }
-
-    async actualizarCategoriaBD(categoria) {
-        const db = new ConectarDB();
-        let connection;
-
-        try {
-            connection = await db.conectar();
-
-            // Obtén los atributos del objeto Categoria
-            const idCategoria = categoria.getIdCategoria();
-            const nombre = categoria.getNombre();
-            const descripcion = categoria.getDescripcion();
-
-            // Construimos la consulta SQL
-            const query = `UPDATE ${this.#table} SET DSC_NOMBRE = ?, DSC_DESCRIPCION = ? WHERE ID_CATEGORIA_PRODUCTO = ?`;
-            const params = [nombre, descripcion, idCategoria];
-
-            // Ejecutar la consulta
-            const [result] = await connection.query(query, params);
-
-            if (result.affectedRows > 0) {
-                return {
-                    success: true,
-                    message: 'Categoría actualizada exitosamente.'
-                };
-            } else {
+   
+    
+        async crearCategoriaBD(categoria) {
+            const db = new ConectarDB();
+            let connection;
+    
+            try {
+                connection = await db.conectar();
+    
+                // Obtén los atributos del objeto Categoria
+                const nombre = categoria.getNombre();
+                const descripcion = categoria.getDescripcion();
+                const estado = categoria.getEstado();
+    
+                // Verificar si el nombre ya existe
+                const existingQuery = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = ?`;
+                const [existingRows] = await connection.query(existingQuery, [nombre]);
+    
+                if (existingRows[0].count > 0) {
+                    return {
+                        success: false,
+                        message: 'El nombre de la categoría ya existe.'
+                    };
+                }
+    
+                // Construimos la consulta SQL
+                const query = `INSERT INTO ${this.#table} (DSC_NOMBRE, DSC_DESCRIPCION, ESTADO) VALUES (?, ?, ?)`;
+                const params = [nombre, descripcion, estado];
+    
+                // Ejecutar la consulta
+                const [result] = await connection.query(query, params);
+    
+                if (result.affectedRows > 0) {
+                    return {
+                        success: true,
+                        message: 'Categoría creada exitosamente.'
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'No se pudo crear la categoría.'
+                    };
+                }
+            } catch (error) {
                 return {
                     success: false,
-                    message: 'No se encontró la categoría o no se realizaron cambios.'
+                    message: 'Error al crear la categoría: ' + error.message
                 };
-            }
-        } catch (error) {
-            return {
-                success: false,
-                message: 'Error al actualizar la categoría: ' + error.message
-            };
-        } finally {
-            if (connection) {
-                await connection.end(); // Asegurarse de cerrar la conexión
+            } finally {
+                if (connection) {
+                    await connection.end(); // Asegurarse de cerrar la conexión
+                }
             }
         }
-    }
+        // ...
+    
 
     async eliminarCategoriaBD(idCategoria) {
         const db = new ConectarDB();
