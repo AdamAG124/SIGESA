@@ -9,6 +9,8 @@ const ProveedorController = require('./controllers/ProveedorController');
 const Usuario = require('./domain/Usuario');
 const Colaborador = require('./domain/Colaborador');
 const Proveedor = require('./domain/Proveedor')
+const EntidadFinanciera = require('./domain/EntidadFinanciera');
+const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const fs = require('fs');
 
 
@@ -571,5 +573,40 @@ ipcMain.on('eliminar-proveedor', async (event, proveedorId, estado) => {
     } catch (error) {
         console.error('Error al eliminar proveedor:', error);
         event.reply('respuesta-eliminar-proveedor', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const controller = new EntidadFinancieraController();
+
+     if (typeof currentPage !== 'number' || currentPage <= 0) {
+        currentPage = 1;
+     }
+
+
+    try {
+        // Llamar al método listarProveedores con los parámetros recibidos
+        const resultado = await controller.listarEntidadesFinancieras(pageSize, currentPage, estado, valorBusqueda);
+    
+        // Simplificar la lista de proveedores
+        const entidadesFinancierasSimplificadas = resultado.entidadesFinancieras.map(entidadFinanciera => ({
+            idEntidadFinanciera: entidadFinanciera.getIdEntidadFinanciera(),
+            nombre: entidadFinanciera.getNombre(),
+            tipo: entidadFinanciera.getTipo(),
+            estado: entidadFinanciera.getEstado()
+        }));
+
+        // Preparar el objeto de respuesta que incluye los proveedores y los datos de paginación
+        const respuesta = {
+            entidadesFinancieras: entidadesFinancierasSimplificadas,
+            paginacion: resultado.pagination
+        };
+
+        // Enviar los datos de vuelta al frontend
+        mainWindow?.webContents.send('cargar-entidades-financieras', respuesta);
+
+    } catch (error) {
+        console.error('Error al listar las entidades financieras:', error);
+        mainWindow?.webContents.send('error-cargar-entidades-financieras', `Hubo un error al cargar las entidades financieras: ${error.message}`);
     }
 });
