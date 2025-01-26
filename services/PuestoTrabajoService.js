@@ -1,19 +1,30 @@
-const PuestoDB = require("../database/PuestoDB");
+const PuestoTrabajoDB = require("../database/PuestoTrabajoDB");
 
-class PuestoTranajoService {
+class PuestoTrabajoService {
+    #puestoTrabajoDB;
 
-    #puestoDB;
-    
     constructor() {
-        this.#puestoDB = new PuestoDB();
+        this.#puestoTrabajoDB = new PuestoTrabajoDB();
     }
 
     async obtenerPuestos(pageSize, currentPage, estado, valorBusqueda) {
-        if(estado == 2){
+        if (estado == 2) {
             estado = null;
         }
-        return await this.#puestoDB.listarPuestos(pageSize, currentPage, estado, valorBusqueda);
+        return await this.#puestoTrabajoDB.listarPuestos(pageSize, currentPage, estado, valorBusqueda);
+    }
+
+    async crearPuesto(puesto) {
+        return await this.#puestoTrabajoDB.insertarPuesto(puesto);
+    }
+
+    async actualizarPuesto(puesto) {
+        return await this.#puestoTrabajoDB.actualizarPuesto(puesto);
+    }
+
+    async eliminarPuesto(puesto) {
+        return await this.#puestoTrabajoDB.eliminarPuesto(puesto);
     }
 }
 
-module.exports = PuestoTranajoService;
+module.exports = PuestoTrabajoService;

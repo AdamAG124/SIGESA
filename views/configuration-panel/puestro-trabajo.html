@@ -1,0 +1,78 @@
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Puestos de Trabajo</h1>
+        <button class="add-category-btn" title="Agregar Nuevo Puesto" onclick="abrirModal('crearPuestoModal')">
+            <span class="material-icons">add_circle</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar puestos..." onkeypress="cargarPuestosTrabajo()">
+    </div>
+    <div class="filters">
+        <select id="selectPageSize" onchange="cargarPuestosTrabajo()">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estado-filtro" onchange="cargarPuestosTrabajo()">
+            <option value="2">Filtrar por estado</option>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+        </select>
+        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre del Puesto</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="puestos-body">
+            <!-- Aquí se cargarán los puestos de trabajo -->
+        </tbody>
+    </table>
+    <div class="pagination">
+        <!-- Aquí se cargarán los controles de paginación -->
+    </div>
+
+    <!-- Modal para Crear Puesto -->
+    <div id="crearPuestoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('crearPuestoModal', 'crearPuestoForm')">&times;</span>
+            <h2>Crear Puesto</h2>
+            <form id="crearPuestoForm">
+                <label for="nombrePuesto">Nombre:</label>
+                <input type="text" id="nombrePuesto" name="nombrePuesto" required>
+                <label for="descripcionPuesto">Descripción:</label>
+                <textarea id="descripcionPuesto" name="descripcionPuesto" required></textarea>
+                <label for="estadoPuesto">Estado:</label>
+                <input type="checkbox" id="estadoPuesto" name="estadoPuesto">
+                <p id="errorMessage" style="color: red;"></p>
+                <button type="button" class="close-btn" onclick="enviarCreacionPuesto()">Crear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Puesto -->
+    <div id="editarPuestoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarPuestoModal', 'editarPuestoForm')">&times;</span>
+            <h2>Editar Puesto</h2>
+            <form id="editarPuestoForm">
+                <input type="hidden" id="idPuestoTrabajo" name="idPuestoTrabajo">
+                <label for="nombrePuesto">Nombre:</label>
+                <input type="text" id="nombrePuesto" name="nombrePuesto" required>
+                <label for="descripcionPuesto">Descripción:</label>
+                <textarea id="descripcionPuesto" name="descripcionPuesto" required></textarea>
+                <label for="estadoPuesto">Estado:</label>
+                <input type="checkbox" id="estadoPuesto" name="estadoPuesto">
+                <p id="errorMessage" style="color: red;"></p>
+                <button type="button" class="close-btn" onclick="enviarEdicionPuesto()">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</div>

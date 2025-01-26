@@ -592,3 +592,81 @@ ipcMain.on('eliminar-proveedor', async (event, proveedorId, estado) => {
         event.reply('respuesta-eliminar-proveedor', { success: false, message: error.message });
     }
 });
+const { ipcMain } = require('electron');
+const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
+
+ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const puestoTrabajoController = new PuestoTrabajoController();
+
+    try {
+        const resultado = await puestoTrabajoController.getPuestos(pageSize, currentPage, estado, valorBusqueda);
+
+        const puestosCompletos = resultado.puestos.map(puesto => ({
+            idPuestoTrabajo: puesto.getIdPuestoTrabajo(),
+            nombrePuestoTrabajo: puesto.getNombre(),
+            descripcionPuestoTrabajo: puesto.getDescripcion(),
+            estado: puesto.getEstado()
+        }));
+
+        const respuesta = {
+            puestos: puestosCompletos,
+            paginacion: resultado.pagination
+        };
+
+        event.reply('cargar-puestos-trabajo', respuesta);
+    } catch (error) {
+        console.error('Error al listar los puestos de trabajo:', error);
+        event.reply('error-cargar-puestos-trabajo', 'Hubo un error al listar los puestos de trabajo.');
+    }
+});
+
+ipcMain.on('crear-puesto', async (event, puestoData) => {
+    try {
+        const puesto = new PuestoTrabajo();
+        puesto.setNombre(puestoData.nombre);
+        puesto.setDescripcion(puestoData.descripcion);
+        puesto.setEstado(puestoData.estado);
+
+        const puestoTrabajoController = new PuestoTrabajoController();
+        const resultado = await puestoTrabajoController.insertarPuesto(puesto);
+
+        event.reply('respuesta-crear-puesto', resultado);
+    } catch (error) {
+        console.error('Error al crear puesto:', error);
+        event.reply('respuesta-crear-puesto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('actualizar-puesto', async (event, puestoData) => {
+    try {
+        const puesto = new PuestoTrabajo();
+        puesto.setIdPuestoTrabajo(puestoData.idPuestoTrabajo);
+        puesto.setNombre(puestoData.nombre);
+        puesto.setDescripcion(puestoData.descripcion);
+        puesto.setEstado(puestoData.estado);
+
+        const puestoTrabajoController = new PuestoTrabajoController();
+        const resultado = await puestoTrabajoController.editarPuesto(puesto);
+
+        event.reply('respuesta-actualizar-puesto', resultado);
+    } catch (error) {
+        console.error('Error al actualizar puesto:', error);
+        event.reply('respuesta-actualizar-puesto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-puesto', async (event, puestoId, estado) => {
+    try {
+        const puesto = new PuestoTrabajo();
+        puesto.setIdPuestoTrabajo(puestoId);
+        puesto.setEstado(estado);
+
+        const puestoTrabajoController = new PuestoTrabajoController();
+        const resultado = await puestoTrabajoController.eliminarPuesto(puesto);
+
+        event.reply('respuesta-eliminar-puesto', resultado);
+    } catch (error) {
+        console.error('Error al eliminar puesto:', error);
+        event.reply('respuesta-eliminar-puesto', { success: false, message: error.message });
+    }
+});

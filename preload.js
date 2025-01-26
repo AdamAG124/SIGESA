@@ -126,3 +126,15 @@ contextBridge.exposeInMainWorld('api', {
 
 
 });
+contextBridge.exposeInMainWorld('api', {
+    obtenerPuestosTrabajo: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-puestos-trabajo', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-puestos-trabajo', (event, respuesta) => callback(respuesta));
+    },
+    crearPuesto: (puestoData) => ipcRenderer.send('crear-puesto', puestoData),
+    onRespuestaCrearPuesto: (callback) => ipcRenderer.on('respuesta-crear-puesto', (event, respuesta) => callback(respuesta)),
+    editarPuesto: (puestoData) => ipcRenderer.send('actualizar-puesto', puestoData),
+    onRespuestaActualizarPuesto: (callback) => ipcRenderer.on('respuesta-actualizar-puesto', (event, respuesta) => callback(respuesta)),
+    eliminarPuesto: (puestoId, estado) => ipcRenderer.send('eliminar-puesto', puestoId, estado),
+    onRespuestaEliminarPuesto: (callback) => ipcRenderer.on('respuesta-eliminar-puesto', (event, respuesta) => callback(respuesta)),
+});

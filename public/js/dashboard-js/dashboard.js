@@ -1691,3 +1691,113 @@ function enviarEdicionCategoria() {
     }
   });
 }
+
+function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+  window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+      const tbody = document.getElementById("puestos-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
+
+      respuesta.puestos.forEach((puesto) => {
+          const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td>${puesto.nombrePuestoTrabajo}</td>
+              <td>${puesto.descripcionPuestoTrabajo}</td>
+              <td>${estadoPuesto}</td>
+              <td class="action-icons">
+                  <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="editarPuesto(this.value, this)">
+                      <span class="material-icons">edit</span>
+                      <span class="tooltiptext">Editar puesto</span>
+                  </button>
+                  <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?', 5)`}">
+                      <span class="material-icons">${puesto.estado === 1 ? 'delete' : 'restore'}</span>
+                      <span class="tooltiptext">${puesto.estado === 1 ? 'Eliminar puesto' : 'Reactivar puesto'}</span>
+                  </button>
+              </td>
+          `;
+          tbody.appendChild(row);
+      });
+
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 5);
+  });
+}
+
+function agregarPuesto() {
+  // Lógica para agregar un nuevo puesto
+}
+
+function enviarCreacionPuesto() {
+  const nombre = document.getElementById("nombrePuesto").value;
+  const descripcion = document.getElementById("descripcionPuesto").value;
+  const estado = document.getElementById("estadoPuesto").checked ? 1 : 0;
+
+  const puestoData = { nombre, descripcion, estado };
+
+  Swal.fire({
+      title: "Creando puesto",
+      text: "¿Está seguro que desea crear este nuevo puesto?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
+  }).then((result) => {
+      if (result.isConfirmed) {
+          window.api.crearPuesto(puestoData);
+
+          window.api.onRespuestaCrearPuesto((respuesta) => {
+              if (respuesta.success) {
+                  mostrarToastConfirmacion(respuesta.message);
+                  setTimeout(() => {
+                      cargarPuestosTrabajo();
+                      cerrarModal("crearPuestoModal", "crearPuestoForm");
+                  }, 2000);
+              } else {
+                  mostrarToastError(respuesta.message);
+              }
+          });
+      }
+  });
+}
+
+async function editarPuesto(id, boton) {
+  // Lógica para editar un puesto
+}
+
+function enviarEdicionPuesto() {
+  const idPuestoTrabajo = document.getElementById("idPuestoTrabajo").value;
+  const nombre = document.getElementById("nombrePuesto").value;
+  const descripcion = document.getElementById("descripcionPuesto").value;
+  const estado = document.getElementById("estadoPuesto").checked ? 1 : 0;
+
+  const puestoData = { idPuestoTrabajo, nombre, descripcion, estado };
+
+  Swal.fire({
+      title: "Editando puesto",
+      text: "¿Está seguro que desea editar este puesto?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
+  }).then((result) => {
+      if (result.isConfirmed) {
+          window.api.editarPuesto(puestoData);
+
+          window.api.onRespuestaActualizarPuesto((respuesta) => {
+              if (respuesta.success) {
+                  mostrarToastConfirmacion(respuesta.message);
+                  setTimeout(() => {
+                      cargarPuestosTrabajo();
+                      cerrarModal("editarPuestoModal", "editarPuestoForm");
+                  }, 2000);
+              } else {
+                  mostrarToastError(respuesta.message);
+              }
+          });
+      }
+  });
+}
