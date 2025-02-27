@@ -595,9 +595,6 @@ ipcMain.on('eliminar-proveedor', async (event, proveedorId, estado) => {
     }
 });
 
-const { ipcMain } = require('electron');
-const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
-
 ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const puestoTrabajoController = new PuestoTrabajoController();
 
@@ -677,15 +674,15 @@ ipcMain.on('eliminar-puesto', async (event, puestoId, estado) => {
 ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new EntidadFinancieraController();
 
-     if (typeof currentPage !== 'number' || currentPage <= 0) {
+    if (typeof currentPage !== 'number' || currentPage <= 0) {
         currentPage = 1;
-     }
+    }
 
 
     try {
         // Llamar al método listarProveedores con los parámetros recibidos
         const resultado = await controller.listarEntidadesFinancieras(pageSize, currentPage, estado, valorBusqueda);
-    
+
         // Simplificar la lista de proveedores
         const entidadesFinancierasSimplificadas = resultado.entidadesFinancieras.map(entidadFinanciera => ({
             idEntidadFinanciera: entidadFinanciera.getIdEntidadFinanciera(),
