@@ -11,6 +11,8 @@ const Usuario = require('./domain/Usuario');
 const Colaborador = require('./domain/Colaborador');
 const Proveedor = require('./domain/Proveedor')
 const CategoriaProducto = require('./domain/CategoriaProducto');
+const EntidadFinanciera = require('./domain/EntidadFinanciera');
+const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const fs = require('fs');
 
 
@@ -592,6 +594,7 @@ ipcMain.on('eliminar-proveedor', async (event, proveedorId, estado) => {
         event.reply('respuesta-eliminar-proveedor', { success: false, message: error.message });
     }
 });
+
 const { ipcMain } = require('electron');
 const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
 
@@ -668,5 +671,40 @@ ipcMain.on('eliminar-puesto', async (event, puestoId, estado) => {
     } catch (error) {
         console.error('Error al eliminar puesto:', error);
         event.reply('respuesta-eliminar-puesto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const controller = new EntidadFinancieraController();
+
+     if (typeof currentPage !== 'number' || currentPage <= 0) {
+        currentPage = 1;
+     }
+
+
+    try {
+        // Llamar al método listarProveedores con los parámetros recibidos
+        const resultado = await controller.listarEntidadesFinancieras(pageSize, currentPage, estado, valorBusqueda);
+    
+        // Simplificar la lista de proveedores
+        const entidadesFinancierasSimplificadas = resultado.entidadesFinancieras.map(entidadFinanciera => ({
+            idEntidadFinanciera: entidadFinanciera.getIdEntidadFinanciera(),
+            nombre: entidadFinanciera.getNombre(),
+            tipo: entidadFinanciera.getTipo(),
+            estado: entidadFinanciera.getEstado()
+        }));
+
+        // Preparar el objeto de respuesta que incluye los proveedores y los datos de paginación
+        const respuesta = {
+            entidadesFinancieras: entidadesFinancierasSimplificadas,
+            paginacion: resultado.pagination
+        };
+
+        // Enviar los datos de vuelta al frontend
+        mainWindow?.webContents.send('cargar-entidades-financieras', respuesta);
+
+    } catch (error) {
+        console.error('Error al listar las entidades financieras:', error);
+        mainWindow?.webContents.send('error-cargar-entidades-financieras', `Hubo un error al cargar las entidades financieras: ${error.message}`);
     }
 });

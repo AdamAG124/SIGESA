@@ -158,15 +158,15 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFil
   }, 100);
 }
 
-function checkEmpty(event) {
+function checkEmpty(event, moduloFiltrar) {
   const searchValue = document.getElementById("search-bar").value.trim();
 
   if (searchValue === "") {
-    filterTable(3); // Llama a filterTable solo si el campo está vacío
+    filterTable(moduloFiltrar); // Llama a filterTable solo si el campo está vacío
   }
 
   if (event.key === "Enter") {
-    filterTable(3); // Llama a filterTable cuando se presiona "Enter"
+    filterTable(moduloFiltrar); // Llama a filterTable cuando se presiona "Enter"
   }
 }
 
@@ -221,6 +221,7 @@ function cargarProveedoresTabla(pageSize = 10, currentPage = 1, estado = 1, valo
           </td>
       `;
       tbody.appendChild(mensaje);
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 3);
       return;
     } else {
       respuesta.proveedores.forEach((proveedor) => {
@@ -462,6 +463,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 4:
         cargarCategoriasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
+      case 5:
+        cargarEntidadesFinancierasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
+        break;
       default:
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
         break;
@@ -493,7 +497,8 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
 
   // Mostrar información de la página actual
   const pageSpan = document.createElement("span");
-  pageSpan.textContent = `${pagination.currentPage} de ${pagination.totalPages}`;
+  let totalPages = pagination.totalPages >= 1 ? pagination.totalPages : 1;
+  pageSpan.textContent = `${pagination.currentPage} de ${totalPages}`;
   pageSpan.setAttribute('data-value', pagination.currentPage);
   pageSpan.classList.add("currentPage");
   paginacionDiv.appendChild(pageSpan);
@@ -537,6 +542,9 @@ function filterTable(moduloFiltrar) {
       break;
     case 4:
       cargarCategoriasTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      break;
+    case 5:
+      cargarEntidadesFinancierasTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
   }
 }
@@ -735,6 +743,16 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
               setTimeout(() => {
                 filterTable(4);
               }, 2000);
+            }
+          });
+          break;
+        case 5:
+          window.api.eliminarEntidadFinanciera(Number(id), Number(estado));
+
+          window.api.onRespuestaEliminarEntidadFinanciera((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              filterTable(moduloEstadoActualizar);
             } else {
               mostrarToastError(respuesta.message);
             }
@@ -744,6 +762,7 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
     }
   });
 }
+
 
 function agregarUsuario() {
   const roleSelectOrigen = document.getElementById("filtrado-role");
@@ -1685,8 +1704,8 @@ function enviarEdicionCategoria() {
         } else {
           mostrarToastError(respuesta.message);
         }
-      });    
-    }else{
+      });
+    } else {
       mostrarToastError(respuesta.message);
     }
   });
@@ -1694,14 +1713,14 @@ function enviarEdicionCategoria() {
 
 function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
-      const tbody = document.getElementById("puestos-body");
-      tbody.innerHTML = ""; // Limpiar contenido previo
+    const tbody = document.getElementById("puestos-body");
+    tbody.innerHTML = ""; // Limpiar contenido previo
 
-      respuesta.puestos.forEach((puesto) => {
-          const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
+    respuesta.puestos.forEach((puesto) => {
+      const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
 
-          const row = document.createElement("tr");
-          row.innerHTML = `
+      const row = document.createElement("tr");
+      row.innerHTML = `
               <td>${puesto.nombrePuestoTrabajo}</td>
               <td>${puesto.descripcionPuestoTrabajo}</td>
               <td>${estadoPuesto}</td>
@@ -1716,10 +1735,10 @@ function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorB
                   </button>
               </td>
           `;
-          tbody.appendChild(row);
-      });
+      tbody.appendChild(row);
+    });
 
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 5);
+    actualizarPaginacion(respuesta.paginacion, ".pagination", 5);
   });
 }
 
@@ -1735,30 +1754,30 @@ function enviarCreacionPuesto() {
   const puestoData = { nombre, descripcion, estado };
 
   Swal.fire({
-      title: "Creando puesto",
-      text: "¿Está seguro que desea crear este nuevo puesto?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#4a4af4",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, continuar",
-      cancelButtonText: "Cancelar",
+    title: "Creando puesto",
+    text: "¿Está seguro que desea crear este nuevo puesto?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
   }).then((result) => {
-      if (result.isConfirmed) {
-          window.api.crearPuesto(puestoData);
+    if (result.isConfirmed) {
+      window.api.crearPuesto(puestoData);
 
-          window.api.onRespuestaCrearPuesto((respuesta) => {
-              if (respuesta.success) {
-                  mostrarToastConfirmacion(respuesta.message);
-                  setTimeout(() => {
-                      cargarPuestosTrabajo();
-                      cerrarModal("crearPuestoModal", "crearPuestoForm");
-                  }, 2000);
-              } else {
-                  mostrarToastError(respuesta.message);
-              }
-          });
-      }
+      window.api.onRespuestaCrearPuesto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarPuestosTrabajo();
+            cerrarModal("crearPuestoModal", "crearPuestoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
   });
 }
 
@@ -1775,29 +1794,123 @@ function enviarEdicionPuesto() {
   const puestoData = { idPuestoTrabajo, nombre, descripcion, estado };
 
   Swal.fire({
-      title: "Editando puesto",
-      text: "¿Está seguro que desea editar este puesto?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#4a4af4",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, continuar",
-      cancelButtonText: "Cancelar",
+    title: "Editando puesto",
+    text: "¿Está seguro que desea editar este puesto?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
   }).then((result) => {
-      if (result.isConfirmed) {
-          window.api.editarPuesto(puestoData);
+    if (result.isConfirmed) {
+      window.api.editarPuesto(puestoData);
 
-          window.api.onRespuestaActualizarPuesto((respuesta) => {
-              if (respuesta.success) {
-                  mostrarToastConfirmacion(respuesta.message);
-                  setTimeout(() => {
-                      cargarPuestosTrabajo();
-                      cerrarModal("editarPuestoModal", "editarPuestoForm");
-                  }, 2000);
-              } else {
-                  mostrarToastError(respuesta.message);
-              }
-          });
-      }
+      window.api.onRespuestaActualizarPuesto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarPuestosTrabajo();
+            cerrarModal("editarPuestoModal", "editarPuestoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
+function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+  const selectEstado = document.getElementById('estado-filtro');
+  const selectPageSize = document.getElementById('selectPageSize');
+
+  // Validar pageNumber
+  if (typeof currentPage !== 'number' || currentPage <= 0) {
+    currentPage = 1; // Establecer el valor predeterminado
+  }
+
+  // Verificar el valor del estado y establecerlo
+  estado = (estado === 0 || estado === 1) ? estado : 0;
+  selectEstado.value = estado;
+  selectPageSize.value = pageSize;
+
+  window.api.obtenerEntidadesFinancieras(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+    const tbody = document.getElementById("entidades-financieras-body");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+
+    // Manejo de errores en la respuesta
+    if (respuesta.error) {
+      const mensajeError = document.createElement("tr");
+      mensajeError.innerHTML = `
+          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+              Error: ${respuesta.error}
+          </td>
+      `;
+      tbody.appendChild(mensajeError);
+      return; // Terminar la función si hay un error
+    }
+
+    // Verificar que 'entidadesFinancieras' es un arreglo
+    if (!Array.isArray(respuesta.entidadesFinancieras)) {
+      const mensajeError = document.createElement("tr");
+      mensajeError.innerHTML = `
+          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+              Error: La respuesta no contiene una lista de entidades financieras válida.
+          </td>
+      `;
+      tbody.appendChild(mensajeError);
+      return; // Terminar la función si hay un error
+    }
+
+    // Iterar sobre las entidades y agregarlas a la tabla
+    if (respuesta.entidadesFinancieras.length === 0) {
+      const mensaje = document.createElement("tr");
+      mensaje.innerHTML = `
+          <td colspan="3" style="text-align: center; color: gray; font-style: italic;">
+              No hay entidades financieras registradas
+          </td>
+      `;
+      tbody.appendChild(mensaje);
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
+      return;
+    } else {
+      respuesta.entidadesFinancieras.forEach((entidadFinanciera) => {
+        const nombre = `${entidadFinanciera.nombre}`;
+        const estadoTexto = entidadFinanciera.estado === 1 ? "Activo" : "Inactivo";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${nombre}</td>
+          <td>${estadoTexto}</td>
+          <td class="action-icons">
+              <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="editarEntidadFinanciera(this.value, this)">
+                  <span class="material-icons">edit</span>
+                  <span class="tooltiptext">Editar Entidad Financiera</span>
+              </button>
+              <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="${entidadFinanciera.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando entidad financiera', '¿Está seguro que desea eliminar a esta entidad financiera?', 4)` : `actualizarEstado(this.value, 1, 'Reactivando entidad financiera', '¿Está seguro que desea reactivar a esta entidad financiera?', 4)`}">
+                  <span class="material-icons">${entidadFinanciera.estado === 1 ? 'delete' : 'restore'}</span>
+                  <span class="tooltiptext">${entidadFinanciera.estado === 1 ? 'Eliminar entidad financiera' : 'Reactivar entidad financiera'}</span>
+              </button>
+          </td>
+          <!-- Información adicional oculta -->
+          <!--
+          <td class="hidden-info" style="display:none;">${entidadFinanciera.telefono}</td>
+          <td class="hidden-info" style="display:none;">${entidadFinanciera.correo}</td>
+          <td class="hidden-info" style="display:none;">${entidadFinanciera.fechaInicioFinanciamiento}</td>
+          <td class="hidden-info" style="display:none;">${entidadFinanciera.direccion}</td>
+          -->
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    if (respuesta.paginacion) {
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
+    } else {
+      console.warn('No se proporcionaron datos de paginación o respuesta está vacía.');
+    }
+    // Cerrar cualquier modal activo
+    cerrarModal("editarEntidadFinancieraModal", "editarEntidadFinancieraForm");
   });
 }

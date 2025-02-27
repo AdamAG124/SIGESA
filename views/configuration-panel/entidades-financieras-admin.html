@@ -1,0 +1,72 @@
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Entidades Financieras</h1>
+        <button onclick="agregarEntidadFinanciera()" class="add-entidad-financiera-btn" title="Agregar Nueva Entidad Financiera">
+            <span class="material-icons">add_business</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar entidades financieras..." onkeydown="checkEmpty(event, 4)" oninput="checkEmpty(event, 4)">
+        <button onclick="filterTable(4)" class="search-btn">Buscar</button>
+    </div>
+    
+    <div class="filters">
+        <select id="selectPageSize" onchange="filterTable(4)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estado-filtro" onchange="filterTable(4)">
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+        </select>
+        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="entidades-financieras-body">
+
+        </tbody>
+    </table>
+    <div class="pagination">
+        
+    </div>
+
+    <div id="editarEntidadFinanceraModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarEntidadFinancieraModal', 'editarEntidadFinancieraForm')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <form id="editarEntidadFinancieraForm" class="editar-entidad-financiera-form">
+                <input type="hidden" id="idEntidadFinanciera">
+
+                <label for="nombreEntidadFinanciera">Nombre:</label>
+                <input type="text" id="nombreEntidadFinanciera" name="nombreEntidadFinanciera">
+
+                <label for="telefono">Teléfono:</label>
+                <input type="text" id="telefono" name="telefono">
+
+                <label for="correo">Correo Electrónico:</label>
+                <input type="email" id="correo" name="correo">
+
+                <label for="tipo">Tipo:</label>
+                <input type="text" id="tipo" name="tipo" required>
+                
+                <label for="fechaInicioFinanciamiento">Inicio Financiamiento:</label>
+                <input type="text" id="fechaInicioFinanciamiento" name="fechaInicioFinanciamiento">
+
+                <p id="errorMessage" style="color: red;"></p>
+
+                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
