@@ -2,4 +2,5 @@ package-lock.json
 node_modules
 ConectarDB.js
 database/ConectarDB.js
+desktop.ini
 
