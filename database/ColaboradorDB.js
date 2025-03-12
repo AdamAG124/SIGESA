@@ -16,15 +16,13 @@ class ColaboradorDB {
         try {
             connection = await db.conectar();
     
-            const offset = (currentPage - 1) * pageSize;
-            
             // Base SQL query para listado y conteo
             const baseQuery = `
                 FROM ${this.#table} C
                 INNER JOIN SIGM_DEPARTAMENTO D ON C.ID_DEPARTAMENTO = D.ID_DEPARTAMENTO
                 INNER JOIN SIGM_PUESTO_TRABAJO P ON C.ID_PUESTO = P.ID_PUESTO_TRABAJO
             `;
-            
+    
             // Inicializar condiciones del filtro
             let conditions = [];
             let params = [];
@@ -58,9 +56,9 @@ class ColaboradorDB {
     
             // Añadir las condiciones a los queries
             const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-            
-            // Query principal con paginación
-            const query = `
+    
+            // Query principal: con o sin paginación según pageSize
+            let query = `
                 SELECT 
                     C.ID_COLABORADOR AS idColaborador, C.ID_DEPARTAMENTO AS idDepartamento,
                     C.ID_PUESTO AS idPuesto, C.DSC_SEGUNDO_APELLIDO AS segundoApellido,
@@ -72,11 +70,17 @@ class ColaboradorDB {
                     P.DSC_NOMBRE AS nombrePuesto
                 ${baseQuery}
                 ${whereClause}
-                LIMIT ? OFFSET ?
             `;
-            params.push(pageSize, offset);
     
-            const [rows] = await connection.query(query, params);
+            let queryParams = [...params]; // Copia de los parámetros base
+    
+            if (pageSize !== null) {
+                const offset = (currentPage - 1) * pageSize;
+                query += ` LIMIT ? OFFSET ?`;
+                queryParams.push(pageSize, offset);
+            }
+    
+            const [rows] = await connection.query(query, queryParams);
     
             const colaboradores = rows.map(colaboradorDB => {
                 const colaborador = new Colaborador();
@@ -99,16 +103,16 @@ class ColaboradorDB {
     
             // Query para conteo total con filtros aplicados
             const countQuery = `SELECT COUNT(*) as total ${baseQuery} ${whereClause}`;
-            const [countResult] = await connection.query(countQuery, params.slice(0, -2)); // Excluye LIMIT y OFFSET para el conteo
+            const [countResult] = await connection.query(countQuery, params);
     
             const totalRecords = countResult[0].total;
-            const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
+            const totalPages = pageSize !== null ? Math.ceil(totalRecords / pageSize) : 1;
     
             return {
                 colaboradores,
                 pagination: {
-                    currentPage: currentPage || 1,
-                    pageSize: pageSize || totalRecords,
+                    currentPage: pageSize !== null ? (currentPage || 1) : 1,
+                    pageSize: pageSize !== null ? pageSize : totalRecords,
                     totalPages,
                     totalRecords,
                     firstPage: 1,
@@ -132,7 +136,7 @@ class ColaboradorDB {
             }
         }
     }
-
+    
     async insertarColaboradorBD(colaborador) {
         const db = new ConectarDB();
         let connection;

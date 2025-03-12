@@ -210,7 +210,7 @@ ipcMain.on('crear-usuario', async (event, usuarioData) => {
     try {
         // Crear un objeto Usuario y setear los datos
         const usuario = new Usuario();
-        usuario.getIdproducto().setIdproducto(usuarioData.producto);
+        usuario.getIdColaborador().setIdColaborador(usuarioData.colaborador);
         usuario.setNombreUsuario(usuarioData.nombreUsuario);
         usuario.getRol().setIdRol(usuarioData.rol); // Guarda el id del select con id roleName
         usuario.setPassword(usuarioData.newPassword);
