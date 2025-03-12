@@ -519,7 +519,7 @@ ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, esta
     const puestoTrabajoController = new PuestoTrabajoController();
 
     try {
-        const resultado = await puestoTrabajoController.getPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda);
+        const resultado = await puestoTrabajoController.getPuestos(pageSize, currentPage, estado, valorBusqueda);
 
         // Serializar los datos de los puestos de trabajo manualmente para asegurarse de que todo es serializable
         const puestosCompletos = resultado.puestos.map(puesto => ({
