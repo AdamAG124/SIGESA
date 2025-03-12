@@ -3,7 +3,7 @@ const CategoriaProducto = require('./CategoriaProducto'); // Importa la clase Ca
 class Producto {
     // Atributos privados
     #idProducto;
-    #idCategoria; // Inicializado como objeto de CategoriaProducto
+    #categoria; // Inicializado como objeto de CategoriaProducto
     #nombre;
     #descripcion;
     #cantidad;
@@ -13,7 +13,7 @@ class Producto {
     // Constructor sin parámetros
     constructor() {
         this.#idProducto = 0;                          // Inicializado como 0
-        this.#idCategoria = new CategoriaProducto();    // Inicializado como objeto de CategoriaProducto
+        this.#categoria = new CategoriaProducto();    // Inicializado como objeto de CategoriaProducto
         this.#nombre = "";                              // Inicializado como cadena vacía
         this.#descripcion = "";                         // Inicializado como cadena vacía
         this.#cantidad = 0.0;                           // Inicializado como 0.0
@@ -30,12 +30,12 @@ class Producto {
         this.#idProducto = idProducto;
     }
 
-    getIdCategoria() {
-        return this.#idCategoria;
+    getCategoria() {
+        return this.#categoria;
     }
 
-    setIdCategoria(idCategoria) {
-        this.#idCategoria = idCategoria;
+    setCategoria(categoria) {
+        this.#categoria = categoria;
     }
 
     getNombre() {
