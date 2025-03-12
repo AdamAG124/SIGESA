@@ -110,62 +110,62 @@ class CategoriaProductoDB {
         }
     }
 
-   
-    
-        async crearCategoriaBD(categoria) {
-            const db = new ConectarDB();
-            let connection;
-    
-            try {
-                connection = await db.conectar();
-    
-                // Obtén los atributos del objeto Categoria
-                const nombre = categoria.getNombre();
-                const descripcion = categoria.getDescripcion();
-                const estado = categoria.getEstado();
-    
-                // Verificar si el nombre ya existe
-                const existingQuery = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = ?`;
-                const [existingRows] = await connection.query(existingQuery, [nombre]);
-    
-                if (existingRows[0].count > 0) {
-                    return {
-                        success: false,
-                        message: 'El nombre de la categoría ya existe.'
-                    };
-                }
-    
-                // Construimos la consulta SQL
-                const query = `INSERT INTO ${this.#table} (DSC_NOMBRE, DSC_DESCRIPCION, ESTADO) VALUES (?, ?, ?)`;
-                const params = [nombre, descripcion, estado];
-    
-                // Ejecutar la consulta
-                const [result] = await connection.query(query, params);
-    
-                if (result.affectedRows > 0) {
-                    return {
-                        success: true,
-                        message: 'Categoría creada exitosamente.'
-                    };
-                } else {
-                    return {
-                        success: false,
-                        message: 'No se pudo crear la categoría.'
-                    };
-                }
-            } catch (error) {
+
+
+    async crearCategoriaBD(categoria) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Obtén los atributos del objeto Categoria
+            const nombre = categoria.getNombre();
+            const descripcion = categoria.getDescripcion();
+            const estado = categoria.getEstado();
+
+            // Verificar si el nombre ya existe
+            const existingQuery = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = ?`;
+            const [existingRows] = await connection.query(existingQuery, [nombre]);
+
+            if (existingRows[0].count > 0) {
                 return {
                     success: false,
-                    message: 'Error al crear la categoría: ' + error.message
+                    message: 'El nombre de la categoría ya existe.'
                 };
-            } finally {
-                if (connection) {
-                    await connection.end(); // Asegurarse de cerrar la conexión
-                }
+            }
+
+            // Construimos la consulta SQL
+            const query = `INSERT INTO ${this.#table} (DSC_NOMBRE, DSC_DESCRIPCION, ESTADO) VALUES (?, ?, ?)`;
+            const params = [nombre, descripcion, estado];
+
+            // Ejecutar la consulta
+            const [result] = await connection.query(query, params);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Categoría creada exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se pudo crear la categoría.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al crear la categoría: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Asegurarse de cerrar la conexión
             }
         }
-        // ...
-    
+    }
+    // ...
+
 
     async eliminarCategoriaBD(idCategoria) {
         const db = new ConectarDB();
@@ -207,6 +207,58 @@ class CategoriaProductoDB {
         } finally {
             if (connection) {
                 await connection.end(); // Asegurarse de cerrar la conexión
+            }
+        }
+    }
+
+    async actualizarCategoriaBD(categoria) {
+        const db = new ConectarDB(); // Asumo que esta clase existe y maneja la conexión
+        let connection;
+
+        try {
+            // Obtener la conexión a la base de datos
+            connection = await db.conectar();
+
+            // Query SQL para actualizar la categoría
+            const query = `
+                UPDATE ${this.#table}
+                SET DSC_NOMBRE = ?, DSC_DESCRIPCION = ?
+                WHERE ID_CATEGORIA_PRODUCTO = ?
+            `;
+
+            // Preparar los parámetros a partir del objeto categoria
+            const params = [
+                categoria.getNombre(),
+                categoria.getDescripcion(),
+                categoria.getIdCategoria()
+            ];
+
+            // Ejecutar la consulta
+            const [result] = await connection.query(query, params);
+
+            // Verificar si se actualizó algún registro
+            if (result.affectedRows === 0) {
+                return {
+                    success: false,
+                    message: 'No se encontró la categoría con el ID proporcionado.'
+                };
+            }
+
+            return {
+                success: true,
+                message: 'Categoría actualizada exitosamente.'
+            };
+
+        } catch (error) {
+            console.error('Error al actualizar la categoría en la base de datos:', error);
+            return {
+                success: false,
+                message: 'Error al actualizar la categoría: ' + error.message
+            };
+        } finally {
+            // Cerrar la conexión si existe
+            if (connection) {
+                await connection.end();
             }
         }
     }
