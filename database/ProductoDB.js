@@ -59,8 +59,8 @@ class ProductoDB {
                     P.ID_PRODUCTO AS idProducto, P.ID_CATEGORIA_PRODUCTO AS idCategoria,
                     P.DSC_PRODUCTO AS descripcionProducto, P.NUM_CANTIDAD AS cantidad,
                     P.DSC_UNIDAD_MEDICION AS unidadMedicion, P.ESTADO AS estadoProducto,
-                    C.ID_CATEGORIA_PRODUCTO AS idCategoria, C.DSC_NOMBRE AS nombreCategoria,
-                    C.DSC_DESCRIPCION AS descripcionCategoria, C.ESTADO AS estadoCategoria
+                    C.DSC_NOMBRE AS nombreCategoria, C.DSC_DESCRIPCION AS descripcionCategoria,
+                    C.ESTADO AS estadoCategoria
                 ${baseQuery}
                 ${whereClause}
                 LIMIT ? OFFSET ?
@@ -72,7 +72,6 @@ class ProductoDB {
             const productos = rows.map(productoDB => {
                 const producto = new Producto();
                 producto.setIdProducto(productoDB.idProducto);
-                producto.setIdCategoria(productoDB.idCategoria);
                 producto.setDescripcion(productoDB.descripcionProducto);
                 producto.setCantidad(productoDB.cantidad);
                 producto.setUnidadMedicion(productoDB.unidadMedicion);

@@ -1,4 +1,4 @@
-const ProductoDB = require('../database/ProductDB');
+const ProductoDB = require('../database/ProductoDB.js');
 
 class ProductoService {
 

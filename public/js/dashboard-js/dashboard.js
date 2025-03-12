@@ -784,7 +784,7 @@ function agregarUsuario() {
     roleSelectDestino.appendChild(option);
   }
 
-  window.api.obtenerColaboradores(pageSize = null, currentPage = null, estadoColaborador = null, idPuestoFiltro = null, idDepartamentoFiltro = null, valorBusqueda = null, (respuesta) => {
+  window.api.obtenerColaboradores(pageSize = null, currentPage = 1, estadoColaborador = 1, idPuestoFiltro = 0, idDepartamentoFiltro = 0, valorBusqueda = null, (respuesta) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
     const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
     colaboradorSelect.style.display = "block";
