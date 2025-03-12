@@ -4,15 +4,17 @@ const UsuarioController = require('./controllers/UsuarioController');
 const RolController = require('./controllers/RolController');
 const DepartamentoController = require('./controllers/DepartamentoController');
 const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
-const ColaboradorController = require('./controllers/ColaboradorController');
+constproductoController = require('./controllers/proproductoController');
 const ProveedorController = require('./controllers/ProveedorController');
 const CategoriaProductoController = require('./controllers/CategoriaProductoController');
 const Usuario = require('./domain/Usuario');
-const Colaborador = require('./domain/Colaborador');
+constproducto = require('./domain/proproducto');
 const Proveedor = require('./domain/Proveedor')
 const CategoriaProducto = require('./domain/CategoriaProducto');
 const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
+const ProductoController = require('./controllers/ProductoController');
+// const Producto = require('./domain/Producto');
 const fs = require('fs');
 
 
@@ -53,6 +55,17 @@ const createWindow = async () => {
         });
     }
 };
+
+app.whenReady().then(() => {
+    createWindow();
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+});
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit();
+});
 
 ipcMain.on('login', async (event, { username, password }) => {
     const controller = new UsuarioController();
@@ -111,8 +124,9 @@ ipcMain.on('leer-html', (event, filePath) => {
         event.sender.send('html-cargado', data);
     });
 });
-
-
+/* --------------------------------         ------------------------------------------
+   -------------------------------- USUARIO ------------------------------------------
+   --------------------------------         ------------------------------------------ */
 ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRolFiltro, valorBusqueda }) => {
     const controller = new UsuarioController();
     try {
@@ -124,10 +138,10 @@ ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRo
             return {
                 idUsuario: usuario.getIdUsuario(),
                 nombreUsuario: usuario.getNombreUsuario(),
-                idColaborador: usuario.getIdColaborador().getIdColaborador(),
-                nombreColaborador: usuario.getIdColaborador().getNombre(),
-                primerApellidoColaborador: usuario.getIdColaborador().getPrimerApellido(),
-                segundoApellidoColaborador: usuario.getIdColaborador().getSegundoApellido(),
+                idproproducto: usuario.getIdproproducto().getIdproproducto(),
+                nombreproproducto: usuario.getIdproproducto().getNombre(),
+                primerApellidoproproducto: usuario.getIdproproducto().getPrimerApellido(),
+                segundoApellidoproproducto: usuario.getIdproproducto().getSegundoApellido(),
                 idRol: usuario.getRol().getIdRol(),
                 nombreRol: usuario.getRol().getNombre(),
                 estado: usuario.getEstado()
@@ -152,7 +166,6 @@ ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRo
         }
     }
 });
-
 
 ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
     try {
@@ -198,7 +211,7 @@ ipcMain.on('crear-usuario', async (event, usuarioData) => {
     try {
         // Crear un objeto Usuario y setear los datos
         const usuario = new Usuario();
-        usuario.getIdColaborador().setIdColaborador(usuarioData.colaborador);
+        usuario.getIdproproducto().setIdproproducto(usuarioData.proproducto);
         usuario.setNombreUsuario(usuarioData.nombreUsuario);
         usuario.getRol().setIdRol(usuarioData.rol); // Guarda el id del select con id roleName
         usuario.setPassword(usuarioData.newPassword);
@@ -232,126 +245,130 @@ ipcMain.on('listar-roles', async (event) => {
         mainWindow.webContents.send('cargar-roles', rolesSimplificados); // Enviar los roles de vuelta al frontend
     }
 });
-
-ipcMain.on('listar-colaboradores', async (event, { pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }) => {
-    const colaboradorController = new ColaboradorController();
+/* --------------------------------             ------------------------------------------
+   --------------------------------producto ------------------------------------------
+   --------------------------------             ------------------------------------------ */
+ipcMain.on('listar-proproductoes', async (event, { pageSize, currentPage, estadoproproducto, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }) => {
+    constproductoController = newproductoController();
     try {
-        const resultado = await colaboradorController.getColaboradores(pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
+        const resultado = awaitproductoController.getproproductoes(pageSize, currentPage, estadoproproducto, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
 
         // En lugar de simplificar los datos, devolver el array completo con todos los atributos
-        const colaboradoresCompletos = resultado.colaboradores.map(colaborador => {
+        constproductoesCompletos = resultado.proproductoes.map(proproducto => {
             return {
-                idColaborador: colaborador.getIdColaborador(),
-                nombreColaborador: colaborador.getNombre(),
-                cedulaColaborador: colaborador.getCedula(),
-                primerApellidoColaborador: colaborador.getPrimerApellido(),
-                segundoApellidoColaborador: colaborador.getSegundoApellido(),
-                fechaNacimiento: colaborador.getFechaNacimiento(),
-                numTelefono: colaborador.getNumTelefono(),
-                fechaIngreso: colaborador.getFechaIngreso(),
-                fechaSalida: colaborador.getFechaSalida(),
-                estado: colaborador.getEstado(),
-                correo: colaborador.getCorreo(),
-                nombreDepartamento: colaborador.getIdDepartamento().getNombre(),
-                nombrePuesto: colaborador.getIdPuesto().getNombre()
+                idproproducto:producto.getIdproproducto(),
+                nombreproproducto:producto.getNombre(),
+                cedulaproproducto:producto.getCedula(),
+                primerApellidoproproducto:producto.getPrimerApellido(),
+                segundoApellidoproproducto:producto.getSegundoApellido(),
+                fechaNacimiento:producto.getFechaNacimiento(),
+                numTelefono:producto.getNumTelefono(),
+                fechaIngreso:producto.getFechaIngreso(),
+                fechaSalida:producto.getFechaSalida(),
+                estado:producto.getEstado(),
+                correo:producto.getCorreo(),
+                nombreDepartamento:producto.getIdDepartamento().getNombre(),
+                nombrePuesto:producto.getIdPuesto().getNombre()
             };
         });
 
-        // Preparar el objeto de respuesta que incluye los colaboradores completos y los datos de paginación
+        // Preparar el objeto de respuesta que incluye losproductoes completos y los datos de paginación
         const respuesta = {
-            colaboradores: colaboradoresCompletos,  // Lista completa de colaboradores con todos los atributos
+           productoes:productoesCompletos,  // Lista completa deproductoes con todos los atributos
             paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
         };
 
         if (mainWindow) {  // Verifica que mainWindow esté definido
-            mainWindow.webContents.send('cargar-colaboradores', respuesta); // Enviar los colaboradores completos al frontend
+            mainWindow.webContents.send('cargar-proproductoes', respuesta); // Enviar losproductoes completos al frontend
         }
     } catch (error) {
-        console.error('Error al listar los colaboradores:', error);
+        console.error('Error al listar losproductoes:', error);
         if (mainWindow) {
-            mainWindow.webContents.send('error-cargar-colaboradores', 'Hubo un error al cargar los colaboradores.');
+            mainWindow.webContents.send('error-cargar-proproductoes', 'Hubo un error al cargar losproductoes.');
         }
     }
 });
 
-ipcMain.on('crear-colaborador', async (event, colaboradorData) => {
+ipcMain.on('crear-proproducto', async (event,productoData) => {
     try {
-        // Crear un objeto Colaborador y setear los datos
-        const colaborador = new Colaborador();
-        colaborador.getIdDepartamento().setIdDepartamento(colaboradorData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
-        colaborador.getIdPuesto().setIdPuestoTrabajo(colaboradorData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
-        colaborador.setNombre(colaboradorData.nombre);
-        colaborador.setPrimerApellido(colaboradorData.primerApellido);
-        colaborador.setSegundoApellido(colaboradorData.segundoApellido);
-        colaborador.setFechaNacimiento(colaboradorData.fechaNacimiento); // Debe ser una fecha válida
-        colaborador.setNumTelefono(colaboradorData.numTelefono);
-        colaborador.setFechaIngreso(colaboradorData.fechaIngreso); // Debe ser una fecha válida
-        colaborador.setFechaSalida(colaboradorData.fechaSalida); // Debe ser una fecha válida
-        colaborador.setEstado(1); // Debe ser booleano o compatible
-        colaborador.setCorreo(colaboradorData.correo);
-        colaborador.setCedula(colaboradorData.cedula);
+        // Crear un objetoproducto y setear los datos
+        constproducto = newproducto();
+       producto.getIdDepartamento().setIdDepartamento(proproductoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
+       producto.getIdPuesto().setIdPuestoTrabajo(proproductoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
+       producto.setNombre(proproductoData.nombre);
+       producto.setPrimerApellido(proproductoData.primerApellido);
+       producto.setSegundoApellido(proproductoData.segundoApellido);
+       producto.setFechaNacimiento(proproductoData.fechaNacimiento); // Debe ser una fecha válida
+       producto.setNumTelefono(proproductoData.numTelefono);
+       producto.setFechaIngreso(proproductoData.fechaIngreso); // Debe ser una fecha válida
+       producto.setFechaSalida(proproductoData.fechaSalida); // Debe ser una fecha válida
+       producto.setEstado(1); // Debe ser booleano o compatible
+       producto.setCorreo(proproductoData.correo);
+       producto.setCedula(proproductoData.cedula);
 
-        // Llamar al método insertarColaborador en el ColaboradorController
-        const colaboradorController = new ColaboradorController();
-        const resultado = await colaboradorController.insertarColaborador(colaborador);
+        // Llamar al método insertarproproducto en elproductoController
+        constproductoController = newproductoController();
+        const resultado = awaitproductoController.insertarproproducto(proproducto);
 
         // Enviar respuesta al frontend
-        event.reply('respuesta-crear-colaborador', resultado); // Pasar el resultado que viene desde ColaboradorController
+        event.reply('respuesta-crear-proproducto', resultado); // Pasar el resultado que viene desdeproductoController
     } catch (error) {
-        console.error('Error al crear colaborador:', error);
-        event.reply('respuesta-crear-colaborador', { success: false, message: error.message });
+        console.error('Error al crearproducto:', error);
+        event.reply('respuesta-crear-proproducto', { success: false, message: error.message });
     }
 });
 
-ipcMain.on('eliminar-colaborador', async (event, colaboradorId, estado) => {
+ipcMain.on('eliminar-proproducto', async (event,productoId, estado) => {
     try {
         // Crear un objeto Usuario y setear los datos
-        const colaborador = new Colaborador();
-        colaborador.setIdColaborador(colaboradorId);
-        colaborador.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
+        constproducto = newproducto();
+       producto.setIdproproducto(proproductoId);
+       producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
 
         // Llamar al método de actualizar en el UsuarioController
-        const colaboradorController = new ColaboradorController();
-        const resultado = await colaboradorController.eliminarColaborador(colaborador);
+        constproductoController = newproductoController();
+        const resultado = awaitproductoController.eliminarproproducto(proproducto);
 
         // Enviar respuesta al frontend
-        event.reply('respuesta-eliminar-colaborador', resultado); // Pasar el resultado que viene desde UsuarioController
+        event.reply('respuesta-eliminar-proproducto', resultado); // Pasar el resultado que viene desde UsuarioController
     } catch (error) {
         console.error('Error al eliminar usuario:', error);
         event.reply('respuesta-eliminar-usuario', { success: false, message: error.message });
     }
 });
 
-ipcMain.on('editar-colaborador', async (event, colaboradorData) => {
+ipcMain.on('editar-proproducto', async (event,productoData) => {
     try {
-        // Crear un objeto Colaborador y setear los datos
-        const colaborador = new Colaborador();
-        colaborador.setIdColaborador(colaboradorData.idColaborador);
-        colaborador.setNombre(colaboradorData.nombre);
-        colaborador.setPrimerApellido(colaboradorData.primerApellido);
-        colaborador.setSegundoApellido(colaboradorData.segundoApellido);
-        colaborador.setFechaNacimiento(colaboradorData.fechaNacimiento);
-        colaborador.setNumTelefono(colaboradorData.numTelefono);
-        colaborador.setFechaIngreso(colaboradorData.fechaIngreso);
-        colaborador.setFechaSalida(colaboradorData.fechaSalida);
-        colaborador.setEstado(1);
-        colaborador.setCorreo(colaboradorData.correo);
-        colaborador.setCedula(colaboradorData.cedula);
-        colaborador.setIdDepartamento(colaboradorData.idDepartamento);
-        colaborador.setIdPuesto(colaboradorData.idPuesto);
+        // Crear un objetoproducto y setear los datos
+        constproducto = newproducto();
+       producto.setIdproproducto(proproductoData.idproproducto);
+       producto.setNombre(proproductoData.nombre);
+       producto.setPrimerApellido(proproductoData.primerApellido);
+       producto.setSegundoApellido(proproductoData.segundoApellido);
+       producto.setFechaNacimiento(proproductoData.fechaNacimiento);
+       producto.setNumTelefono(proproductoData.numTelefono);
+       producto.setFechaIngreso(proproductoData.fechaIngreso);
+       producto.setFechaSalida(proproductoData.fechaSalida);
+       producto.setEstado(1);
+       producto.setCorreo(proproductoData.correo);
+       producto.setCedula(proproductoData.cedula);
+       producto.setIdDepartamento(proproductoData.idDepartamento);
+       producto.setIdPuesto(proproductoData.idPuesto);
 
-        // Llamar al método de editarColaborador en el ColaboradorController
-        const colaboradorController = new ColaboradorController();
-        const resultado = await colaboradorController.editarColaborador(colaborador);
+        // Llamar al método de editarproproducto en elproductoController
+        constproductoController = newproductoController();
+        const resultado = awaitproductoController.editarproproducto(proproducto);
 
         // Enviar respuesta al frontend
-        event.reply('respuesta-actualizar-colaborador', resultado); // Pasar el resultado que viene desde ColaboradorController
+        event.reply('respuesta-actualizar-proproducto', resultado); // Pasar el resultado que viene desdeproductoController
     } catch (error) {
-        console.error('Error al editar colaborador:', error);
-        event.reply('respuesta-editar-colaborador', { success: false, message: error.message });
+        console.error('Error al editarproducto:', error);
+        event.reply('respuesta-editar-proproducto', { success: false, message: error.message });
     }
 });
-
+/* --------------------------------              ------------------------------------------
+   -------------------------------- DEPARTAMENTO ------------------------------------------
+   --------------------------------              ------------------------------------------ */
 ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const departamentoController = new DepartamentoController();
     try {
@@ -376,7 +393,9 @@ ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado
         event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
     }
 });
-
+/* --------------------------------                   ------------------------------------------
+   -------------------------------- PUESTO DE TRABAJO ------------------------------------------
+   --------------------------------                   ------------------------------------------ */
 ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const puestoTrabajoController = new PuestoTrabajoController();
 
@@ -402,19 +421,9 @@ ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, esta
         event.reply('error-cargar-puestos-trabajo', 'Hubo un error al cargar los puestos de trabajo.');
     }
 });
-
-
-app.whenReady().then(() => {
-    createWindow();
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-});
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
-});
-
+/* --------------------------------                    ------------------------------------------
+   -------------------------------- CATEGORIA PRODUCTO ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
 ipcMain.on('listar-categorias', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     try {
         const controller = new CategoriaProductoController(pageSize, currentPage, estado, valorBusqueda);
@@ -459,7 +468,6 @@ ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
     }
 });
 
-
 ipcMain.on('eliminar-categoria', async (event, categoriaId, estado) => {
     try {
         const categoriaController = new CategoriaProductoController();
@@ -493,8 +501,9 @@ ipcMain.on('crear-categoria', async (event, categoriaData) => {
         event.reply('respuesta-crear-categoria', { success: false, message: error.message });
     }
 });
-
-
+/* --------------------------------           ------------------------------------------
+   -------------------------------- PROVEEDOR ------------------------------------------
+   --------------------------------           ------------------------------------------ */
 ipcMain.on('listar-proveedores', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new ProveedorController();
 
@@ -535,7 +544,7 @@ ipcMain.on('listar-proveedores', async (event, { pageSize, currentPage, estado, 
 
 ipcMain.on('crear-proveedor', async (event, proveedorData) => {
     try {
-        // Crear un objeto Colaborador y setear los datos
+        // Crear un objetoproducto y setear los datos
         const proveedor = new Proveedor();
         proveedor.setNombre(proveedorData.nombre);
         proveedor.setProvincia(proveedorData.provincia);
@@ -557,7 +566,7 @@ ipcMain.on('crear-proveedor', async (event, proveedorData) => {
 
 ipcMain.on('editar-proveedor', async (event, proveedorData) => {
     try {
-        // Crear un objeto Colaborador y setear los datos
+        // Crear un objetoproducto y setear los datos
         const proveedor = new Proveedor();
         proveedor.setIdProveedor(proveedorData.idProveedor);
         proveedor.setNombre(proveedorData.nombre);
@@ -594,7 +603,9 @@ ipcMain.on('eliminar-proveedor', async (event, proveedorId, estado) => {
         event.reply('respuesta-eliminar-proveedor', { success: false, message: error.message });
     }
 });
-
+/* --------------------------------                   ------------------------------------------
+   -------------------------------- PUESTO DE TRABAJO ------------------------------------------
+   --------------------------------                   ------------------------------------------ */
 ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const puestoTrabajoController = new PuestoTrabajoController();
 
@@ -670,7 +681,9 @@ ipcMain.on('eliminar-puesto', async (event, puestoId, estado) => {
         event.reply('respuesta-eliminar-puesto', { success: false, message: error.message });
     }
 });
-
+/* --------------------------------                    ------------------------------------------
+   -------------------------------- ENTIDAD FINANCIERA ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
 ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new EntidadFinancieraController();
 
@@ -703,5 +716,41 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
     } catch (error) {
         console.error('Error al listar las entidades financieras:', error);
         mainWindow?.webContents.send('error-cargar-entidades-financieras', `Hubo un error al cargar las entidades financieras: ${error.message}`);
+    }
+});
+
+
+ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda }) => {
+    const productoController = new ProductoController();
+    try {
+        const resultado = await productoController.getProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda);
+
+        const productosCompletos = resultado.productos.map(producto => {
+            return {
+                idProducto: producto.getIdProducto(),
+                nombreProducto: producto.getDescripcion(), 
+                cantidad: producto.getCantidad(),
+                unidadMedicion: producto.getUnidadMedicion(), 
+                estadoProducto: producto.getEstado(), 
+                idCategoria: producto.getCategoria().getIdCategoria(), 
+                nombreCategoria: producto.getCategoria().getNombre(), 
+                descripcionCategoria: producto.getCategoria().getDescripcion(),
+                estadoCategoria: producto.getCategoria().getEstado()
+            };
+        });
+
+        const respuesta = {
+           productos:productosCompletos, 
+            paginacion: resultado.pagination  
+        };
+
+        if (mainWindow) {  
+            mainWindow.webContents.send('cargar-productos', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar los productos:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-productos', 'Hubo un error al cargar los productos.');
+        }
     }
 });
