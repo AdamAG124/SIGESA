@@ -78,7 +78,6 @@ function mostrarToastError(mensaje) {
     title: mensaje,
   });
 }
-
 // Función para mostrar un Toast de confirmación
 function mostrarToastConfirmacion(titulo) {
   const Toast = Swal.mixin({
@@ -348,7 +347,6 @@ function enviarCreacionProveedor() {
   });
 }
 
-
 async function editarProveedor(id, boton) {
 
   // Obtener la fila del botón clicado
@@ -440,7 +438,6 @@ function enviarEdicionProveedor() {
   });
 }
 
-
 function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   const paginacionDiv = document.querySelector(idInnerDiv);
 
@@ -526,7 +523,6 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
   paginacionDiv.appendChild(lastPageButton);
 }
 
-
 function filterTable(moduloFiltrar) {
   // Siempre cargar la primera página al aplicar un filtro
   const pageSize = Number(document.getElementById("selectPageSize").value);
@@ -604,8 +600,6 @@ function editarUsuario(id, boton) {
   document.getElementById("editarUsuarioModal").style.display = "block";
 }
 
-
-
 function enviarEdicionUsuario() {
   const nombreUsuario = document.getElementById("nombreUsuario").value;
   const newPassword = document.getElementById("newPassword").value;
@@ -676,7 +670,6 @@ function enviarEdicionUsuario() {
     }
   });
 }
-
 
 function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
   Swal.fire({
@@ -763,7 +756,6 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
   });
 }
 
-
 function agregarUsuario() {
   const roleSelectOrigen = document.getElementById("filtrado-role");
   const roleSelectDestino = document.getElementById("roleName");
@@ -792,7 +784,7 @@ function agregarUsuario() {
     roleSelectDestino.appendChild(option);
   }
 
-  window.api.obtenerColaboradores(pageSize = null, currentPage = null, estadoColaborador = null, idPuestoFiltro = null, idDepartamentoFiltro = null, valorBusqueda = null, (respuesta) => {
+  window.api.obtenerColaboradores(pageSize = null, currentPage = 1, estadoColaborador = 1, idPuestoFiltro = 0, idDepartamentoFiltro = 0, valorBusqueda = null, (respuesta) => {
     const colaboradorSelect = document.getElementById("colaboradorName");
     const colaboradorSelectLabel = document.getElementById("colaboradorSelectLabel");
     colaboradorSelect.style.display = "block";
@@ -920,7 +912,6 @@ function enviarCreacionUsuario(event) {
   });
   //});
 }
-
 // Función para cerrar el modal
 function cerrarModal(idModalCerrar, idFormReset) {
   const modal = document.getElementById(idModalCerrar);
@@ -958,7 +949,6 @@ function ocultarErrores() {
   });
 }
 
-
 function cargarRoles(idSelect, mensajeQuemado) {
   window.api.obtenerRoles((roles) => {
     const roleSelect = document.getElementById(idSelect);
@@ -992,7 +982,9 @@ function togglePasswordVisibility(passwordFieldId, iconId) {
     icon.classList.add("fa-eye-slash"); // Ojo cerrado
   }
 }
-
+/* --------------------------------             ------------------------------------------
+   -------------------------------- COLABORADOR ------------------------------------------
+   --------------------------------             ------------------------------------------ */
 function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColaborador = 1, idPuestoFiltro = 0, idDepartamentoFiltro = 0, valorBusqueda = null) {
 
   // Obtener el select por su id
@@ -1067,6 +1059,158 @@ function cargarColaboradoresTabla(pageSize = 10, currentPage = 1, estadoColabora
       cerrarModal("editarUsuarioModal", "editarColaboradorForm"); // Cerrar cualquier modal activo
     });
   }, 100);
+}
+
+function agregarColaborador() {
+  const puestoSelect = document.getElementById("puesto-filtro");
+  const departamentoSelect = document.getElementById("departamento-filtro");
+  const puestoDestinoSelect = document.getElementById("nombrePuesto");
+  const departamentoDestinoSelect = document.getElementById("nombreDepartamento");
+
+  // Crear un array para almacenar los textos de las opciones del select de puestos y departamentos
+  const opcionesPuestosArray = [];
+  const opcionesDepartamentosArray = [];
+
+  for (let i = 0; i < puestoSelect.options.length; i++) {
+    const option = puestoSelect.options[i];
+    opcionesPuestosArray.push(option.textContent); // Guardar el texto en el array
+  }
+
+  for (let i = 0; i < departamentoSelect.options.length; i++) {
+    const option = departamentoSelect.options[i];
+    opcionesDepartamentosArray.push(option.textContent); // Guardar el texto en el array
+  }
+
+  // Insertar las opciones del select de puestos y preseleccionar el puesto del colaborador
+  puestoDestinoSelect.innerHTML = ""; // Limpiar las opciones existentes
+  const option = document.createElement("option");
+  option.value = "0";
+  option.textContent = "Seleccione un puesto";
+  puestoDestinoSelect.appendChild(option);
+  for (let i = 1; i < opcionesPuestosArray.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = opcionesPuestosArray[i];
+    puestoDestinoSelect.appendChild(option);
+  }
+
+  // Insertar las opciones del select de departamentos y preseleccionar el departamento del colaborador
+  departamentoDestinoSelect.innerHTML = ""; // Limpiar las opciones existentes
+  const option1 = document.createElement("option");
+  option1.value = "0";
+  option1.textContent = "Seleccione un departamento";
+  departamentoDestinoSelect.appendChild(option1);
+  for (let i = 1; i < opcionesDepartamentosArray.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = opcionesDepartamentosArray[i];
+    departamentoDestinoSelect.appendChild(option);
+  }
+
+  document.getElementById("nombreColaborador").disabled = true;
+  document.getElementById("primerApellidoColaborador").disabled = true;
+  document.getElementById("segundoApellidoColaborador").disabled = true;
+
+  // Cambiar el título del modal a "Editar Colaborador"
+  document.getElementById("modalTitle").innerText = "Crear Colaborador";
+  document.getElementById("buttonModal").onclick = enviarCreacionColaborador;
+  // Mostrar el modal
+  document.getElementById("editarColaboradorModal").style.display = "block";
+}
+
+function enviarCreacionColaborador() {
+  // Asignar valores extraídos a los campos del formulario de edición
+  const id = document.getElementById("idColaborador").value;
+  const nombre = document.getElementById("nombreColaborador").value;
+  const cedulaColaborador = document.getElementById("cedulaColaborador").value;
+  const primerApellidoColaborador = document.getElementById("primerApellidoColaborador").value;
+  const segundoApellidoColaborador = document.getElementById("segundoApellidoColaborador").value;
+  const fechaNacimientoFormateada = document.getElementById("fechaNacimiento").value;
+  const numTelefono = document.getElementById("numTelefono").value;
+  const correoColaborador = document.getElementById("correoColaborador").value;
+  const fechaIngreso = document.getElementById("fechaIngreso").value;
+  const puestoColaborador = document.getElementById("nombrePuesto").value;
+  const departamentoColaborador = document.getElementById("nombreDepartamento").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  // Validar que todos los campos estén llenos
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreColaborador") },
+    { value: cedulaColaborador, element: document.getElementById("cedulaColaborador") },
+    { value: primerApellidoColaborador, element: document.getElementById("primerApellidoColaborador") },
+    { value: segundoApellidoColaborador, element: document.getElementById("segundoApellidoColaborador") },
+    { value: fechaNacimientoFormateada, element: document.getElementById("fechaNacimiento") },
+    { value: numTelefono, element: document.getElementById("numTelefono") },
+    { value: correoColaborador, element: document.getElementById("correoColaborador") },
+    { value: fechaIngreso, element: document.getElementById("fechaIngreso") },
+    { value: puestoColaborador, element: document.getElementById("nombrePuesto") },
+    { value: departamentoColaborador, element: document.getElementById("nombreDepartamento") },
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto colaborador con los datos del formulario
+  const colaboradorData = {
+    nombre: nombre,
+    primerApellido: primerApellidoColaborador,
+    segundoApellido: segundoApellidoColaborador,
+    cedula: cedulaColaborador,
+    fechaNacimiento: fechaNacimientoFormateada,
+    numTelefono: numTelefono,
+    correo: correoColaborador,
+    fechaIngreso: fechaIngreso,
+    idPuesto: puestoColaborador, // Asumimos que se envía el ID del puesto
+    idDepartamento: departamentoColaborador // Asumimos que se envía el ID del departamento
+  };
+
+  Swal.fire({
+    title: "Creando colaborador",
+    text: "¿Está seguro que desea crear este nuevo colaborador?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearColaborador(colaboradorData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearColaborador((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(2);
+            cerrarModal("editarColaboradorModal", "editarColaboradorForm");
+          }, 2000);
+          // Aquí puedes hacer alguna acción adicional, como redirigir o limpiar el formulario
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
 }
 
 async function editarColaborador(id, boton) {
@@ -1276,6 +1420,32 @@ function desglosarNombreCompleto(nombreCompleto) {
     segundoApellido: segundoApellido
   };
 }
+
+async function obtenerNombrePorCedula() {
+  const cedula = document.getElementById("cedulaColaborador").value; // Obtener el valor del input
+  const url = `https://api.hacienda.go.cr/fe/ae?identificacion=${cedula}`; // Construir la URL
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error('Error en la respuesta de la API'); // Manejo de errores si la respuesta no es exitosa
+    }
+
+    const data = await response.json(); // Parsear la respuesta como JSON
+    const nombre = data.nombre; // Extraer el nombre del JSON
+
+    const nombreCompleto = desglosarNombreCompleto(nombre);
+
+    document.getElementById("nombreColaborador").value = nombreCompleto.nombre;
+    document.getElementById("primerApellidoColaborador").value = nombreCompleto.primerApellido;
+    document.getElementById("segundoApellidoColaborador").value = nombreCompleto.segundoApellido;
+
+  } catch (error) {
+    console.error('Error al obtener datos:', error); // Manejo de errores
+    return null; // Retornar null en caso de error
+  }
+}
 // Función para formatear las fechas en yyyy-MM-dd
 function formatearFecha(fecha) {
   if (!fecha) return 'N/A'; // Maneja el caso de fecha vacía o nula
@@ -1285,7 +1455,9 @@ function formatearFecha(fecha) {
   const day = ('0' + date.getDate()).slice(-2); // Añadir ceros iniciales
   return `${year}-${month}-${day}`;
 }
-
+/* --------------------------------                         ------------------------------------------
+   -------------------------------- DEPARTAMENTO DE TRABAJO ------------------------------------------
+   --------------------------------                          ------------------------------------------ */
 function cargarDepartamentos(idSelect, mensajeQuemado) {
   window.api.obtenerDepartamentos(pageSize = null, currentPage = null, estado = 2, valorBusqueda = null, (respuesta) => {
 
@@ -1322,183 +1494,6 @@ function cargarPuestos(idSelect, mensajeQuemado) {
       idSelect.appendChild(option);
     });
   });
-}
-
-function agregarColaborador() {
-  const puestoSelect = document.getElementById("puesto-filtro");
-  const departamentoSelect = document.getElementById("departamento-filtro");
-  const puestoDestinoSelect = document.getElementById("nombrePuesto");
-  const departamentoDestinoSelect = document.getElementById("nombreDepartamento");
-
-  // Crear un array para almacenar los textos de las opciones del select de puestos y departamentos
-  const opcionesPuestosArray = [];
-  const opcionesDepartamentosArray = [];
-
-  for (let i = 0; i < puestoSelect.options.length; i++) {
-    const option = puestoSelect.options[i];
-    opcionesPuestosArray.push(option.textContent); // Guardar el texto en el array
-  }
-
-  for (let i = 0; i < departamentoSelect.options.length; i++) {
-    const option = departamentoSelect.options[i];
-    opcionesDepartamentosArray.push(option.textContent); // Guardar el texto en el array
-  }
-
-  // Insertar las opciones del select de puestos y preseleccionar el puesto del colaborador
-  puestoDestinoSelect.innerHTML = ""; // Limpiar las opciones existentes
-  const option = document.createElement("option");
-  option.value = "0";
-  option.textContent = "Seleccione un puesto";
-  puestoDestinoSelect.appendChild(option);
-  for (let i = 1; i < opcionesPuestosArray.length; i++) {
-    const option = document.createElement("option");
-    option.value = i;
-    option.textContent = opcionesPuestosArray[i];
-    puestoDestinoSelect.appendChild(option);
-  }
-
-  // Insertar las opciones del select de departamentos y preseleccionar el departamento del colaborador
-  departamentoDestinoSelect.innerHTML = ""; // Limpiar las opciones existentes
-  const option1 = document.createElement("option");
-  option1.value = "0";
-  option1.textContent = "Seleccione un departamento";
-  departamentoDestinoSelect.appendChild(option1);
-  for (let i = 1; i < opcionesDepartamentosArray.length; i++) {
-    const option = document.createElement("option");
-    option.value = i;
-    option.textContent = opcionesDepartamentosArray[i];
-    departamentoDestinoSelect.appendChild(option);
-  }
-
-  document.getElementById("nombreColaborador").disabled = true;
-  document.getElementById("primerApellidoColaborador").disabled = true;
-  document.getElementById("segundoApellidoColaborador").disabled = true;
-
-  // Cambiar el título del modal a "Editar Colaborador"
-  document.getElementById("modalTitle").innerText = "Crear Colaborador";
-  document.getElementById("buttonModal").onclick = enviarCreacionColaborador;
-  // Mostrar el modal
-  document.getElementById("editarColaboradorModal").style.display = "block";
-}
-
-function enviarCreacionColaborador() {
-  // Asignar valores extraídos a los campos del formulario de edición
-  const id = document.getElementById("idColaborador").value;
-  const nombre = document.getElementById("nombreColaborador").value;
-  const cedulaColaborador = document.getElementById("cedulaColaborador").value;
-  const primerApellidoColaborador = document.getElementById("primerApellidoColaborador").value;
-  const segundoApellidoColaborador = document.getElementById("segundoApellidoColaborador").value;
-  const fechaNacimientoFormateada = document.getElementById("fechaNacimiento").value;
-  const numTelefono = document.getElementById("numTelefono").value;
-  const correoColaborador = document.getElementById("correoColaborador").value;
-  const fechaIngreso = document.getElementById("fechaIngreso").value;
-  const puestoColaborador = document.getElementById("nombrePuesto").value;
-  const departamentoColaborador = document.getElementById("nombreDepartamento").value;
-
-  // Array para almacenar los campos vacíos
-  const camposVacios = [];
-
-  // Validar que todos los campos estén llenos
-  const inputs = [
-    { value: nombre, element: document.getElementById("nombreColaborador") },
-    { value: cedulaColaborador, element: document.getElementById("cedulaColaborador") },
-    { value: primerApellidoColaborador, element: document.getElementById("primerApellidoColaborador") },
-    { value: segundoApellidoColaborador, element: document.getElementById("segundoApellidoColaborador") },
-    { value: fechaNacimientoFormateada, element: document.getElementById("fechaNacimiento") },
-    { value: numTelefono, element: document.getElementById("numTelefono") },
-    { value: correoColaborador, element: document.getElementById("correoColaborador") },
-    { value: fechaIngreso, element: document.getElementById("fechaIngreso") },
-    { value: puestoColaborador, element: document.getElementById("nombrePuesto") },
-    { value: departamentoColaborador, element: document.getElementById("nombreDepartamento") },
-  ];
-
-  // Marcar los campos vacíos y llenar el array camposVacios
-  inputs.forEach(input => {
-    if (!input.value) {
-      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
-      camposVacios.push(input.element);
-    } else {
-      input.element.style.border = ""; // Resetear el borde
-    }
-  });
-
-  // Mostrar mensaje de error si hay campos vacíos
-  const errorMessage = document.getElementById("errorMessage");
-  if (camposVacios.length > 0) {
-    errorMessage.textContent = "Por favor, llene todos los campos.";
-    return; // Salir de la función si hay campos vacíos
-  } else {
-    errorMessage.textContent = ""; // Resetear mensaje de error
-  }
-
-  // Crear el objeto colaborador con los datos del formulario
-  const colaboradorData = {
-    nombre: nombre,
-    primerApellido: primerApellidoColaborador,
-    segundoApellido: segundoApellidoColaborador,
-    cedula: cedulaColaborador,
-    fechaNacimiento: fechaNacimientoFormateada,
-    numTelefono: numTelefono,
-    correo: correoColaborador,
-    fechaIngreso: fechaIngreso,
-    idPuesto: puestoColaborador, // Asumimos que se envía el ID del puesto
-    idDepartamento: departamentoColaborador // Asumimos que se envía el ID del departamento
-  };
-
-  Swal.fire({
-    title: "Creando colaborador",
-    text: "¿Está seguro que desea crear este nuevo colaborador?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Usar el preload para enviar los datos al proceso principal
-      window.api.crearColaborador(colaboradorData);
-
-      // Manejar la respuesta del proceso principal
-      window.api.onRespuestaCrearColaborador((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            filterTable(2);
-            cerrarModal("editarColaboradorModal", "editarColaboradorForm");
-          }, 2000);
-          // Aquí puedes hacer alguna acción adicional, como redirigir o limpiar el formulario
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-    }
-  });
-}
-async function obtenerNombrePorCedula() {
-  const cedula = document.getElementById("cedulaColaborador").value; // Obtener el valor del input
-  const url = `https://api.hacienda.go.cr/fe/ae?identificacion=${cedula}`; // Construir la URL
-
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error('Error en la respuesta de la API'); // Manejo de errores si la respuesta no es exitosa
-    }
-
-    const data = await response.json(); // Parsear la respuesta como JSON
-    const nombre = data.nombre; // Extraer el nombre del JSON
-
-    const nombreCompleto = desglosarNombreCompleto(nombre);
-
-    document.getElementById("nombreColaborador").value = nombreCompleto.nombre;
-    document.getElementById("primerApellidoColaborador").value = nombreCompleto.primerApellido;
-    document.getElementById("segundoApellidoColaborador").value = nombreCompleto.segundoApellido;
-
-  } catch (error) {
-    console.error('Error al obtener datos:', error); // Manejo de errores
-    return null; // Retornar null en caso de error
-  }
 }
 
 function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
@@ -1710,7 +1705,9 @@ function enviarEdicionCategoria() {
     }
   });
 }
-
+/* --------------------------------                   ------------------------------------------
+   -------------------------------- PUESTO DE TRABAJO ------------------------------------------
+   --------------------------------                   ------------------------------------------ */
 function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
     const tbody = document.getElementById("puestos-body");
@@ -1914,3 +1911,6 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
     cerrarModal("editarEntidadFinancieraModal", "editarEntidadFinancieraForm");
   });
 }
+/* --------------------------------          ------------------------------------------
+   -------------------------------- PRODUCTO ------------------------------------------
+   --------------------------------          ------------------------------------------ */

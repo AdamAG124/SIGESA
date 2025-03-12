@@ -154,7 +154,13 @@ obtenerEntidadesFinancieras: (pageSize, currentPage, estado, valorBusqueda, call
     ipcRenderer.on('error-cargar-entidades-financieras', errorCallback);
 },
 
-
+/* --------------------------------           ------------------------------------------
+   -------------------------------- PRODUCTOS ------------------------------------------
+   --------------------------------           ------------------------------------------ */
+   obtenerProductos: (pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda, callback) => {
+    ipcRenderer.send('listar-productos', { pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda });
+    ipcRenderer.once('cargar-productos', (event, productos) => callback(productos));
+},
 
 });
 contextBridge.exposeInMainWorld('api', {

@@ -4,18 +4,19 @@ const UsuarioController = require('./controllers/UsuarioController');
 const RolController = require('./controllers/RolController');
 const DepartamentoController = require('./controllers/DepartamentoController');
 const PuestoTrabajoController = require('./controllers/PuestoTrabajoController');
-const ColaboradorController = require('./controllers/ColaboradorController');
+const ProductoController = require('./controllers/ProductoController');
 const ProveedorController = require('./controllers/ProveedorController');
 const CategoriaProductoController = require('./controllers/CategoriaProductoController');
 const Usuario = require('./domain/Usuario');
-const Colaborador = require('./domain/Colaborador');
+const Producto = require('./domain/Producto');
 const Proveedor = require('./domain/Proveedor')
 const CategoriaProducto = require('./domain/CategoriaProducto');
 const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
+const ColaboradorController = require('./controllers/ColaboradorController');
+const Colaborador = require('./domain/Colaborador');
+// const Producto = require('./domain/Producto');
 const fs = require('fs');
-
-
 
 let mainWindow;  // Declarar mainWindow a nivel global
 
@@ -53,6 +54,17 @@ const createWindow = async () => {
         });
     }
 };
+
+app.whenReady().then(() => {
+    createWindow();
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+});
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit();
+});
 
 ipcMain.on('login', async (event, { username, password }) => {
     const controller = new UsuarioController();
@@ -111,8 +123,9 @@ ipcMain.on('leer-html', (event, filePath) => {
         event.sender.send('html-cargado', data);
     });
 });
-
-
+/* --------------------------------         ------------------------------------------
+   -------------------------------- USUARIO ------------------------------------------
+   --------------------------------         ------------------------------------------ */
 ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRolFiltro, valorBusqueda }) => {
     const controller = new UsuarioController();
     try {
@@ -152,7 +165,6 @@ ipcMain.on('listar-usuarios', async (event, { pageSize, pageNumber, estado, idRo
         }
     }
 });
-
 
 ipcMain.on('actualizar-usuario', async (event, usuarioData) => {
     try {
@@ -352,6 +364,130 @@ ipcMain.on('editar-colaborador', async (event, colaboradorData) => {
     }
 });
 
+/* --------------------------------             ------------------------------------------
+   --------------------------------producto ------------------------------------------
+   --------------------------------             ------------------------------------------ */
+ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoproducto, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }) => {
+    const productoController = new ProductoController();
+    try {
+        const resultado = await productoController.getProductos(pageSize, currentPage, estadoproducto, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
+
+        // En lugar de simplificar los datos, devolver el array completo con todos los atributos
+        const productosCompletos = resultado.productos.map(producto => {
+            return {
+                idproducto:producto.getIdproducto(),
+                nombreproducto:producto.getNombre(),
+                cedulaproducto:producto.getCedula(),
+                primerApellidoproducto:producto.getPrimerApellido(),
+                segundoApellidoproducto:producto.getSegundoApellido(),
+                fechaNacimiento:producto.getFechaNacimiento(),
+                numTelefono:producto.getNumTelefono(),
+                fechaIngreso:producto.getFechaIngreso(),
+                fechaSalida:producto.getFechaSalida(),
+                estado:producto.getEstado(),
+                correo:producto.getCorreo(),
+                nombreDepartamento:producto.getIdDepartamento().getNombre(),
+                nombrePuesto:producto.getIdPuesto().getNombre()
+            };
+        });
+
+        // Preparar el objeto de respuesta que incluye losproductos completos y los datos de paginación
+        const respuesta = {
+           productos: productosCompletos,  // Lista completa deproductos con todos los atributos
+            paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
+        };
+
+        if (mainWindow) {  // Verifica que mainWindow esté definido
+            mainWindow.webContents.send('cargar-productos', respuesta); // Enviar losproductos completos al frontend
+        }
+    } catch (error) {
+        console.error('Error al listar losproductos:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-productos', 'Hubo un error al cargar losproductos.');
+        }
+    }
+});
+
+ipcMain.on('crear-producto', async (event,productoData) => {
+    try {
+        // Crear un objetoproducto y setear los datos
+        constproducto = newproducto();
+       producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
+       producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
+       producto.setNombre(productoData.nombre);
+       producto.setPrimerApellido(productoData.primerApellido);
+       producto.setSegundoApellido(productoData.segundoApellido);
+       producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
+       producto.setNumTelefono(productoData.numTelefono);
+       producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
+       producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
+       producto.setEstado(1); // Debe ser booleano o compatible
+       producto.setCorreo(productoData.correo);
+       producto.setCedula(productoData.cedula);
+
+        // Llamar al método insertarproducto en elproductoController
+        constproductoController = newproductoController();
+        const resultado = awaitproductoController.insertarproducto(producto);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-crear-producto', resultado); // Pasar el resultado que viene desdeproductoController
+    } catch (error) {
+        console.error('Error al crearproducto:', error);
+        event.reply('respuesta-crear-producto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-producto', async (event,productoId, estado) => {
+    try {
+        // Crear un objeto Usuario y setear los datos
+        constproducto = newproducto();
+       producto.setIdproducto(productoId);
+       producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
+
+        // Llamar al método de actualizar en el UsuarioController
+        constproductoController = newproductoController();
+        const resultado = awaitproductoController.eliminarproducto(producto);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-eliminar-producto', resultado); // Pasar el resultado que viene desde UsuarioController
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        event.reply('respuesta-eliminar-usuario', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('editar-producto', async (event,productoData) => {
+    try {
+        // Crear un objetoproducto y setear los datos
+        constproducto = newproducto();
+       producto.setIdproducto(productoData.idproducto);
+       producto.setNombre(productoData.nombre);
+       producto.setPrimerApellido(productoData.primerApellido);
+       producto.setSegundoApellido(productoData.segundoApellido);
+       producto.setFechaNacimiento(productoData.fechaNacimiento);
+       producto.setNumTelefono(productoData.numTelefono);
+       producto.setFechaIngreso(productoData.fechaIngreso);
+       producto.setFechaSalida(productoData.fechaSalida);
+       producto.setEstado(1);
+       producto.setCorreo(productoData.correo);
+       producto.setCedula(productoData.cedula);
+       producto.setIdDepartamento(productoData.idDepartamento);
+       producto.setIdPuesto(productoData.idPuesto);
+
+        // Llamar al método de editarproducto en elproductoController
+        constproductoController = newproductoController();
+        const resultado = awaitproductoController.editarproducto(producto);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-actualizar-producto', resultado); // Pasar el resultado que viene desdeproductoController
+    } catch (error) {
+        console.error('Error al editarproducto:', error);
+        event.reply('respuesta-editar-producto', { success: false, message: error.message });
+    }
+});
+/* --------------------------------              ------------------------------------------
+   -------------------------------- DEPARTAMENTO ------------------------------------------
+   --------------------------------              ------------------------------------------ */
 ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const departamentoController = new DepartamentoController();
     try {
@@ -376,12 +512,14 @@ ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado
         event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
     }
 });
-
+/* --------------------------------                   ------------------------------------------
+   -------------------------------- PUESTO DE TRABAJO ------------------------------------------
+   --------------------------------                   ------------------------------------------ */
 ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const puestoTrabajoController = new PuestoTrabajoController();
 
     try {
-        const resultado = await puestoTrabajoController.getPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda);
+        const resultado = await puestoTrabajoController.getPuestos(pageSize, currentPage, estado, valorBusqueda);
 
         // Serializar los datos de los puestos de trabajo manualmente para asegurarse de que todo es serializable
         const puestosCompletos = resultado.puestos.map(puesto => ({
@@ -402,19 +540,9 @@ ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, esta
         event.reply('error-cargar-puestos-trabajo', 'Hubo un error al cargar los puestos de trabajo.');
     }
 });
-
-
-app.whenReady().then(() => {
-    createWindow();
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-});
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
-});
-
+/* --------------------------------                    ------------------------------------------
+   -------------------------------- CATEGORIA PRODUCTO ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
 ipcMain.on('listar-categorias', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     try {
         const controller = new CategoriaProductoController(pageSize, currentPage, estado, valorBusqueda);
@@ -459,7 +587,6 @@ ipcMain.on('actualizar-categoria', async (event, categoriaData) => {
     }
 });
 
-
 ipcMain.on('eliminar-categoria', async (event, categoriaId, estado) => {
     try {
         const categoriaController = new CategoriaProductoController();
@@ -493,8 +620,9 @@ ipcMain.on('crear-categoria', async (event, categoriaData) => {
         event.reply('respuesta-crear-categoria', { success: false, message: error.message });
     }
 });
-
-
+/* --------------------------------           ------------------------------------------
+   -------------------------------- PROVEEDOR ------------------------------------------
+   --------------------------------           ------------------------------------------ */
 ipcMain.on('listar-proveedores', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new ProveedorController();
 
@@ -535,7 +663,7 @@ ipcMain.on('listar-proveedores', async (event, { pageSize, currentPage, estado, 
 
 ipcMain.on('crear-proveedor', async (event, proveedorData) => {
     try {
-        // Crear un objeto Colaborador y setear los datos
+        // Crear un objetoproducto y setear los datos
         const proveedor = new Proveedor();
         proveedor.setNombre(proveedorData.nombre);
         proveedor.setProvincia(proveedorData.provincia);
@@ -557,7 +685,7 @@ ipcMain.on('crear-proveedor', async (event, proveedorData) => {
 
 ipcMain.on('editar-proveedor', async (event, proveedorData) => {
     try {
-        // Crear un objeto Colaborador y setear los datos
+        // Crear un objetoproducto y setear los datos
         const proveedor = new Proveedor();
         proveedor.setIdProveedor(proveedorData.idProveedor);
         proveedor.setNombre(proveedorData.nombre);
@@ -594,7 +722,9 @@ ipcMain.on('eliminar-proveedor', async (event, proveedorId, estado) => {
         event.reply('respuesta-eliminar-proveedor', { success: false, message: error.message });
     }
 });
-
+/* --------------------------------                   ------------------------------------------
+   -------------------------------- PUESTO DE TRABAJO ------------------------------------------
+   --------------------------------                   ------------------------------------------ */
 ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const puestoTrabajoController = new PuestoTrabajoController();
 
@@ -670,7 +800,9 @@ ipcMain.on('eliminar-puesto', async (event, puestoId, estado) => {
         event.reply('respuesta-eliminar-puesto', { success: false, message: error.message });
     }
 });
-
+/* --------------------------------                    ------------------------------------------
+   -------------------------------- ENTIDAD FINANCIERA ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
 ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const controller = new EntidadFinancieraController();
 
@@ -703,5 +835,41 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
     } catch (error) {
         console.error('Error al listar las entidades financieras:', error);
         mainWindow?.webContents.send('error-cargar-entidades-financieras', `Hubo un error al cargar las entidades financieras: ${error.message}`);
+    }
+});
+
+
+ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda }) => {
+    const productoController = new ProductoController();
+    try {
+        const resultado = await productoController.getProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda);
+
+        const productosCompletos = resultado.productos.map(producto => {
+            return {
+                idProducto: producto.getIdProducto(),
+                nombreProducto: producto.getDescripcion(), 
+                cantidad: producto.getCantidad(),
+                unidadMedicion: producto.getUnidadMedicion(), 
+                estadoProducto: producto.getEstado(), 
+                idCategoria: producto.getCategoria().getIdCategoria(), 
+                nombreCategoria: producto.getCategoria().getNombre(), 
+                descripcionCategoria: producto.getCategoria().getDescripcion(),
+                estadoCategoria: producto.getCategoria().getEstado()
+            };
+        });
+
+        const respuesta = {
+           productos:productosCompletos, 
+            paginacion: resultado.pagination  
+        };
+
+        if (mainWindow) {  
+            mainWindow.webContents.send('cargar-productos', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar los productos:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-productos', 'Hubo un error al cargar los productos.');
+        }
     }
 });
