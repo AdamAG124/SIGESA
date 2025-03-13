@@ -5,13 +5,15 @@
     </button>
 </div>
 <div class="search-bar">
-    <input id="search-bar" type="text" placeholder="Buscar facturas...">
+    <input id="search-bar" type="text" placeholder="Buscar facturas..." onkeypress="filterTable(6)">
 </div>
 <div class="filters">
     <select id="selectPageSize" onchange="filterTable(6)">
-        <option>10 por página</option>
-        <option>25 por página</option>
-        <option>50 por página</option>
+        <option value="5">5 por página</option>
+        <option value="10" selected>10 por página</option>
+        <option value="25">25 por página</option>
+        <option value="50">50 por página</option>
+        <option value="100">100 por página</option>
     </select>
     <select id="estadoFiltro">
         <option value="2">Todos</option>

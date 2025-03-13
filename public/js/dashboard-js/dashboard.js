@@ -464,7 +464,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
         cargarEntidadesFinancierasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
       case 6:
-        cargarFacturasTabla(pagination.pageSize, page, pagination.idComprobantePago, pagination.idProveedor, pagination.fechaInicio, pagination.fechaFin, pagination.estadoFactura, pagination.valorBusqueda);
+        cargarFacturasTabla(pagination.pageSize, page, pagination.estadoFactura, pagination.idProveedor, pagination.fechaInicio, pagination.fechaFin, pagination.idComprobantePago, pagination.valorBusqueda);
       break;
       default:
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -546,6 +546,13 @@ function filterTable(moduloFiltrar) {
       cargarEntidadesFinancierasTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
     case 6:
+      console.log(document.getElementById("estadoFiltro").value);
+      console.log(document.getElementById("proveedorFiltro").value);
+      console.log(document.getElementById("fechaInicialFiltro").value);
+      console.log(document.getElementById("fechaFinalFiltro").value);
+      console.log(document.getElementById("comprobanteFiltro").value);
+      console.log(document.getElementById("search-bar").value);
+      console.log(pageSize);
       cargarFacturasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("proveedorFiltro").value), Number(document.getElementById("fechaInicialFiltro").value), Number(document.getElementById("fechaFinalFiltro").value), Number(document.getElementById("comprobanteFiltro").value), document.getElementById("search-bar").value);
     break;
   }
@@ -1921,23 +1928,23 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
 
-function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = null, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
+function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
   // Obtener los elementos del DOM
-  const selectPageSize = document.querySelector('.filters select:first-child'); // Tamaño de página
-  const selectEstado = document.querySelector('.filters select:nth-child(2)'); // Estado
-  const inputFechaInicio = document.querySelector('.date-range input:first-child');
-  const inputFechaFin = document.querySelector('.date-range input:last-child');
-  const selectProveedor = document.querySelector('.filters select:nth-child(4)'); // Proveedor
-  const selectComprobante = document.querySelector('.filters select:last-child'); // Comprobante
-  const searchInput = document.querySelector('.search-bar input');
+  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+  const selectEstado = document.getElementById('estadoFiltro'); // Estado
+  const inputFechaInicio = document.getElementById('fechaInicialFiltro');
+  const inputFechaFin = document.getElementById('fechaFinalFiltro');
+  const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
+  const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
+  const searchInput = document.getElementById('search-bar');
 
   // Configurar valores iniciales en los filtros
-  selectPageSize.value = `${pageSize} por página`;
+  selectPageSize.value = pageSize;
 
   // Configurar el select de estado
-  if (estadoFactura === 1) selectEstado.value = 'Activas';
-  else if (estadoFactura === 0) selectEstado.value = 'Inactivas';
-  else selectEstado.value = 'Todos';
+  if (estadoFactura === 1) selectEstado.value = 1;
+  else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
+  else selectEstado.value = 2;
 
   // Configurar fechas
   if (fechaInicio) inputFechaInicio.value = fechaInicio;
