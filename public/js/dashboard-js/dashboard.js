@@ -1914,3 +1914,71 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
+
+function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = null, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
+  // Obtener los elementos del DOM
+  const selectPageSize = document.querySelector('.filters select:first-child'); // Tamaño de página
+  const selectEstado = document.querySelector('.filters select:nth-child(2)'); // Estado
+  const inputFechaInicio = document.querySelector('.date-range input:first-child');
+  const inputFechaFin = document.querySelector('.date-range input:last-child');
+  const selectProveedor = document.querySelector('.filters select:nth-child(4)'); // Proveedor
+  const selectComprobante = document.querySelector('.filters select:last-child'); // Comprobante
+  const searchInput = document.querySelector('.search-bar input');
+
+  // Configurar valores iniciales en los filtros
+  selectPageSize.value = `${pageSize} por página`;
+
+  // Configurar el select de estado
+  if (estadoFactura === 1) selectEstado.value = 'Activas';
+  else if (estadoFactura === 0) selectEstado.value = 'Inactivas';
+  else selectEstado.value = 'Todos';
+
+  // Configurar fechas
+  if (fechaInicio) inputFechaInicio.value = fechaInicio;
+  if (fechaFin) inputFechaFin.value = fechaFin;
+
+  // Configurar proveedor y comprobante (valores placeholder por ahora)
+  if (idProveedor) selectProveedor.value = idProveedor;
+  if (idComprobantePago) selectComprobante.value = idComprobantePago;
+
+  // Configurar búsqueda
+  if (searchValue) searchInput.value = searchValue;
+
+  // Llamar al método del preload.js pasando los datos de paginación y filtros
+  window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
+    const tbody = document.getElementById("facturas-table-body");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+
+    // Iterar sobre las facturas y agregarlas a la tabla
+    respuesta.facturas.forEach((factura) => {
+      const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
+      const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+                <td>${factura.idProveedor || 'Sin proveedor'}</td>
+                <td>${factura.numeroFactura || 'Sin número'}</td>
+                <td>${fechaFactura}</td>
+                <td>${factura.idComprobantePago || 'Sin comprobante'}</td>
+                <td class="action-icons">
+                    <button class="tooltip" value="${factura.idFactura}" onclick="editarFactura(this.value, this)">
+                        <span class="material-icons">edit</span>
+                        <span class="tooltiptext">Editar factura</span>
+                    </button>
+                    <button class="tooltip" value="${factura.idFactura}" onclick="${factura.estadoFactura === 1 ? `actualizarEstadoFactura(this.value, 0, 'Eliminando factura', '¿Está seguro que desea eliminar esta factura?', 1)` : `actualizarEstadoFactura(this.value, 1, 'Reactivando factura', '¿Está seguro que desea reactivar esta factura?', 1)`}">
+                        <span class="material-icons">
+                            ${factura.estadoFactura === 1 ? 'delete' : 'restore'}
+                        </span>
+                        <span class="tooltiptext">
+                            ${factura.estadoFactura === 1 ? 'Eliminar factura' : 'Reactivar factura'}
+                        </span>
+                    </button>
+                </td>
+            `;
+      tbody.appendChild(row);
+    });
+
+    // Actualizar los botones de paginación
+    actualizarPaginacion(respuesta.paginacion, ".pagination");
+  });
+}

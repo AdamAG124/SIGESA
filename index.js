@@ -15,6 +15,7 @@ const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
+const FacturaController = require('./controllers/FacturaController');
 // const Producto = require('./domain/Producto');
 const fs = require('fs');
 
@@ -870,6 +871,45 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         console.error('Error al listar los productos:', error);
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-productos', 'Hubo un error al cargar los productos.');
+        }
+    }
+});
+
+/* --------------------------------                    ------------------------------------------
+   --------------------------------       Factura      ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
+
+   ipcMain.on('listar-facturas', async (event, { pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue }) => {
+    const facturaController = new FacturaController();
+    try {
+        const resultado = await facturaController.listarFacturas(pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue);
+
+        const facturasCompletas = resultado.facturas.map(factura => {
+            return {
+                idFactura: factura.getIdFactura(),
+                idProveedor: factura.getIdProveedor().getIdProveedor(),
+                idComprobantePago: factura.getIdComprobante().getIdComprobante(),
+                numeroFactura: factura.getNumeroFactura(),
+                fechaFactura: factura.getFechaFactura(),
+                detallesAdicionales: factura.getDetallesAdicionales(),
+                impuesto: factura.getImpuesto(),
+                descuento: factura.getDescuento(),
+                estadoFactura: factura.getEstado()
+            };
+        });
+
+        const respuesta = {
+            facturas: facturasCompletas,
+            paginacion: resultado.pagination
+        };
+
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-facturas', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar las facturas:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-facturas', 'Hubo un error al cargar las facturas.');
         }
     }
 });
