@@ -1978,6 +1978,10 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
                         <span class="material-icons">edit</span>
                         <span class="tooltiptext">Editar factura</span>
                     </button>
+                    <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, this)">
+                        <span class="material-icons">info</span>
+                        <span class="tooltiptext">Ver detalles</span>
+                    </button>
                     <button class="tooltip" value="${factura.idFactura}" onclick="${factura.estadoFactura === 1 ? `actualizarEstadoFactura(this.value, 0, 'Eliminando factura', '¿Está seguro que desea eliminar esta factura?', 1)` : `actualizarEstadoFactura(this.value, 1, 'Reactivando factura', '¿Está seguro que desea reactivar esta factura?', 1)`}">
                         <span class="material-icons">
                             ${factura.estadoFactura === 1 ? 'delete' : 'restore'}
@@ -1994,4 +1998,18 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
     // Actualizar los botones de paginación
     actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
   });
+}
+
+function verDetallesFactura(idFactura, button){
+  adjuntarHTML('/factura-view/detalles-factura.html', false);
+}
+
+async function handlePrintPreview() {
+  // Mostrar un indicador de carga si lo deseas
+  
+  // Generar el PDF y abrirlo para vista previa
+  const pdfPath = await window.api.printToPDF();
+  
+  // Si se desea imprimir directamente después de ver la vista previa,
+  // el usuario puede usar el visor de PDF del sistema para imprimir
 }

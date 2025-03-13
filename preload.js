@@ -182,4 +182,12 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('listar-facturas', { pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue });
         ipcRenderer.once('cargar-facturas', (event, respuesta) => callback(respuesta));
     },
+
+    obtenerFactura: (idFactura, callback) => {
+        ipcRenderer.send('listar-productos-por-factura', { idFactura });
+        ipcRenderer.once('cargar-productos-por-factura', (event, respuesta) => callback(respuesta));
+    },
+
+    printToPDF: () => ipcRenderer.invoke('print-to-pdf'),
+    printPDF: (pdfPath) => ipcRenderer.invoke('print-pdf', pdfPath),
 });

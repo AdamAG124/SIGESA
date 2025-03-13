@@ -1,0 +1,375 @@
+
+<style>
+    
+    .content-title {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn {
+        background-color: var(--primary-color);
+        color: var(--background-color);
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: var(--hover-color);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+    }
+
+    .btn-secondary:hover {
+        background-color: #7a1bd2;
+    }
+
+    .invoice-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .card {
+        background-color: var(--card-background);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--primary-color);
+    }
+
+    .invoice-header {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .invoice-info,
+    .supplier-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .info-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .info-label {
+        font-weight: 500;
+        min-width: 150px;
+    }
+
+    .info-value {
+        color: #555;
+    }
+
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .products-table th,
+    .products-table td {
+        border: 1px solid var(--border-color);
+        padding: 10px;
+        text-align: left;
+    }
+
+    .products-table th {
+        background-color: var(--secondary-color);
+        color: var(--background-color);
+    }
+
+    .products-table tr:nth-child(even) {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .summary-section {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .summary-table {
+        width: 350px;
+        border-collapse: collapse;
+    }
+
+    .summary-table td {
+        padding: 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .summary-table tr:last-child td {
+        border-bottom: none;
+        font-weight: bold;
+    }
+
+    .summary-table td:last-child {
+        text-align: right;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background-color: #e6f7e6;
+        color: #28a745;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #dc3545;
+    }
+
+    .user-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    #more-options-arrow {
+        transition: transform 0.3s ease;
+    }
+
+    .rotate {
+        transform: rotate(180deg);
+    }
+
+    @media print {
+
+        header,
+        .sidebar,
+        .action-buttons {
+            display: none;
+        }
+
+        .main-container {
+            display: block;
+        }
+
+        .main-content {
+            width: 100%;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+            page-break-inside: avoid;
+        }
+    }
+</style>
+
+<div class="content-header">
+    <h1 class="content-title">Detalles de Factura #F-12345</h1>
+    <div class="action-buttons">
+        <button class="btn" onclick="handlePrintPreview()">
+            <span class="material-icons">print</span>
+            Imprimir
+        </button>
+        <button class="btn btn-secondary">
+            <span class="material-icons">edit</span>
+            Editar
+        </button>
+        <button class="btn" onclick="window.history.back()">
+            <span class="material-icons">arrow_back</span>
+            Volver
+        </button>
+    </div>
+</div>
+
+<div class="invoice-container">
+    <!-- Información general de la factura -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Información General</h2>
+            <span class="status-badge status-active">Activo</span>
+        </div>
+        <div class="invoice-header">
+            <div class="invoice-info">
+                <div class="info-row">
+                    <span class="info-label">Número de Factura:</span>
+                    <span class="info-value">F-12345</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Fecha de Factura:</span>
+                    <span class="info-value">15/03/2025</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Comprobante de Pago:</span>
+                    <span class="info-value">CP-789</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Estado:</span>
+                    <span class="info-value">Activo</span>
+                </div>
+            </div>
+            <div class="supplier-info">
+                <div class="info-row">
+                    <span class="info-label">Proveedor:</span>
+                    <span class="info-value">Distribuidora XYZ</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Registrado por:</span>
+                    <span class="info-value">María González</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Departamento:</span>
+                    <span class="info-value">Compras</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Teléfono:</span>
+                    <span class="info-value">+1 234 567 8901</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos de la factura -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Productos</h2>
+        </div>
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Descripción</th>
+                    <th>Unidad</th>
+                    <th>Cant. Anterior</th>
+                    <th>Cant. Entrando</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Laptop HP</td>
+                    <td>Laptop HP Pavilion 15"</td>
+                    <td>Unidad</td>
+                    <td>10</td>
+                    <td>5</td>
+                    <td>$800.00</td>
+                    <td>$4,000.00</td>
+                </tr>
+                <tr>
+                    <td>Monitor Dell</td>
+                    <td>Monitor Dell 24" Full HD</td>
+                    <td>Unidad</td>
+                    <td>15</td>
+                    <td>8</td>
+                    <td>$200.00</td>
+                    <td>$1,600.00</td>
+                </tr>
+                <tr>
+                    <td>Teclado Logitech</td>
+                    <td>Teclado inalámbrico Logitech K780</td>
+                    <td>Unidad</td>
+                    <td>20</td>
+                    <td>10</td>
+                    <td>$50.00</td>
+                    <td>$500.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="summary-section" style="margin-top: 20px;">
+            <table class="summary-table">
+                <tr>
+                    <td>Subtotal:</td>
+                    <td>$6,100.00</td>
+                </tr>
+                <tr>
+                    <td>Impuesto (13%):</td>
+                    <td>$793.00</td>
+                </tr>
+                <tr>
+                    <td>Descuento:</td>
+                    <td>$300.00</td>
+                </tr>
+                <tr>
+                    <td>Total:</td>
+                    <td>$6,593.00</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Información del usuario/colaborador -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Información del Colaborador</h2>
+        </div>
+        <div class="user-details">
+            <div class="info-row">
+                <span class="info-label">Nombre:</span>
+                <span class="info-value">María González Rodríguez</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Cédula:</span>
+                <span class="info-value">1-1234-5678</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Puesto:</span>
+                <span class="info-value">Asistente de Compras</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Departamento:</span>
+                <span class="info-value">Compras</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Correo:</span>
+                <span class="info-value">maria.gonzalez@example.com</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Teléfono:</span>
+                <span class="info-value">+1 234 567 8901</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles adicionales -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Detalles Adicionales</h2>
+        </div>
+        <div class="info-row" style="margin-bottom: 0;">
+            <span class="info-label">Notas:</span>
+            <span class="info-value">Entrega realizada en el almacén principal. Se verificó el estado de todos los
+                productos al momento de la recepción. No se encontraron daños ni faltantes.</span>
+        </div>
+    </div>
+</div>

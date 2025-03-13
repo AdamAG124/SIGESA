@@ -16,6 +16,8 @@ const EntidadFinancieraController = require('./controllers/EntidadFinancieraCont
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
 const FacturaController = require('./controllers/FacturaController');
+const os = require('os')
+const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
 const fs = require('fs');
 
@@ -879,7 +881,7 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
    --------------------------------       Factura      ------------------------------------------
    --------------------------------                    ------------------------------------------ */
 
-   ipcMain.on('listar-facturas', async (event, { pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue }) => {
+ipcMain.on('listar-facturas', async (event, { pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue }) => {
     const facturaController = new FacturaController();
     try {
         const resultado = await facturaController.listarFacturas(pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue);
@@ -913,5 +915,124 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-facturas', 'Hubo un error al cargar las facturas.');
         }
+    }
+});
+
+ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
+    const facturaProductoController = new FacturaProductoController();
+    try {
+        // Llamar al método del controlador
+        const resultado = await facturaProductoController.obtenerFacturaProductos(idFactura);
+
+        // Mapear los objetos FacturaProducto a un formato plano para enviar al frontend
+        const productosCompletos = resultado.map(facturaProducto => {
+            return {
+                idFacturaProducto: facturaProducto.getIdFacturaProducto(),
+                idFactura: facturaProducto.getIdFactura().getIdFactura(),
+                numeroFactura: facturaProducto.getIdFactura().getNumeroFactura(),
+                fechaFactura: facturaProducto.getIdFactura().getFechaFactura(),
+                detallesAdicionales: facturaProducto.getIdFactura().getDetallesAdicionales(),
+                impuesto: facturaProducto.getIdFactura().getImpuesto(),
+                descuento: facturaProducto.getIdFactura().getDescuento(),
+                estadoFactura: facturaProducto.getIdFactura().getEstado(),
+                idProveedor: facturaProducto.getIdFactura().getIdProveedor(), // Solo ID
+                idComprobantePago: facturaProducto.getIdFactura().getIdComprobante(), // Solo ID
+                idProducto: facturaProducto.getIdProducto().getIdProducto(),
+                nombreProducto: facturaProducto.getIdProducto().getNombre(),
+                descripcionProducto: facturaProducto.getIdProducto().getDescripcion(),
+                cantidadTotalProducto: facturaProducto.getIdProducto().getCantidad(),
+                unidadMedicion: facturaProducto.getIdProducto().getUnidadMedicion(),
+                estadoProducto: facturaProducto.getIdProducto().getEstado(),
+                cantidadAnterior: facturaProducto.getCantidadAnterior(),
+                cantidadEntrando: facturaProducto.getCantidadEntrando(),
+                precioNueva: facturaProducto.getPrecioNueva(),
+                idUsuario: facturaProducto.getIdUsuario().getIdUsuario(),
+                nombreUsuario: facturaProducto.getIdUsuario().getNombreUsuario(),
+                estadoUsuario: facturaProducto.getIdUsuario().getEstado(),
+                nombreColaborador: facturaProducto.getIdUsuario().getIdColaborador().getNombre(),
+                primerApellido: facturaProducto.getIdUsuario().getIdColaborador().getPrimerApellido(),
+                segundoApellido: facturaProducto.getIdUsuario().getIdColaborador().getSegundoApellido(),
+                estadoColaborador: facturaProducto.getIdUsuario().getIdColaborador().getEstado(),
+                correoColaborador: facturaProducto.getIdUsuario().getIdColaborador().getCorreo(),
+                cedulaColaborador: facturaProducto.getIdUsuario().getIdColaborador().getCedula(),
+                estadoFacturaProducto: facturaProducto.getEstado()
+            };
+        });
+
+        // Construir la respuesta (solo el array de productos, sin paginación)
+        const respuesta = {
+            productos: productosCompletos
+        };
+
+        // Enviar la respuesta al proceso de renderizado
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-productos-por-factura', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar los productos de la factura:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-productos-por-factura', 'Hubo un error al cargar los productos de la factura.');
+        }
+    }
+});
+
+ipcMain.handle('print-to-pdf', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    
+    // Configuración para el PDF
+    const options = {
+        printBackground: true,
+        margins: {
+            marginType: 'printableArea'
+        },
+        pageSize: 'A4'
+    }
+    
+    try {
+        // Generar el PDF
+        const data = await win.webContents.printToPDF(options)
+        
+        // Crear un archivo temporal para el PDF
+        const tempPath = path.join(os.tmpdir(), `factura-${Date.now()}.pdf`)
+        fs.writeFileSync(tempPath, data)
+        
+        // Abrir el PDF con el visor predeterminado del sistema
+        shell.openPath(tempPath)
+        
+        return tempPath
+    } catch (error) {
+        console.error('Error al generar PDF:', error)
+        dialog.showErrorBox('Error', 'No se pudo generar el PDF')
+        return null
+    }
+})
+
+// Maneja la impresión del PDF
+ipcMain.handle('print-pdf', async (event, pdfPath) => {
+    try {
+        // Crear una ventana oculta para imprimir el PDF
+        const pdfWindow = new BrowserWindow({
+            show: false,
+            webPreferences: {
+                plugins: true
+            }
+        })
+        
+        // Cargar el PDF
+        await pdfWindow.loadURL(`file://${pdfPath}`)
+        
+        // Imprimir el PDF
+        pdfWindow.webContents.print({}, (success) => {
+            pdfWindow.close()
+            if (!success) {
+                dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
+            }
+        })
+        
+        return true
+    } catch (error) {
+        console.error('Error al imprimir PDF:', error)
+        dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
+        return false
     }
 });
