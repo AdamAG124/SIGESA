@@ -174,6 +174,7 @@ contextBridge.exposeInMainWorld('api', {
     onRespuestaActualizarPuesto: (callback) => ipcRenderer.on('respuesta-actualizar-puesto', (event, respuesta) => callback(respuesta)),
     eliminarPuesto: (puestoId, estado) => ipcRenderer.send('eliminar-puesto', puestoId, estado),
     onRespuestaEliminarPuesto: (callback) => ipcRenderer.on('respuesta-eliminar-puesto', (event, respuesta) => callback(respuesta)),
+
     /* --------------------------------           ------------------------------------------
        --------------------------------  Factura  ------------------------------------------
        --------------------------------           ------------------------------------------ */

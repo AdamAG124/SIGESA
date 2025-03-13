@@ -376,25 +376,25 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoprod
         // En lugar de simplificar los datos, devolver el array completo con todos los atributos
         const productosCompletos = resultado.productos.map(producto => {
             return {
-                idproducto:producto.getIdproducto(),
-                nombreproducto:producto.getNombre(),
-                cedulaproducto:producto.getCedula(),
-                primerApellidoproducto:producto.getPrimerApellido(),
-                segundoApellidoproducto:producto.getSegundoApellido(),
-                fechaNacimiento:producto.getFechaNacimiento(),
-                numTelefono:producto.getNumTelefono(),
-                fechaIngreso:producto.getFechaIngreso(),
-                fechaSalida:producto.getFechaSalida(),
-                estado:producto.getEstado(),
-                correo:producto.getCorreo(),
-                nombreDepartamento:producto.getIdDepartamento().getNombre(),
-                nombrePuesto:producto.getIdPuesto().getNombre()
+                idproducto: producto.getIdproducto(),
+                nombreproducto: producto.getNombre(),
+                cedulaproducto: producto.getCedula(),
+                primerApellidoproducto: producto.getPrimerApellido(),
+                segundoApellidoproducto: producto.getSegundoApellido(),
+                fechaNacimiento: producto.getFechaNacimiento(),
+                numTelefono: producto.getNumTelefono(),
+                fechaIngreso: producto.getFechaIngreso(),
+                fechaSalida: producto.getFechaSalida(),
+                estado: producto.getEstado(),
+                correo: producto.getCorreo(),
+                nombreDepartamento: producto.getIdDepartamento().getNombre(),
+                nombrePuesto: producto.getIdPuesto().getNombre()
             };
         });
 
         // Preparar el objeto de respuesta que incluye losproductos completos y los datos de paginación
         const respuesta = {
-           productos: productosCompletos,  // Lista completa deproductos con todos los atributos
+            productos: productosCompletos,  // Lista completa deproductos con todos los atributos
             paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
         };
 
@@ -409,22 +409,22 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoprod
     }
 });
 
-ipcMain.on('crear-producto', async (event,productoData) => {
+ipcMain.on('crear-producto', async (event, productoData) => {
     try {
         // Crear un objetoproducto y setear los datos
         constproducto = newproducto();
-       producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
-       producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
-       producto.setNombre(productoData.nombre);
-       producto.setPrimerApellido(productoData.primerApellido);
-       producto.setSegundoApellido(productoData.segundoApellido);
-       producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
-       producto.setNumTelefono(productoData.numTelefono);
-       producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
-       producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
-       producto.setEstado(1); // Debe ser booleano o compatible
-       producto.setCorreo(productoData.correo);
-       producto.setCedula(productoData.cedula);
+        producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
+        producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
+        producto.setNombre(productoData.nombre);
+        producto.setPrimerApellido(productoData.primerApellido);
+        producto.setSegundoApellido(productoData.segundoApellido);
+        producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
+        producto.setNumTelefono(productoData.numTelefono);
+        producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
+        producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
+        producto.setEstado(1); // Debe ser booleano o compatible
+        producto.setCorreo(productoData.correo);
+        producto.setCedula(productoData.cedula);
 
         // Llamar al método insertarproducto en elproductoController
         constproductoController = newproductoController();
@@ -438,12 +438,12 @@ ipcMain.on('crear-producto', async (event,productoData) => {
     }
 });
 
-ipcMain.on('eliminar-producto', async (event,productoId, estado) => {
+ipcMain.on('eliminar-producto', async (event, productoId, estado) => {
     try {
         // Crear un objeto Usuario y setear los datos
         constproducto = newproducto();
-       producto.setIdproducto(productoId);
-       producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
+        producto.setIdproducto(productoId);
+        producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
 
         // Llamar al método de actualizar en el UsuarioController
         constproductoController = newproductoController();
@@ -457,23 +457,23 @@ ipcMain.on('eliminar-producto', async (event,productoId, estado) => {
     }
 });
 
-ipcMain.on('editar-producto', async (event,productoData) => {
+ipcMain.on('editar-producto', async (event, productoData) => {
     try {
         // Crear un objetoproducto y setear los datos
         constproducto = newproducto();
-       producto.setIdproducto(productoData.idproducto);
-       producto.setNombre(productoData.nombre);
-       producto.setPrimerApellido(productoData.primerApellido);
-       producto.setSegundoApellido(productoData.segundoApellido);
-       producto.setFechaNacimiento(productoData.fechaNacimiento);
-       producto.setNumTelefono(productoData.numTelefono);
-       producto.setFechaIngreso(productoData.fechaIngreso);
-       producto.setFechaSalida(productoData.fechaSalida);
-       producto.setEstado(1);
-       producto.setCorreo(productoData.correo);
-       producto.setCedula(productoData.cedula);
-       producto.setIdDepartamento(productoData.idDepartamento);
-       producto.setIdPuesto(productoData.idPuesto);
+        producto.setIdproducto(productoData.idproducto);
+        producto.setNombre(productoData.nombre);
+        producto.setPrimerApellido(productoData.primerApellido);
+        producto.setSegundoApellido(productoData.segundoApellido);
+        producto.setFechaNacimiento(productoData.fechaNacimiento);
+        producto.setNumTelefono(productoData.numTelefono);
+        producto.setFechaIngreso(productoData.fechaIngreso);
+        producto.setFechaSalida(productoData.fechaSalida);
+        producto.setEstado(1);
+        producto.setCorreo(productoData.correo);
+        producto.setCedula(productoData.cedula);
+        producto.setIdDepartamento(productoData.idDepartamento);
+        producto.setIdPuesto(productoData.idPuesto);
 
         // Llamar al método de editarproducto en elproductoController
         constproductoController = newproductoController();
@@ -848,23 +848,23 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         const productosCompletos = resultado.productos.map(producto => {
             return {
                 idProducto: producto.getIdProducto(),
-                nombreProducto: producto.getDescripcion(), 
+                nombreProducto: producto.getDescripcion(),
                 cantidad: producto.getCantidad(),
-                unidadMedicion: producto.getUnidadMedicion(), 
-                estadoProducto: producto.getEstado(), 
-                idCategoria: producto.getCategoria().getIdCategoria(), 
-                nombreCategoria: producto.getCategoria().getNombre(), 
+                unidadMedicion: producto.getUnidadMedicion(),
+                estadoProducto: producto.getEstado(),
+                idCategoria: producto.getCategoria().getIdCategoria(),
+                nombreCategoria: producto.getCategoria().getNombre(),
                 descripcionCategoria: producto.getCategoria().getDescripcion(),
                 estadoCategoria: producto.getCategoria().getEstado()
             };
         });
 
         const respuesta = {
-           productos:productosCompletos, 
-            paginacion: resultado.pagination  
+            productos: productosCompletos,
+            paginacion: resultado.pagination
         };
 
-        if (mainWindow) {  
+        if (mainWindow) {
             mainWindow.webContents.send('cargar-productos', respuesta);
         }
     } catch (error) {
@@ -887,14 +887,16 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         const facturasCompletas = resultado.facturas.map(factura => {
             return {
                 idFactura: factura.getIdFactura(),
-                idProveedor: factura.getIdProveedor().getIdProveedor(),
-                idComprobantePago: factura.getIdComprobante().getIdComprobante(),
                 numeroFactura: factura.getNumeroFactura(),
                 fechaFactura: factura.getFechaFactura(),
                 detallesAdicionales: factura.getDetallesAdicionales(),
                 impuesto: factura.getImpuesto(),
                 descuento: factura.getDescuento(),
-                estadoFactura: factura.getEstado()
+                estadoFactura: factura.getEstado(),
+                idProveedor: factura.getIdProveedor().getIdProveedor(),
+                nombreProveedor: factura.getIdProveedor().getNombre(),
+                idComprobantePago: factura.getIdComprobante().getIdComprobantePago(),
+                numeroComprobantePago: factura.getIdComprobante().getNumero()
             };
         });
 

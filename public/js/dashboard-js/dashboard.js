@@ -463,6 +463,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 5:
         cargarEntidadesFinancierasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
+      case 6:
+        cargarFacturasTabla(pagination.pageSize, page, pagination.idComprobantePago, pagination.idProveedor, pagination.fechaInicio, pagination.fechaFin, pagination.estadoFactura, pagination.valorBusqueda);
+      break;
       default:
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
         break;
@@ -542,6 +545,9 @@ function filterTable(moduloFiltrar) {
     case 5:
       cargarEntidadesFinancierasTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
+    case 6:
+      cargarFacturasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("proveedorFiltro").value), Number(document.getElementById("fechaInicialFiltro").value), Number(document.getElementById("fechaFinalFiltro").value), Number(document.getElementById("comprobanteFiltro").value), document.getElementById("search-bar").value);
+    break;
   }
 }
 
@@ -1956,10 +1962,10 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = null
 
       const row = document.createElement("tr");
       row.innerHTML = `
-                <td>${factura.idProveedor || 'Sin proveedor'}</td>
+                <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
                 <td>${factura.numeroFactura || 'Sin número'}</td>
                 <td>${fechaFactura}</td>
-                <td>${factura.idComprobantePago || 'Sin comprobante'}</td>
+                <td>${factura.numeroComprobantePago || 'Sin comprobante'}</td>
                 <td class="action-icons">
                     <button class="tooltip" value="${factura.idFactura}" onclick="editarFactura(this.value, this)">
                         <span class="material-icons">edit</span>
@@ -1979,6 +1985,6 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = null
     });
 
     // Actualizar los botones de paginación
-    actualizarPaginacion(respuesta.paginacion, ".pagination");
+    actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
   });
 }
