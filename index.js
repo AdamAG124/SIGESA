@@ -16,6 +16,7 @@ const EntidadFinancieraController = require('./controllers/EntidadFinancieraCont
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
 const FacturaController = require('./controllers/FacturaController');
+const FacturaProductoController = require('./controllers/FacturaProductoController');
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -935,8 +936,8 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 impuesto: facturaProducto.getIdFactura().getImpuesto(),
                 descuento: facturaProducto.getIdFactura().getDescuento(),
                 estadoFactura: facturaProducto.getIdFactura().getEstado(),
-                idProveedor: facturaProducto.getIdFactura().getIdProveedor(), // Solo ID
-                idComprobantePago: facturaProducto.getIdFactura().getIdComprobante(), // Solo ID
+                nombreProveedor: facturaProducto.getIdFactura().getIdProveedor().getNombre(),
+                numeroComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getNumero(),
                 idProducto: facturaProducto.getIdProducto().getIdProducto(),
                 nombreProducto: facturaProducto.getIdProducto().getNombre(),
                 descripcionProducto: facturaProducto.getIdProducto().getDescripcion(),
@@ -945,7 +946,7 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 estadoProducto: facturaProducto.getIdProducto().getEstado(),
                 cantidadAnterior: facturaProducto.getCantidadAnterior(),
                 cantidadEntrando: facturaProducto.getCantidadEntrando(),
-                precioNueva: facturaProducto.getPrecioNueva(),
+                precioNueva: facturaProducto.getPrecioNuevo(),
                 idUsuario: facturaProducto.getIdUsuario().getIdUsuario(),
                 nombreUsuario: facturaProducto.getIdUsuario().getNombreUsuario(),
                 estadoUsuario: facturaProducto.getIdUsuario().getEstado(),
@@ -955,6 +956,9 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 estadoColaborador: facturaProducto.getIdUsuario().getIdColaborador().getEstado(),
                 correoColaborador: facturaProducto.getIdUsuario().getIdColaborador().getCorreo(),
                 cedulaColaborador: facturaProducto.getIdUsuario().getIdColaborador().getCedula(),
+                nombreDepartamento: facturaProducto.getIdUsuario().getIdColaborador().getIdDepartamento().getNombre(),
+                nombrePuesto: facturaProducto.getIdUsuario().getIdColaborador().getIdPuesto().getNombre(),
+                numTelefono: facturaProducto.getIdUsuario().getIdColaborador().getNumTelefono(),
                 estadoFacturaProducto: facturaProducto.getEstado()
             };
         });
@@ -978,7 +982,7 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
 
 ipcMain.handle('print-to-pdf', async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
-    
+
     // Configuración para el PDF
     const options = {
         printBackground: true,
@@ -987,18 +991,18 @@ ipcMain.handle('print-to-pdf', async (event) => {
         },
         pageSize: 'A4'
     }
-    
+
     try {
         // Generar el PDF
         const data = await win.webContents.printToPDF(options)
-        
+
         // Crear un archivo temporal para el PDF
         const tempPath = path.join(os.tmpdir(), `factura-${Date.now()}.pdf`)
         fs.writeFileSync(tempPath, data)
-        
+
         // Abrir el PDF con el visor predeterminado del sistema
         shell.openPath(tempPath)
-        
+
         return tempPath
     } catch (error) {
         console.error('Error al generar PDF:', error)
@@ -1017,10 +1021,10 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
                 plugins: true
             }
         })
-        
+
         // Cargar el PDF
         await pdfWindow.loadURL(`file://${pdfPath}`)
-        
+
         // Imprimir el PDF
         pdfWindow.webContents.print({}, (success) => {
             pdfWindow.close()
@@ -1028,7 +1032,7 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
                 dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
             }
         })
-        
+
         return true
     } catch (error) {
         console.error('Error al imprimir PDF:', error)

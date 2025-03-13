@@ -465,7 +465,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
         break;
       case 6:
         cargarFacturasTabla(pagination.pageSize, page, pagination.estadoFactura, pagination.idProveedor, pagination.fechaInicio, pagination.fechaFin, pagination.idComprobantePago, pagination.valorBusqueda);
-      break;
+        break;
       default:
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
         break;
@@ -554,7 +554,7 @@ function filterTable(moduloFiltrar) {
       console.log(document.getElementById("search-bar").value);
       console.log(pageSize);
       cargarFacturasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("proveedorFiltro").value), Number(document.getElementById("fechaInicialFiltro").value), Number(document.getElementById("fechaFinalFiltro").value), Number(document.getElementById("comprobanteFiltro").value), document.getElementById("search-bar").value);
-    break;
+      break;
   }
 }
 
@@ -2000,16 +2000,80 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
   });
 }
 
-function verDetallesFactura(idFactura, button){
+function verDetallesFactura(idFactura, button) {
   adjuntarHTML('/factura-view/detalles-factura.html', false);
+  cargarFactura(idFactura);
+}
+
+function cargarFactura(idFactura) {
+  window.api.obtenerFactura(idFactura, (respuesta) => {
+    const productos = respuesta.productos;
+
+    if (productos && productos.length > 0) {
+      // Usar el primer objeto para la información general
+      const primerProducto = productos[0];
+
+      // Título
+      document.getElementById('numero-factura').textContent = primerProducto.numeroFactura;
+      document.getElementById('numero-factura-info').textContent = primerProducto.numeroFactura;
+
+      // Información general de la factura
+      document.getElementById('fecha-factura').textContent = primerProducto.fechaFactura;
+      document.getElementById('comprobante-pago').textContent = primerProducto.numeroComprobantePago;
+      document.getElementById('estado-factura-info').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
+      document.getElementById('estado-factura').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
+      document.getElementById('estado-factura').classList.add(primerProducto.estadoFactura === 1 ? 'status-active' : 'status-inactive');
+
+      // Información del proveedor y registrado por
+      document.getElementById('proveedor').textContent = primerProducto.nombreProveedor; // Solo ID, ajusta si tienes el nombre
+      document.getElementById('registrado-por').textContent = primerProducto.nombreUsuario;
+      document.getElementById('departamento').textContent = primerProducto.nombreDepartamento; // No hay campo directo, ajusta si tienes esta info
+      document.getElementById('telefono').textContent = primerProducto.numTelefono || ''; // Ajusta si tienes teléfono del proveedor
+
+      // Información del colaborador
+      document.getElementById('nombre-colaborador').textContent = `${primerProducto.nombreColaborador} ${primerProducto.primerApellido} ${primerProducto.segundoApellido}`;
+      document.getElementById('cedula').textContent = primerProducto.cedulaColaborador;
+      document.getElementById('puesto').textContent = primerProducto.nombrePuesto; // No hay campo directo, ajusta si tienes esta info
+      document.getElementById('departamento-colaborador').textContent = primerProducto.nombreDepartamento; // No hay campo directo, ajusta si tienes esta info
+      document.getElementById('correo').textContent = primerProducto.correoColaborador;
+      document.getElementById('telefono-colaborador').textContent = primerProducto.numTelefono || ''; // Ajusta si tienes teléfono
+
+      // Detalles adicionales
+      document.getElementById('notas').textContent = primerProducto.detallesAdicionales;
+
+      // Llenar la tabla de productos (iterar sobre todos los productos)
+      const productosBody = document.getElementById('productos-body');
+      productosBody.innerHTML = ''; // Limpiar el contenido previo
+      productos.forEach(producto => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+                  <td>${producto.nombreProducto}</td>
+                  <td>${producto.descripcionProducto}</td>
+                  <td>${producto.unidadMedicion}</td>
+                  <td>${producto.cantidadAnterior}</td>
+                  <td>${producto.cantidadEntrando}</td>
+                  <td>₡${parseFloat(producto.precioNueva).toFixed(2)}</td>
+                  <td>₡${parseFloat(producto.cantidadEntrando * producto.precioNueva).toFixed(2)}</td>
+              `;
+        productosBody.appendChild(row);
+      });
+
+      // Calcular y llenar el resumen
+      const subtotal = productos.reduce((sum, prod) => sum + (prod.cantidadEntrando * prod.precioNueva), 0);
+      const impuesto = primerProducto.impuesto || (subtotal * 0.13); // Usa el valor de la factura o calcula 13%
+      const descuento = primerProducto.descuento || 0;
+      const total = subtotal + impuesto - descuento;
+
+      document.getElementById('subtotal').textContent = `₡${subtotal.toFixed(2)}`;
+      document.getElementById('impuesto').textContent = `₡${impuesto.toFixed(2)}`;
+      document.getElementById('descuento').textContent = `₡${descuento.toFixed(2)}`;
+      document.getElementById('total').textContent = `₡${total.toFixed(2)}`;
+    } else {
+      console.error('No se recibieron productos para la factura');
+    }
+  });
 }
 
 async function handlePrintPreview() {
-  // Mostrar un indicador de carga si lo deseas
-  
-  // Generar el PDF y abrirlo para vista previa
   const pdfPath = await window.api.printToPDF();
-  
-  // Si se desea imprimir directamente después de ver la vista previa,
-  // el usuario puede usar el visor de PDF del sistema para imprimir
 }

@@ -85,7 +85,6 @@ class FacturaDB {
             }
 
             query += ` LIMIT ${pageSize} OFFSET ${offset}`;
-            console.log(query);
 
             const [rows] = await connection.query(query);
 

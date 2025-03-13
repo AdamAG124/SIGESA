@@ -7,7 +7,7 @@ class FacturaProductoDB {
 
     constructor() {
         this.#table = 'SIGM_FACTURA_PRODUCTO';
-        this.#db =  new ConectarDB();
+        this.#db = new ConectarDB();
     }
 
     async obtenerProductosPorFactura(idFactura) {
@@ -37,6 +37,12 @@ class FacturaProductoDB {
                     f.MONTO_DESCUENTO AS descuento,
                     f.ESTADO AS estadoFactura,
                     
+                    -- Información del proveedor
+                    prov.DSC_NOMBRE AS nombreProveedor,
+                    
+                    -- Información del comprobante de pago
+                    cp.NUM_COMPROBANTE_PAGO AS numeroComprobantePago,
+                    
                     -- Información del producto
                     p.ID_CATEGORIA_PRODUCTO AS idCategoriaProducto,
                     p.DSC_NOMBRE AS nombreProducto,
@@ -64,17 +70,31 @@ class FacturaProductoDB {
                     c.FEC_SALIDA AS fechaSalida,
                     c.ESTADO AS estadoColaborador,
                     c.DSC_CORREO AS correo,
-                    c.DSC_CEDULA AS cedula
+                    c.DSC_CEDULA AS cedula,
+                    
+                    -- Información del departamento
+                    d.DSC_NOMBRE_DEPARTAMENTO AS nombreDepartamento,
+                    
+                    -- Información del puesto de trabajo
+                    pt.DSC_NOMBRE AS nombrePuestoTrabajo
                 FROM 
                     sigt_factura_producto fp
                 INNER JOIN 
                     sigm_factura f ON fp.ID_FACTURA = f.ID_FACTURA
+                INNER JOIN 
+                    sigm_proveedor prov ON f.ID_PROVEEDOR = prov.ID_PROVEEDOR
+                INNER JOIN 
+                    sigm_comprobante_pago cp ON f.ID_COMPROBANTE_PAGO = cp.ID_COMPROBANTE_PAGO
                 INNER JOIN 
                     sigm_producto p ON fp.ID_PRODUCTO = p.ID_PRODUCTO
                 INNER JOIN 
                     sigm_usuario u ON fp.ID_USUARIO = u.ID_USUARIO
                 INNER JOIN 
                     sigm_colaborador c ON u.ID_COLABORADOR = c.ID_COLABORADOR
+                INNER JOIN 
+                    sigm_departamento d ON c.ID_DEPARTAMENTO = d.ID_DEPARTAMENTO
+                INNER JOIN 
+                    sigm_puesto_trabajo pt ON c.ID_PUESTO = pt.ID_PUESTO_TRABAJO
                 WHERE 
                     fp.ID_FACTURA = ${idFactura}
             `;
@@ -88,14 +108,15 @@ class FacturaProductoDB {
                 facturaProducto.setIdFacturaProducto(row.idFacturaProducto);
                 facturaProducto.setCantidadAnterior(row.cantidadAnterior);
                 facturaProducto.setCantidadEntrando(row.cantidadEntrando);
-                facturaProducto.setPrecioNueva(row.precioNueva);
+                facturaProducto.setPrecioNuevo(row.precioNueva);
                 facturaProducto.setEstado(row.estadoFacturaProducto);
 
                 // Llenar Factura (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdFactura().setIdFactura(row.idFactura);
-                facturaProducto.getIdFactura().setIdProveedor(row.idProveedor); // Solo ID, no objeto Proveedor
-                facturaProducto.getIdFactura().setIdComprobante(row.idComprobantePago); // Solo ID, no objeto ComprobantePago
+                facturaProducto.getIdFactura().getIdProveedor().setNombre(row.nombreProveedor); // Nombre del proveedor
+                facturaProducto.getIdFactura().getIdComprobante().setNumero(row.numeroComprobantePago); // Número del comprobante
                 facturaProducto.getIdFactura().setNumeroFactura(row.numeroFactura);
+                facturaProducto.getIdFactura().setFechaFactura(row.fechaFactura);
                 facturaProducto.getIdFactura().setDetallesAdicionales(row.detallesAdicionales);
                 facturaProducto.getIdFactura().setImpuesto(row.impuesto);
                 facturaProducto.getIdFactura().setDescuento(row.descuento);
@@ -103,7 +124,7 @@ class FacturaProductoDB {
 
                 // Llenar Producto (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdProducto().setIdProducto(row.idProducto);
-                facturaProducto.getIdProducto().setCategoria(row.idCategoriaProducto); // Solo ID, no objeto CategoriaProducto
+                facturaProducto.getIdProducto().setCategoria(row.idCategoriaProducto); // Solo ID
                 facturaProducto.getIdProducto().setNombre(row.nombreProducto);
                 facturaProducto.getIdProducto().setDescripcion(row.descripcionProducto);
                 facturaProducto.getIdProducto().setCantidad(row.cantidadTotalProducto);
@@ -113,14 +134,14 @@ class FacturaProductoDB {
                 // Llenar Usuario (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdUsuario().setIdUsuario(row.idUsuario);
                 facturaProducto.getIdUsuario().setNombreUsuario(row.nombreUsuario);
-                facturaProducto.getIdUsuario().setRol(row.idRol); // Solo ID, no objeto Rol
+                facturaProducto.getIdUsuario().setRol(row.idRol); // Solo ID
                 facturaProducto.getIdUsuario().setPassword(row.password);
                 facturaProducto.getIdUsuario().setEstado(row.estadoUsuario);
 
                 // Llenar Colaborador (usando el objeto existente dentro de Usuario)
                 facturaProducto.getIdUsuario().getIdColaborador().setIdColaborador(row.idColaborador);
-                facturaProducto.getIdUsuario().getIdColaborador().setIdDepartamento(row.idDepartamento); // Solo ID, no objeto Departamento
-                facturaProducto.getIdUsuario().getIdColaborador().setIdPuesto(row.idPuesto); // Solo ID, no objeto PuestoTrabajo
+                facturaProducto.getIdUsuario().getIdColaborador().getIdDepartamento().setNombre(row.nombreDepartamento);
+                facturaProducto.getIdUsuario().getIdColaborador().getIdPuesto().setNombre(row.nombrePuestoTrabajo);
                 facturaProducto.getIdUsuario().getIdColaborador().setNombre(row.nombreColaborador);
                 facturaProducto.getIdUsuario().getIdColaborador().setPrimerApellido(row.primerApellido);
                 facturaProducto.getIdUsuario().getIdColaborador().setSegundoApellido(row.segundoApellido);
@@ -135,6 +156,7 @@ class FacturaProductoDB {
                 return facturaProducto;
             });
 
+            console.log(query);
             return facturasProductos;
 
         } catch (error) {

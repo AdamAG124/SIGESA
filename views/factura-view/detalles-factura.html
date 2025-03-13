@@ -1,6 +1,4 @@
-
 <style>
-    
     .content-title {
         font-size: 24px;
         font-weight: bold;
@@ -84,32 +82,11 @@
 
     .info-label {
         font-weight: 500;
-        min-width: 150px;
+        min-width: 100px;
     }
 
     .info-value {
         color: #555;
-    }
-
-    .products-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .products-table th,
-    .products-table td {
-        border: 1px solid var(--border-color);
-        padding: 10px;
-        text-align: left;
-    }
-
-    .products-table th {
-        background-color: var(--secondary-color);
-        color: var(--background-color);
-    }
-
-    .products-table tr:nth-child(even) {
-        background-color: rgba(0, 0, 0, 0.02);
     }
 
     .summary-section {
@@ -120,16 +97,23 @@
     .summary-table {
         width: 350px;
         border-collapse: collapse;
+        border: none;
     }
 
     .summary-table td {
         padding: 8px;
-        border-bottom: 1px solid var(--border-color);
+        border-left: none;
+        border-right: none;
+        border-top: none;
     }
 
     .summary-table tr:last-child td {
         border-bottom: none;
         font-weight: bold;
+    }
+
+    .summary-table tr:not(:last-child) td {
+        border-bottom: 1px solid #ccc;
     }
 
     .summary-table td:last-child {
@@ -192,9 +176,8 @@
         }
     }
 </style>
-
 <div class="content-header">
-    <h1 class="content-title">Detalles de Factura #F-12345</h1>
+    <h1 class="content-title">Detalles de Factura #<span id="numero-factura"></span></h1>
     <div class="action-buttons">
         <button class="btn" onclick="handlePrintPreview()">
             <span class="material-icons">print</span>
@@ -204,7 +187,7 @@
             <span class="material-icons">edit</span>
             Editar
         </button>
-        <button class="btn" onclick="window.history.back()">
+        <button class="btn" onclick="adjuntarHTML('/factura-view/factura-admin.html', cargarFacturasTabla)">
             <span class="material-icons">arrow_back</span>
             Volver
         </button>
@@ -216,43 +199,43 @@
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">Información General</h2>
-            <span class="status-badge status-active">Activo</span>
+            <span id="estado-factura" class="status-badge"></span>
         </div>
         <div class="invoice-header">
             <div class="invoice-info">
                 <div class="info-row">
                     <span class="info-label">Número de Factura:</span>
-                    <span class="info-value">F-12345</span>
+                    <span class="info-value" id="numero-factura-info"></span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Fecha de Factura:</span>
-                    <span class="info-value">15/03/2025</span>
+                    <span class="info-value" id="fecha-factura"></span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Comprobante de Pago:</span>
-                    <span class="info-value">CP-789</span>
+                    <span class="info-value" id="comprobante-pago"></span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Estado:</span>
-                    <span class="info-value">Activo</span>
+                    <span class="info-value" id="estado-factura-info"></span>
                 </div>
             </div>
             <div class="supplier-info">
                 <div class="info-row">
                     <span class="info-label">Proveedor:</span>
-                    <span class="info-value">Distribuidora XYZ</span>
+                    <span class="info-value" id="proveedor"></span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Registrado por:</span>
-                    <span class="info-value">María González</span>
+                    <span class="info-value" id="registrado-por"></span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Departamento:</span>
-                    <span class="info-value">Compras</span>
+                    <span class="info-value" id="departamento"></span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Teléfono:</span>
-                    <span class="info-value">+1 234 567 8901</span>
+                    <span class="info-value" id="telefono"></span>
                 </div>
             </div>
         </div>
@@ -275,54 +258,26 @@
                     <th>Subtotal</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>Laptop HP</td>
-                    <td>Laptop HP Pavilion 15"</td>
-                    <td>Unidad</td>
-                    <td>10</td>
-                    <td>5</td>
-                    <td>$800.00</td>
-                    <td>$4,000.00</td>
-                </tr>
-                <tr>
-                    <td>Monitor Dell</td>
-                    <td>Monitor Dell 24" Full HD</td>
-                    <td>Unidad</td>
-                    <td>15</td>
-                    <td>8</td>
-                    <td>$200.00</td>
-                    <td>$1,600.00</td>
-                </tr>
-                <tr>
-                    <td>Teclado Logitech</td>
-                    <td>Teclado inalámbrico Logitech K780</td>
-                    <td>Unidad</td>
-                    <td>20</td>
-                    <td>10</td>
-                    <td>$50.00</td>
-                    <td>$500.00</td>
-                </tr>
-            </tbody>
+            <tbody id="productos-body"></tbody>
         </table>
 
         <div class="summary-section" style="margin-top: 20px;">
             <table class="summary-table">
                 <tr>
                     <td>Subtotal:</td>
-                    <td>$6,100.00</td>
+                    <td id="subtotal"></td>
                 </tr>
                 <tr>
                     <td>Impuesto (13%):</td>
-                    <td>$793.00</td>
+                    <td id="impuesto"></td>
                 </tr>
                 <tr>
                     <td>Descuento:</td>
-                    <td>$300.00</td>
+                    <td id="descuento"></td>
                 </tr>
                 <tr>
                     <td>Total:</td>
-                    <td>$6,593.00</td>
+                    <td id="total"></td>
                 </tr>
             </table>
         </div>
@@ -336,27 +291,27 @@
         <div class="user-details">
             <div class="info-row">
                 <span class="info-label">Nombre:</span>
-                <span class="info-value">María González Rodríguez</span>
+                <span class="info-value" id="nombre-colaborador"></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Cédula:</span>
-                <span class="info-value">1-1234-5678</span>
+                <span class="info-value" id="cedula"></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Puesto:</span>
-                <span class="info-value">Asistente de Compras</span>
+                <span class="info-value" id="puesto"></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Departamento:</span>
-                <span class="info-value">Compras</span>
+                <span class="info-value" id="departamento-colaborador"></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Correo:</span>
-                <span class="info-value">maria.gonzalez@example.com</span>
+                <span class="info-value" id="correo"></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Teléfono:</span>
-                <span class="info-value">+1 234 567 8901</span>
+                <span class="info-value" id="telefono-colaborador"></span>
             </div>
         </div>
     </div>
@@ -368,8 +323,7 @@
         </div>
         <div class="info-row" style="margin-bottom: 0;">
             <span class="info-label">Notas:</span>
-            <span class="info-value">Entrega realizada en el almacén principal. Se verificó el estado de todos los
-                productos al momento de la recepción. No se encontraron daños ni faltantes.</span>
+            <span class="info-value" id="notas"></span>
         </div>
     </div>
 </div>
