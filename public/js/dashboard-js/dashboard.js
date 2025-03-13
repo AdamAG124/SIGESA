@@ -1914,3 +1914,119 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
+
+/* --------------------------------          ------------------------------------------
+   --------------------------------Salida- PRODUCTO ------------------------------------------
+   --------------------------------          ------------------------------------------ */
+
+   function abrirModal(modalId) {
+    document.getElementById(modalId).style.display = "block";
+}
+
+function cerrarModal(modalId, formId = null) {
+    document.getElementById(modalId).style.display = "none";
+    if (formId) {
+        document.getElementById(formId).reset();
+    }
+}
+
+function cargarSalidaProductosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+    window.api.obtenerSalidaProductos(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+        const tbody = document.getElementById("salida-productos-body");
+        tbody.innerHTML = ""; // Limpiar contenido previo
+
+        respuesta.salidaProductos.forEach((salidaProducto) => {
+            const estadoTexto = salidaProducto.estado === 1 ? "Activo" : "Inactivo";
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${salidaProducto.idProducto}</td>
+                <td>${salidaProducto.idSalida}</td>
+                <td>${salidaProducto.cantidadAnterior}</td>
+                <td>${salidaProducto.cantidadSaliendo}</td>
+                <td>${salidaProducto.cantidadNueva}</td>
+                <td>${estadoTexto}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
+    });
+}
+
+function enviarCreacionSalidaProducto() {
+    const idProducto = document.getElementById("idProducto").value;
+    const idSalida = document.getElementById("idSalida").value;
+    const cantidadAnterior = document.getElementById("cantidadAnterior").value;
+    const cantidadSaliendo = document.getElementById("cantidadSaliendo").value;
+    const cantidadNueva = document.getElementById("cantidadNueva").value;
+    const estado = document.getElementById("estadoSalidaProducto").checked ? 1 : 0;
+
+    const salidaProductoData = { idProducto, idSalida, cantidadAnterior, cantidadSaliendo, cantidadNueva, estado };
+
+    Swal.fire({
+        title: "Creando salida de producto",
+        text: "¿Está seguro que desea crear esta nueva salida de producto?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#4a4af4",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.api.crearSalidaProducto(salidaProductoData);
+
+            window.api.onRespuestaCrearSalidaProducto((respuesta) => {
+                if (respuesta.success) {
+                    mostrarToastConfirmacion(respuesta.message);
+                    setTimeout(() => {
+                        cargarSalidaProductosTabla();
+                        cerrarModal("crearSalidaProductoModal", "crearSalidaProductoForm");
+                    }, 2000);
+                } else {
+                    mostrarToastError(respuesta.message);
+                }
+            });
+        }
+    });
+}
+
+function enviarEdicionSalidaProducto() {
+    const idSalidaProducto = document.getElementById("idSalidaProducto").value;
+    const idProducto = document.getElementById("idProducto").value;
+    const idSalida = document.getElementById("idSalida").value;
+    const cantidadAnterior = document.getElementById("cantidadAnterior").value;
+    const cantidadSaliendo = document.getElementById("cantidadSaliendo").value;
+    const cantidadNueva = document.getElementById("cantidadNueva").value;
+    const estado = document.getElementById("estadoSalidaProducto").checked ? 1 : 0;
+
+    const salidaProductoData = { idSalidaProducto, idProducto, idSalida, cantidadAnterior, cantidadSaliendo, cantidadNueva, estado };
+
+    Swal.fire({
+        title: "Editando salida de producto",
+        text: "¿Está seguro que desea editar esta salida de producto?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#4a4af4",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.api.editarSalidaProducto(salidaProductoData);
+
+            window.api.onRespuestaActualizarSalidaProducto((respuesta) => {
+                if (respuesta.success) {
+                    mostrarToastConfirmacion(respuesta.message);
+                    setTimeout(() => {
+                        cargarSalidaProductosTabla();
+                        cerrarModal("editarSalidaProductoModal", "editarSalidaProductoForm");
+                    }, 2000);
+                } else {
+                    mostrarToastError(respuesta.message);
+                }
+            });
+        }
+    });
+}

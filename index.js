@@ -15,6 +15,7 @@ const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
+const SalidaProductoController = require('./controllers/SalidaProductoController');
 // const Producto = require('./domain/Producto');
 const fs = require('fs');
 
@@ -839,6 +840,9 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
 });
 
 
+
+
+
 ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda }) => {
     const productoController = new ProductoController();
     try {
@@ -871,5 +875,34 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-productos', 'Hubo un error al cargar los productos.');
         }
+    }
+});
+
+//metodos para Salida producto!!!!!!!!!!!!!!!!!!!!!!!
+ipcMain.on('listar-salida-productos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const salidaProductoController = new SalidaProductoController();
+
+    try {
+        const resultado = await salidaProductoController.listarSalidaProductos(pageSize, currentPage, estado, valorBusqueda);
+
+        const salidaProductosCompletos = resultado.salidaProductos.map(salidaProducto => ({
+            idSalidaProducto: salidaProducto.getIdSalidaProducto(),
+            idProducto: salidaProducto.getIdProducto(),
+            idSalida: salidaProducto.getIdSalida(),
+            cantidadAnterior: salidaProducto.getCantidadAnterior(),
+            cantidadSaliendo: salidaProducto.getCantidadSaliendo(),
+            cantidadNueva: salidaProducto.getCantidadNueva(),
+            estado: salidaProducto.getEstado()
+        }));
+
+        const respuesta = {
+            salidaProductos: salidaProductosCompletos,
+            paginacion: resultado.pagination
+        };
+
+        event.reply('cargar-salida-productos', respuesta);
+    } catch (error) {
+        console.error('Error al listar las salidas de productos:', error);
+        event.reply('error-cargar-salida-productos', 'Hubo un error al listar las salidas de productos.');
     }
 });

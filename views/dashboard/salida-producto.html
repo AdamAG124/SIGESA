@@ -1,0 +1,92 @@
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Salidas de Productos</h1>
+        <button class="add-category-btn" title="Agregar Nueva Salida" onclick="abrirModal('crearSalidaProductoModal')">
+            <span class="material-icons">add_circle</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar salidas de productos..." onkeypress="cargarSalidaProductosTabla()">
+    </div>
+    <div class="filters">
+        <select id="selectPageSize" onchange="cargarSalidaProductosTabla()">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estado-filtro" onchange="cargarSalidaProductosTabla()">
+            <option value="2">Filtrar por estado</option>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+        </select>
+        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID Producto</th>
+                <th>ID Salida</th>
+                <th>Cantidad Anterior</th>
+                <th>Cantidad Saliendo</th>
+                <th>Cantidad Nueva</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody id="salida-productos-body">
+            <!-- Aquí se cargarán las salidas de productos -->
+        </tbody>
+    </table>
+    <div class="pagination">
+        <!-- Aquí se cargarán los controles de paginación -->
+    </div>
+
+    <!-- Modal para Crear Salida de Producto -->
+    <div id="crearSalidaProductoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('crearSalidaProductoModal', 'crearSalidaProductoForm')">&times;</span>
+            <h2>Crear Salida de Producto</h2>
+            <form id="crearSalidaProductoForm">
+                <label for="idProducto">ID Producto:</label>
+                <input type="text" id="idProducto" name="idProducto" required>
+                <label for="idSalida">ID Salida:</label>
+                <input type="text" id="idSalida" name="idSalida" required>
+                <label for="cantidadAnterior">Cantidad Anterior:</label>
+                <input type="number" id="cantidadAnterior" name="cantidadAnterior" required>
+                <label for="cantidadSaliendo">Cantidad Saliendo:</label>
+                <input type="number" id="cantidadSaliendo" name="cantidadSaliendo" required>
+                <label for="cantidadNueva">Cantidad Nueva:</label>
+                <input type="number" id="cantidadNueva" name="cantidadNueva" required>
+                <label for="estadoSalidaProducto">Estado:</label>
+                <input type="checkbox" id="estadoSalidaProducto" name="estadoSalidaProducto">
+                <p id="errorMessage" style="color: red;"></p>
+                <button type="button" class="close-btn" onclick="enviarCreacionSalidaProducto()">Crear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Salida de Producto -->
+    <div id="editarSalidaProductoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarSalidaProductoModal', 'editarSalidaProductoForm')">&times;</span>
+            <h2>Editar Salida de Producto</h2>
+            <form id="editarSalidaProductoForm">
+                <input type="hidden" id="idSalidaProducto" name="idSalidaProducto">
+                <label for="idProducto">ID Producto:</label>
+                <input type="text" id="idProducto" name="idProducto" required>
+                <label for="idSalida">ID Salida:</label>
+                <input type="text" id="idSalida" name="idSalida" required>
+                <label for="cantidadAnterior">Cantidad Anterior:</label>
+                <input type="number" id="cantidadAnterior" name="cantidadAnterior" required>
+                <label for="cantidadSaliendo">Cantidad Saliendo:</label>
+                <input type="number" id="cantidadSaliendo" name="cantidadSaliendo" required>
+                <label for="cantidadNueva">Cantidad Nueva:</label>
+                <input type="number" id="cantidadNueva" name="cantidadNueva" required>
+                <label for="estadoSalidaProducto">Estado:</label>
+                <input type="checkbox" id="estadoSalidaProducto" name="estadoSalidaProducto">
+                <p id="errorMessage" style="color: red;"></p>
+                <button type="button" class="close-btn" onclick="enviarEdicionSalidaProducto()">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</div>

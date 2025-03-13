@@ -175,3 +175,18 @@ contextBridge.exposeInMainWorld('api', {
     eliminarPuesto: (puestoId, estado) => ipcRenderer.send('eliminar-puesto', puestoId, estado),
     onRespuestaEliminarPuesto: (callback) => ipcRenderer.on('respuesta-eliminar-puesto', (event, respuesta) => callback(respuesta)),
 });
+
+
+
+// --------------------------------------------------------------------------------
+//                       SALIDA- PRODUCTO
+
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('api', {
+    obtenerSalidaProductos: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-salida-productos', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-salida-productos', (event, respuesta) => callback(respuesta));
+    },
+    // metodos del crud...
+});
