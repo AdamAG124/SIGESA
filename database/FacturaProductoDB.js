@@ -156,7 +156,6 @@ class FacturaProductoDB {
                 return facturaProducto;
             });
 
-            console.log(query);
             return facturasProductos;
 
         } catch (error) {

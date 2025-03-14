@@ -15,27 +15,21 @@
         <option value="50">50 por página</option>
         <option value="100">100 por página</option>
     </select>
-    <select id="estadoFiltro">
+    <select id="estadoFiltro" onchange="filterTable(6)">
         <option value="2">Todos</option>
         <option value="1" selected>Activas</option>
         <option value="0">Inactivas</option>
     </select>
     <div class="date-range">
-        <input id="fechaInicialFiltro" type="date" placeholder="Fecha inicial">
+        <input id="fechaInicialFiltro" type="date" placeholder="Fecha inicial" onchange="filterTable(6)">
         <span>-</span>
-        <input id="fechaFinalFiltro" type="date" placeholder="Fecha final">
+        <input id="fechaFinalFiltro" type="date" placeholder="Fecha final" onchange="filterTable(6)">
     </div>
     <select id="proveedorFiltro" onchange="filterTable(6)">
-        <option value="0">Filtrar por proveedor</option>
-        <option value="1">Proveedor 1</option>
-        <option value="2">Proveedor 2</option>
-        <option value="3">Proveedor 3</option>
+        
     </select>
     <select id="comprobanteFiltro" onchange="filterTable(6)">
-        <option value="0">Filtrar por comprobante de pago</option>
-        <option value="1">Comprobante 1</option>
-        <option value="2">Comprobante 2</option>
-        <option value="3">Comprobante 3</option>
+
     </select>
 </div>
 <table>
