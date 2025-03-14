@@ -141,7 +141,7 @@ header {
     font-weight: bold;
 }
 
-.add-product-btn, .add-user-btn, .add-supplier-btn, .add-category-btn, .add-proveedor-btn {
+.add-product-btn, .add-user-btn, .add-supplier-btn, .add-category-btn, .add-proveedor-btn, .add-invoice-btn {
     background-color: var(--secondary-color);
     color: var(--background-color);
     border: none;
@@ -154,7 +154,7 @@ header {
     justify-content: center;
 }
 
-.add-product-btn:hover, .add-supplier-btn:hover, .add-user-btn:hover, .add-category-btn:hover, .add-proveedor-btn:hover {
+.add-product-btn:hover, .add-supplier-btn:hover, .add-user-btn:hover, .add-category-btn:hover, .add-proveedor-btn:hover, .add-invoice-btn:hover {
     background-color: #7a1bd2;
 }
 
@@ -366,4 +366,25 @@ button[type="submit"]:hover {
 .fa {
     font-size: 16px;
     color: #333;
+}
+
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filters select, .filters input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }

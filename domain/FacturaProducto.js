@@ -9,7 +9,7 @@ class FacturaProducto {
     #idProducto; // Inicializado como objeto de Producto
     #cantidadAnterior;
     #cantidadEntrando;
-    #precioNueva;
+    #precioNuevo;
     #idUsuario; // Inicializado como objeto de Usuario
     #estado;
 
@@ -20,7 +20,7 @@ class FacturaProducto {
         this.#idProducto = new Producto();             // Inicializado como objeto de Producto
         this.#cantidadAnterior = 0.0;                  // Inicializado como 0.0
         this.#cantidadEntrando = 0.0;                  // Inicializado como 0.0
-        this.#precioNueva = 0.0;                       // Inicializado como 0.0
+        this.#precioNuevo = 0.0;                       // Inicializado como 0.0
         this.#idUsuario = new Usuario();               // Inicializado como objeto de Usuario
         this.#estado = false;                           // Inicializado como false (tinyint(1))
     }
@@ -66,12 +66,12 @@ class FacturaProducto {
         this.#cantidadEntrando = cantidadEntrando;
     }
 
-    getPrecioNueva() {
-        return this.#precioNueva;
+    getPrecioNuevo() {
+        return this.#precioNuevo;
     }
 
-    setPrecioNueva(precioNueva) {
-        this.#precioNueva = precioNueva;
+    setPrecioNuevo(precioNueva) {
+        this.#precioNuevo = precioNueva;
     }
 
     getIdUsuario() {

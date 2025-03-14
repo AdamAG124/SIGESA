@@ -15,6 +15,10 @@ const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
+const FacturaController = require('./controllers/FacturaController');
+const FacturaProductoController = require('./controllers/FacturaProductoController');
+const os = require('os')
+const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
 const fs = require('fs');
 
@@ -375,25 +379,25 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoprod
         // En lugar de simplificar los datos, devolver el array completo con todos los atributos
         const productosCompletos = resultado.productos.map(producto => {
             return {
-                idproducto:producto.getIdproducto(),
-                nombreproducto:producto.getNombre(),
-                cedulaproducto:producto.getCedula(),
-                primerApellidoproducto:producto.getPrimerApellido(),
-                segundoApellidoproducto:producto.getSegundoApellido(),
-                fechaNacimiento:producto.getFechaNacimiento(),
-                numTelefono:producto.getNumTelefono(),
-                fechaIngreso:producto.getFechaIngreso(),
-                fechaSalida:producto.getFechaSalida(),
-                estado:producto.getEstado(),
-                correo:producto.getCorreo(),
-                nombreDepartamento:producto.getIdDepartamento().getNombre(),
-                nombrePuesto:producto.getIdPuesto().getNombre()
+                idproducto: producto.getIdproducto(),
+                nombreproducto: producto.getNombre(),
+                cedulaproducto: producto.getCedula(),
+                primerApellidoproducto: producto.getPrimerApellido(),
+                segundoApellidoproducto: producto.getSegundoApellido(),
+                fechaNacimiento: producto.getFechaNacimiento(),
+                numTelefono: producto.getNumTelefono(),
+                fechaIngreso: producto.getFechaIngreso(),
+                fechaSalida: producto.getFechaSalida(),
+                estado: producto.getEstado(),
+                correo: producto.getCorreo(),
+                nombreDepartamento: producto.getIdDepartamento().getNombre(),
+                nombrePuesto: producto.getIdPuesto().getNombre()
             };
         });
 
         // Preparar el objeto de respuesta que incluye losproductos completos y los datos de paginación
         const respuesta = {
-           productos: productosCompletos,  // Lista completa deproductos con todos los atributos
+            productos: productosCompletos,  // Lista completa deproductos con todos los atributos
             paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
         };
 
@@ -408,22 +412,22 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoprod
     }
 });
 
-ipcMain.on('crear-producto', async (event,productoData) => {
+ipcMain.on('crear-producto', async (event, productoData) => {
     try {
         // Crear un objetoproducto y setear los datos
         constproducto = newproducto();
-       producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
-       producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
-       producto.setNombre(productoData.nombre);
-       producto.setPrimerApellido(productoData.primerApellido);
-       producto.setSegundoApellido(productoData.segundoApellido);
-       producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
-       producto.setNumTelefono(productoData.numTelefono);
-       producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
-       producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
-       producto.setEstado(1); // Debe ser booleano o compatible
-       producto.setCorreo(productoData.correo);
-       producto.setCedula(productoData.cedula);
+        producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
+        producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
+        producto.setNombre(productoData.nombre);
+        producto.setPrimerApellido(productoData.primerApellido);
+        producto.setSegundoApellido(productoData.segundoApellido);
+        producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
+        producto.setNumTelefono(productoData.numTelefono);
+        producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
+        producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
+        producto.setEstado(1); // Debe ser booleano o compatible
+        producto.setCorreo(productoData.correo);
+        producto.setCedula(productoData.cedula);
 
         // Llamar al método insertarproducto en elproductoController
         constproductoController = newproductoController();
@@ -437,12 +441,12 @@ ipcMain.on('crear-producto', async (event,productoData) => {
     }
 });
 
-ipcMain.on('eliminar-producto', async (event,productoId, estado) => {
+ipcMain.on('eliminar-producto', async (event, productoId, estado) => {
     try {
         // Crear un objeto Usuario y setear los datos
         constproducto = newproducto();
-       producto.setIdproducto(productoId);
-       producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
+        producto.setIdproducto(productoId);
+        producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
 
         // Llamar al método de actualizar en el UsuarioController
         constproductoController = newproductoController();
@@ -456,23 +460,23 @@ ipcMain.on('eliminar-producto', async (event,productoId, estado) => {
     }
 });
 
-ipcMain.on('editar-producto', async (event,productoData) => {
+ipcMain.on('editar-producto', async (event, productoData) => {
     try {
         // Crear un objetoproducto y setear los datos
         constproducto = newproducto();
-       producto.setIdproducto(productoData.idproducto);
-       producto.setNombre(productoData.nombre);
-       producto.setPrimerApellido(productoData.primerApellido);
-       producto.setSegundoApellido(productoData.segundoApellido);
-       producto.setFechaNacimiento(productoData.fechaNacimiento);
-       producto.setNumTelefono(productoData.numTelefono);
-       producto.setFechaIngreso(productoData.fechaIngreso);
-       producto.setFechaSalida(productoData.fechaSalida);
-       producto.setEstado(1);
-       producto.setCorreo(productoData.correo);
-       producto.setCedula(productoData.cedula);
-       producto.setIdDepartamento(productoData.idDepartamento);
-       producto.setIdPuesto(productoData.idPuesto);
+        producto.setIdproducto(productoData.idproducto);
+        producto.setNombre(productoData.nombre);
+        producto.setPrimerApellido(productoData.primerApellido);
+        producto.setSegundoApellido(productoData.segundoApellido);
+        producto.setFechaNacimiento(productoData.fechaNacimiento);
+        producto.setNumTelefono(productoData.numTelefono);
+        producto.setFechaIngreso(productoData.fechaIngreso);
+        producto.setFechaSalida(productoData.fechaSalida);
+        producto.setEstado(1);
+        producto.setCorreo(productoData.correo);
+        producto.setCedula(productoData.cedula);
+        producto.setIdDepartamento(productoData.idDepartamento);
+        producto.setIdPuesto(productoData.idPuesto);
 
         // Llamar al método de editarproducto en elproductoController
         constproductoController = newproductoController();
@@ -847,23 +851,23 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         const productosCompletos = resultado.productos.map(producto => {
             return {
                 idProducto: producto.getIdProducto(),
-                nombreProducto: producto.getDescripcion(), 
+                nombreProducto: producto.getDescripcion(),
                 cantidad: producto.getCantidad(),
-                unidadMedicion: producto.getUnidadMedicion(), 
-                estadoProducto: producto.getEstado(), 
-                idCategoria: producto.getCategoria().getIdCategoria(), 
-                nombreCategoria: producto.getCategoria().getNombre(), 
+                unidadMedicion: producto.getUnidadMedicion(),
+                estadoProducto: producto.getEstado(),
+                idCategoria: producto.getCategoria().getIdCategoria(),
+                nombreCategoria: producto.getCategoria().getNombre(),
                 descripcionCategoria: producto.getCategoria().getDescripcion(),
                 estadoCategoria: producto.getCategoria().getEstado()
             };
         });
 
         const respuesta = {
-           productos:productosCompletos, 
-            paginacion: resultado.pagination  
+            productos: productosCompletos,
+            paginacion: resultado.pagination
         };
 
-        if (mainWindow) {  
+        if (mainWindow) {
             mainWindow.webContents.send('cargar-productos', respuesta);
         }
     } catch (error) {
@@ -871,5 +875,168 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-productos', 'Hubo un error al cargar los productos.');
         }
+    }
+});
+
+/* --------------------------------                    ------------------------------------------
+   --------------------------------       Factura      ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
+
+ipcMain.on('listar-facturas', async (event, { pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue }) => {
+    const facturaController = new FacturaController();
+    try {
+        const resultado = await facturaController.listarFacturas(pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue);
+
+        const facturasCompletas = resultado.facturas.map(factura => {
+            return {
+                idFactura: factura.getIdFactura(),
+                numeroFactura: factura.getNumeroFactura(),
+                fechaFactura: factura.getFechaFactura(),
+                detallesAdicionales: factura.getDetallesAdicionales(),
+                impuesto: factura.getImpuesto(),
+                descuento: factura.getDescuento(),
+                estadoFactura: factura.getEstado(),
+                idProveedor: factura.getIdProveedor().getIdProveedor(),
+                nombreProveedor: factura.getIdProveedor().getNombre(),
+                idComprobantePago: factura.getIdComprobante().getIdComprobantePago(),
+                numeroComprobantePago: factura.getIdComprobante().getNumero()
+            };
+        });
+
+        const respuesta = {
+            facturas: facturasCompletas,
+            paginacion: resultado.pagination
+        };
+
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-facturas', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar las facturas:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-facturas', 'Hubo un error al cargar las facturas.');
+        }
+    }
+});
+
+ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
+    const facturaProductoController = new FacturaProductoController();
+    try {
+        // Llamar al método del controlador
+        const resultado = await facturaProductoController.obtenerFacturaProductos(idFactura);
+
+        // Mapear los objetos FacturaProducto a un formato plano para enviar al frontend
+        const productosCompletos = resultado.map(facturaProducto => {
+            return {
+                idFacturaProducto: facturaProducto.getIdFacturaProducto(),
+                idFactura: facturaProducto.getIdFactura().getIdFactura(),
+                numeroFactura: facturaProducto.getIdFactura().getNumeroFactura(),
+                fechaFactura: facturaProducto.getIdFactura().getFechaFactura(),
+                detallesAdicionales: facturaProducto.getIdFactura().getDetallesAdicionales(),
+                impuesto: facturaProducto.getIdFactura().getImpuesto(),
+                descuento: facturaProducto.getIdFactura().getDescuento(),
+                estadoFactura: facturaProducto.getIdFactura().getEstado(),
+                nombreProveedor: facturaProducto.getIdFactura().getIdProveedor().getNombre(),
+                numeroComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getNumero(),
+                idProducto: facturaProducto.getIdProducto().getIdProducto(),
+                nombreProducto: facturaProducto.getIdProducto().getNombre(),
+                descripcionProducto: facturaProducto.getIdProducto().getDescripcion(),
+                cantidadTotalProducto: facturaProducto.getIdProducto().getCantidad(),
+                unidadMedicion: facturaProducto.getIdProducto().getUnidadMedicion(),
+                estadoProducto: facturaProducto.getIdProducto().getEstado(),
+                cantidadAnterior: facturaProducto.getCantidadAnterior(),
+                cantidadEntrando: facturaProducto.getCantidadEntrando(),
+                precioNueva: facturaProducto.getPrecioNuevo(),
+                idUsuario: facturaProducto.getIdUsuario().getIdUsuario(),
+                nombreUsuario: facturaProducto.getIdUsuario().getNombreUsuario(),
+                estadoUsuario: facturaProducto.getIdUsuario().getEstado(),
+                nombreColaborador: facturaProducto.getIdUsuario().getIdColaborador().getNombre(),
+                primerApellido: facturaProducto.getIdUsuario().getIdColaborador().getPrimerApellido(),
+                segundoApellido: facturaProducto.getIdUsuario().getIdColaborador().getSegundoApellido(),
+                estadoColaborador: facturaProducto.getIdUsuario().getIdColaborador().getEstado(),
+                correoColaborador: facturaProducto.getIdUsuario().getIdColaborador().getCorreo(),
+                cedulaColaborador: facturaProducto.getIdUsuario().getIdColaborador().getCedula(),
+                nombreDepartamento: facturaProducto.getIdUsuario().getIdColaborador().getIdDepartamento().getNombre(),
+                nombrePuesto: facturaProducto.getIdUsuario().getIdColaborador().getIdPuesto().getNombre(),
+                numTelefono: facturaProducto.getIdUsuario().getIdColaborador().getNumTelefono(),
+                estadoFacturaProducto: facturaProducto.getEstado()
+            };
+        });
+
+        // Construir la respuesta (solo el array de productos, sin paginación)
+        const respuesta = {
+            productos: productosCompletos
+        };
+
+        // Enviar la respuesta al proceso de renderizado
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-productos-por-factura', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar los productos de la factura:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-productos-por-factura', 'Hubo un error al cargar los productos de la factura.');
+        }
+    }
+});
+
+ipcMain.handle('print-to-pdf', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+
+    // Configuración para el PDF
+    const options = {
+        printBackground: true,
+        margins: {
+            marginType: 'printableArea'
+        },
+        pageSize: 'A4'
+    }
+
+    try {
+        // Generar el PDF
+        const data = await win.webContents.printToPDF(options)
+
+        // Crear un archivo temporal para el PDF
+        const tempPath = path.join(os.tmpdir(), `factura-${Date.now()}.pdf`)
+        fs.writeFileSync(tempPath, data)
+
+        // Abrir el PDF con el visor predeterminado del sistema
+        shell.openPath(tempPath)
+
+        return tempPath
+    } catch (error) {
+        console.error('Error al generar PDF:', error)
+        dialog.showErrorBox('Error', 'No se pudo generar el PDF')
+        return null
+    }
+})
+
+// Maneja la impresión del PDF
+ipcMain.handle('print-pdf', async (event, pdfPath) => {
+    try {
+        // Crear una ventana oculta para imprimir el PDF
+        const pdfWindow = new BrowserWindow({
+            show: false,
+            webPreferences: {
+                plugins: true
+            }
+        })
+
+        // Cargar el PDF
+        await pdfWindow.loadURL(`file://${pdfPath}`)
+
+        // Imprimir el PDF
+        pdfWindow.webContents.print({}, (success) => {
+            pdfWindow.close()
+            if (!success) {
+                dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
+            }
+        })
+
+        return true
+    } catch (error) {
+        console.error('Error al imprimir PDF:', error)
+        dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
+        return false
     }
 });

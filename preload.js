@@ -14,8 +14,8 @@ contextBridge.exposeInMainWorld('api', {
     loadHTML: (filePath) => ipcRenderer.send('leer-html', filePath),
     onHTMLLoaded: (callback) => ipcRenderer.once('html-cargado', (event, data) => callback(data)),
 
-// --------------------------------------------------------------------------------
-//                       USUARIO
+    // --------------------------------------------------------------------------------
+    //                       USUARIO
     // Función para listar los usuarios y recibir la respuesta
     obtenerUsuarios: (pageSize, pageNumber, estado, idRolFiltro, valorBusqueda, callback) => {
         // Enviar el evento al proceso principal, junto con los parámetros de paginación
@@ -43,8 +43,8 @@ contextBridge.exposeInMainWorld('api', {
     // Recibir la respuesta de la creación del usuario
     onRespuestaCrearUsuario: (callback) => ipcRenderer.on('respuesta-crear-usuario', (event, respuesta) => callback(respuesta)),
 
-// --------------------------------------------------------------------------------
-//                       COLABORADOR
+    // --------------------------------------------------------------------------------
+    //                       COLABORADOR
     obtenerColaboradores: (pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda, callback) => {
         ipcRenderer.send('listar-colaboradores', { pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }); // Enviar el evento al proceso principal
         ipcRenderer.once('cargar-colaboradores', (event, colaboradores) => callback(colaboradores)); // Recibir la respuesta
@@ -76,11 +76,11 @@ contextBridge.exposeInMainWorld('api', {
             callback(respuesta);
         });
     },
-// --------------------------------------------------------------------------------
-//                       CATEGORÍA
+    // --------------------------------------------------------------------------------
+    //                       CATEGORÍA
     // Métodos para gestionar categorías
     obtenerCategorias: (pageSize, currentPage, estado, valorBusqueda, callback) => {
-        ipcRenderer.send('listar-categorias',  { pageSize, currentPage, estado, valorBusqueda }); // Enviar el evento al proceso principal
+        ipcRenderer.send('listar-categorias', { pageSize, currentPage, estado, valorBusqueda }); // Enviar el evento al proceso principal
         ipcRenderer.once('cargar-categorias', (event, respuesta) => callback(respuesta)); // Recibir la respuesta
     },
 
@@ -102,7 +102,8 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('listar-proveedores', { pageSize, currentPage, estado, valorBusqueda });
 
         // Definir el callback para manejar la respuesta
-        const proveedoresCallback = (event, proveedores) => { callback(proveedores);
+        const proveedoresCallback = (event, proveedores) => {
+            callback(proveedores);
             // Remover el listener una vez que se ha procesado la respuesta
             ipcRenderer.removeListener('cargar-proveedores', proveedoresCallback);
         };
@@ -128,42 +129,41 @@ contextBridge.exposeInMainWorld('api', {
     eliminarProveedor: (proveedorId, estado) => ipcRenderer.send('eliminar-proveedor', proveedorId, estado),
     onRespuestaEliminarProveedor: (callback) => ipcRenderer.once('respuesta-eliminar-proveedor', (event, respuesta) => callback(respuesta)),
 
-// --------------------------------------------------------------------------------
-//                       ENTIDAD FINANCIERA
-obtenerEntidadesFinancieras: (pageSize, currentPage, estado, valorBusqueda, callback) => {
-    // Enviar la solicitud para listar proveedores
-    ipcRenderer.send('listar-entidades-financieras', { pageSize, currentPage, estado, valorBusqueda });
+    // --------------------------------------------------------------------------------
+    //                       ENTIDAD FINANCIERA
+    obtenerEntidadesFinancieras: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        // Enviar la solicitud para listar proveedores
+        ipcRenderer.send('listar-entidades-financieras', { pageSize, currentPage, estado, valorBusqueda });
 
-    // Definir el callback para manejar la respuesta
-    const entidadesFinancierasCallback = (event, entidadesFinancieras) => { callback(entidadesFinancieras);
-        // Remover el listener una vez que se ha procesado la respuesta
-        ipcRenderer.removeListener('cargar-entidades-financieras', entidadesFinancierasCallback);
-    };
+        // Definir el callback para manejar la respuesta
+        const entidadesFinancierasCallback = (event, entidadesFinancieras) => {
+            callback(entidadesFinancieras);
+            // Remover el listener una vez que se ha procesado la respuesta
+            ipcRenderer.removeListener('cargar-entidades-financieras', entidadesFinancierasCallback);
+        };
 
-    // Escuchar la respuesta
-    ipcRenderer.on('cargar-entidades-financieras', entidadesFinancierasCallback);
+        // Escuchar la respuesta
+        ipcRenderer.on('cargar-entidades-financieras', entidadesFinancierasCallback);
 
-    // Manejo de errores de la respuesta
-    const errorCallback = (event, errorMessage) => {
-        callback({ error: errorMessage });
-        // También puedes remover el listener de error si solo lo necesitas una vez
-        ipcRenderer.removeListener('error-cargar-entidades-financieras', errorCallback);
-    };
+        // Manejo de errores de la respuesta
+        const errorCallback = (event, errorMessage) => {
+            callback({ error: errorMessage });
+            // También puedes remover el listener de error si solo lo necesitas una vez
+            ipcRenderer.removeListener('error-cargar-entidades-financieras', errorCallback);
+        };
 
-    // Escuchar los errores
-    ipcRenderer.on('error-cargar-entidades-financieras', errorCallback);
-},
+        // Escuchar los errores
+        ipcRenderer.on('error-cargar-entidades-financieras', errorCallback);
+    },
 
-/* --------------------------------           ------------------------------------------
-   -------------------------------- PRODUCTOS ------------------------------------------
-   --------------------------------           ------------------------------------------ */
-   obtenerProductos: (pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda, callback) => {
-    ipcRenderer.send('listar-productos', { pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda });
-    ipcRenderer.once('cargar-productos', (event, productos) => callback(productos));
-},
+    /* --------------------------------           ------------------------------------------
+       -------------------------------- PRODUCTOS ------------------------------------------
+       --------------------------------           ------------------------------------------ */
+    obtenerProductos: (pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-productos', { pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda });
+        ipcRenderer.once('cargar-productos', (event, productos) => callback(productos));
+    },
 
-});
-contextBridge.exposeInMainWorld('api', {
     obtenerPuestosTrabajo: (pageSize, currentPage, estado, valorBusqueda, callback) => {
         ipcRenderer.send('listar-puestos-trabajo', { pageSize, currentPage, estado, valorBusqueda });
         ipcRenderer.once('cargar-puestos-trabajo', (event, respuesta) => callback(respuesta));
@@ -174,4 +174,20 @@ contextBridge.exposeInMainWorld('api', {
     onRespuestaActualizarPuesto: (callback) => ipcRenderer.on('respuesta-actualizar-puesto', (event, respuesta) => callback(respuesta)),
     eliminarPuesto: (puestoId, estado) => ipcRenderer.send('eliminar-puesto', puestoId, estado),
     onRespuestaEliminarPuesto: (callback) => ipcRenderer.on('respuesta-eliminar-puesto', (event, respuesta) => callback(respuesta)),
+
+    /* --------------------------------           ------------------------------------------
+       --------------------------------  Factura  ------------------------------------------
+       --------------------------------           ------------------------------------------ */
+    obtenerFacturas: (pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, callback) => {
+        ipcRenderer.send('listar-facturas', { pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue });
+        ipcRenderer.once('cargar-facturas', (event, respuesta) => callback(respuesta));
+    },
+
+    obtenerFactura: (idFactura, callback) => {
+        ipcRenderer.send('listar-productos-por-factura', { idFactura });
+        ipcRenderer.once('cargar-productos-por-factura', (event, respuesta) => callback(respuesta));
+    },
+
+    printToPDF: () => ipcRenderer.invoke('print-to-pdf'),
+    printPDF: (pdfPath) => ipcRenderer.invoke('print-pdf', pdfPath),
 });

@@ -1,0 +1,329 @@
+<style>
+    .content-title {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn {
+        background-color: var(--primary-color);
+        color: var(--background-color);
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: var(--hover-color);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+    }
+
+    .btn-secondary:hover {
+        background-color: #7a1bd2;
+    }
+
+    .invoice-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .card {
+        background-color: var(--card-background);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--primary-color);
+    }
+
+    .invoice-header {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .invoice-info,
+    .supplier-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .info-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .info-label {
+        font-weight: 500;
+        min-width: 100px;
+    }
+
+    .info-value {
+        color: #555;
+    }
+
+    .summary-section {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .summary-table {
+        width: 350px;
+        border-collapse: collapse;
+        border: none;
+    }
+
+    .summary-table td {
+        padding: 8px;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+    }
+
+    .summary-table tr:last-child td {
+        border-bottom: none;
+        font-weight: bold;
+    }
+
+    .summary-table tr:not(:last-child) td {
+        border-bottom: 1px solid #ccc;
+    }
+
+    .summary-table td:last-child {
+        text-align: right;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background-color: #e6f7e6;
+        color: #28a745;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #dc3545;
+    }
+
+    .user-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    #more-options-arrow {
+        transition: transform 0.3s ease;
+    }
+
+    .rotate {
+        transform: rotate(180deg);
+    }
+
+    @media print {
+
+        header,
+        .sidebar,
+        .action-buttons {
+            display: none;
+        }
+
+        .main-container {
+            display: block;
+        }
+
+        .main-content {
+            width: 100%;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+            page-break-inside: avoid;
+        }
+    }
+</style>
+<div class="content-header">
+    <h1 class="content-title">Detalles de Factura #<span id="numero-factura"></span></h1>
+    <div class="action-buttons">
+        <button class="btn" onclick="handlePrintPreview()">
+            <span class="material-icons">print</span>
+            Imprimir
+        </button>
+        <button class="btn btn-secondary">
+            <span class="material-icons">edit</span>
+            Editar
+        </button>
+        <button class="btn" onclick="adjuntarHTML('/factura-view/factura-admin.html', cargarFacturasTabla)">
+            <span class="material-icons">arrow_back</span>
+            Volver
+        </button>
+    </div>
+</div>
+
+<div class="invoice-container">
+    <!-- Información general de la factura -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Información General</h2>
+            <span id="estado-factura" class="status-badge"></span>
+        </div>
+        <div class="invoice-header">
+            <div class="invoice-info">
+                <div class="info-row">
+                    <span class="info-label">Número de Factura:</span>
+                    <span class="info-value" id="numero-factura-info"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Fecha de Factura:</span>
+                    <span class="info-value" id="fecha-factura"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Comprobante de Pago:</span>
+                    <span class="info-value" id="comprobante-pago"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Estado:</span>
+                    <span class="info-value" id="estado-factura-info"></span>
+                </div>
+            </div>
+            <div class="supplier-info">
+                <div class="info-row">
+                    <span class="info-label">Proveedor:</span>
+                    <span class="info-value" id="proveedor"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Registrado por:</span>
+                    <span class="info-value" id="registrado-por"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Departamento:</span>
+                    <span class="info-value" id="departamento"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Teléfono:</span>
+                    <span class="info-value" id="telefono"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos de la factura -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Productos</h2>
+        </div>
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Descripción</th>
+                    <th>Unidad</th>
+                    <th>Cant. Anterior</th>
+                    <th>Cant. Entrando</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="productos-body"></tbody>
+        </table>
+
+        <div class="summary-section" style="margin-top: 20px;">
+            <table class="summary-table">
+                <tr>
+                    <td>Subtotal:</td>
+                    <td id="subtotal"></td>
+                </tr>
+                <tr>
+                    <td>Impuesto (13%):</td>
+                    <td id="impuesto"></td>
+                </tr>
+                <tr>
+                    <td>Descuento:</td>
+                    <td id="descuento"></td>
+                </tr>
+                <tr>
+                    <td>Total:</td>
+                    <td id="total"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Información del usuario/colaborador -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Información del Colaborador</h2>
+        </div>
+        <div class="user-details">
+            <div class="info-row">
+                <span class="info-label">Nombre:</span>
+                <span class="info-value" id="nombre-colaborador"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Cédula:</span>
+                <span class="info-value" id="cedula"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Puesto:</span>
+                <span class="info-value" id="puesto"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Departamento:</span>
+                <span class="info-value" id="departamento-colaborador"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Correo:</span>
+                <span class="info-value" id="correo"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Teléfono:</span>
+                <span class="info-value" id="telefono-colaborador"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles adicionales -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Detalles Adicionales</h2>
+        </div>
+        <div class="info-row" style="margin-bottom: 0;">
+            <span class="info-label">Notas:</span>
+            <span class="info-value" id="notas"></span>
+        </div>
+    </div>
+</div>
