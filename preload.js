@@ -190,4 +190,9 @@ contextBridge.exposeInMainWorld('api', {
 
     printToPDF: () => ipcRenderer.invoke('print-to-pdf'),
     printPDF: (pdfPath) => ipcRenderer.invoke('print-pdf', pdfPath),
+
+    obtenerComprobantesPago: (pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, callback) => {
+        ipcRenderer.send('listar-comprobantes-pago', { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado });
+        ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
+    },
 });

@@ -152,7 +152,7 @@ function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFil
       // Actualizar los botones de paginación
       actualizarPaginacion(respuesta.paginacion, ".pagination", 1);
 
-      cerrarModal("editarUsuarioModal", "editarUsuarioForm"); // Cerrar cualquier modal activo
+      cerrarModal("editarUsuarioModal", "editarUsuarioForm");
     });
   }, 100);
 }
@@ -161,7 +161,7 @@ function checkEmpty(event, moduloFiltrar) {
   const searchValue = document.getElementById("search-bar").value.trim();
 
   if (searchValue === "") {
-    filterTable(moduloFiltrar); // Llama a filterTable solo si el campo está vacío
+    filterTable(moduloFiltrar);
   }
 
   if (event.key === "Enter") {
@@ -553,7 +553,7 @@ function filterTable(moduloFiltrar) {
       console.log(document.getElementById("comprobanteFiltro").value);
       console.log(document.getElementById("search-bar").value);
       console.log(pageSize);
-      cargarFacturasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("proveedorFiltro").value), Number(document.getElementById("fechaInicialFiltro").value), Number(document.getElementById("fechaFinalFiltro").value), Number(document.getElementById("comprobanteFiltro").value), document.getElementById("search-bar").value);
+      cargarFacturasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("proveedorFiltro").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, Number(document.getElementById("comprobanteFiltro").value), document.getElementById("search-bar").value);
       break;
   }
 }
@@ -1946,29 +1946,28 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
   else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
   else selectEstado.value = 2;
 
-  // Configurar fechas
   if (fechaInicio) inputFechaInicio.value = fechaInicio;
   if (fechaFin) inputFechaFin.value = fechaFin;
 
-  // Configurar proveedor y comprobante (valores placeholder por ahora)
-  if (idProveedor) selectProveedor.value = idProveedor;
-  if (idComprobantePago) selectComprobante.value = idComprobantePago;
-
-  // Configurar búsqueda
   if (searchValue) searchInput.value = searchValue;
+  cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
+  cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
 
-  // Llamar al método del preload.js pasando los datos de paginación y filtros
-  window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
-    const tbody = document.getElementById("facturas-table-body");
-    tbody.innerHTML = ""; // Limpiar contenido previo
+  setTimeout(function () {
+    if (idProveedor) selectProveedor.value = idProveedor;
+    if (idComprobantePago) selectComprobante.value = idComprobantePago;
 
-    // Iterar sobre las facturas y agregarlas a la tabla
-    respuesta.facturas.forEach((factura) => {
-      const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
-      const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
+    window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
+      const tbody = document.getElementById("facturas-table-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
 
-      const row = document.createElement("tr");
-      row.innerHTML = `
+      // Iterar sobre las facturas y agregarlas a la tabla
+      respuesta.facturas.forEach((factura) => {
+        const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
+        const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
                 <td>${factura.numeroFactura || 'Sin número'}</td>
                 <td>${fechaFactura}</td>
@@ -1992,12 +1991,13 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
                     </button>
                 </td>
             `;
-      tbody.appendChild(row);
-    });
+        tbody.appendChild(row);
+      });
 
-    // Actualizar los botones de paginación
-    actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
-  });
+      // Actualizar los botones de paginación
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
+    });
+  }, 100);
 }
 
 function verDetallesFactura(idFactura, button) {
@@ -2076,4 +2076,40 @@ function cargarFactura(idFactura) {
 
 async function handlePrintPreview() {
   const pdfPath = await window.api.printToPDF();
+}
+
+function cargarPtroveedores(idSelect, mensajeQuemado) {
+  window.api.obtenerProveedores(null, null, 1, null, (respuesta) => {
+    const proveedorSelect = document.getElementById(idSelect);
+    proveedorSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    proveedorSelect.appendChild(option);
+
+    respuesta.proveedores.forEach((proveedor) => {
+      const option = document.createElement("option");
+      option.value = proveedor.idProveedor;
+      option.textContent = proveedor.nombre;
+      proveedorSelect.appendChild(option);
+    });
+  });
+}
+
+function cargarComprobantesPago(idSelect, mensajeQuemado) {
+  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
+    const comprobantePagoSelect = document.getElementById(idSelect);
+    comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    comprobantePagoSelect.appendChild(option);
+
+    respuesta.comprobantes.forEach((comprobante) => {
+      const option = document.createElement("option");
+      option.value = comprobante.idComprobantePago;
+      option.textContent = comprobante.numeroComprobantePago;
+      comprobantePagoSelect.appendChild(option);
+    });
+  });
 }
