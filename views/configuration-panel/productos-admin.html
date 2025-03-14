@@ -1,0 +1,78 @@
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Productos</h1>
+        <button onclick="agregarProducto()" class="add-product-btn" title="Agregar Nuevo Producto">
+            <span class="material-icons">add_circle</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar productos..." onkeypress="filterTable(7)">
+    </div>
+    <div class="filters">
+        <select id="selectPageSize" onchange="filterTable(7)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="categoria-filtro" onchange="filterTable(7)">
+
+        </select>
+        <select id="estado-filtro" onchange="filterTable(7)">
+            <option value="2">Filtrar por estado</option>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+        </select>
+        <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Unidad medición</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="productos-body">
+
+        </tbody>
+    </table>
+    <div class="pagination">
+
+    </div>
+    <!-- Modal para editar producto -->
+    <div id="editarProductoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarProductoModal', 'editarProductoForm')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <form id="editarProductoForm" class="editar-producto-form">
+                <input type="hidden" id="idProducto">
+
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+
+                <label for="descripcion">Descripción:</label>
+                <input type="text" id="descripcion" name="descripcion" required>
+
+                <label for="cantidad">Cantidad:</label>
+                <input type="text" id="cantidad" name="cantidad" required>
+
+                <label for="unidadMedicion">Unidad medición:</label>
+                <input type="text" id="unidadMedicion" name="unidadMedicion" required>
+
+                <label for="categoria">Puesto:</label>
+                <select id="categoria" name="categoria" required>
+                    <!-- Opciones de categoria se llenarán aquí -->
+                </select>
+                <p id="errorMessage" style="color: red;"></p>
+
+                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+</div>

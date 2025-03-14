@@ -368,50 +368,6 @@ ipcMain.on('editar-colaborador', async (event, colaboradorData) => {
     }
 });
 
-/* --------------------------------             ------------------------------------------
-   --------------------------------producto ------------------------------------------
-   --------------------------------             ------------------------------------------ */
-ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoproducto, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda }) => {
-    const productoController = new ProductoController();
-    try {
-        const resultado = await productoController.getProductos(pageSize, currentPage, estadoproducto, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda);
-
-        // En lugar de simplificar los datos, devolver el array completo con todos los atributos
-        const productosCompletos = resultado.productos.map(producto => {
-            return {
-                idproducto: producto.getIdproducto(),
-                nombreproducto: producto.getNombre(),
-                cedulaproducto: producto.getCedula(),
-                primerApellidoproducto: producto.getPrimerApellido(),
-                segundoApellidoproducto: producto.getSegundoApellido(),
-                fechaNacimiento: producto.getFechaNacimiento(),
-                numTelefono: producto.getNumTelefono(),
-                fechaIngreso: producto.getFechaIngreso(),
-                fechaSalida: producto.getFechaSalida(),
-                estado: producto.getEstado(),
-                correo: producto.getCorreo(),
-                nombreDepartamento: producto.getIdDepartamento().getNombre(),
-                nombrePuesto: producto.getIdPuesto().getNombre()
-            };
-        });
-
-        // Preparar el objeto de respuesta que incluye losproductos completos y los datos de paginación
-        const respuesta = {
-            productos: productosCompletos,  // Lista completa deproductos con todos los atributos
-            paginacion: resultado.pagination  // Datos de paginación devueltos por el controller
-        };
-
-        if (mainWindow) {  // Verifica que mainWindow esté definido
-            mainWindow.webContents.send('cargar-productos', respuesta); // Enviar losproductos completos al frontend
-        }
-    } catch (error) {
-        console.error('Error al listar losproductos:', error);
-        if (mainWindow) {
-            mainWindow.webContents.send('error-cargar-productos', 'Hubo un error al cargar losproductos.');
-        }
-    }
-});
-
 ipcMain.on('crear-producto', async (event, productoData) => {
     try {
         // Crear un objetoproducto y setear los datos
@@ -842,7 +798,9 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
     }
 });
 
-
+/* --------------------------------          ------------------------------------------
+   -------------------------------- PRODUCTO ------------------------------------------
+   --------------------------------          ------------------------------------------ */
 ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda }) => {
     const productoController = new ProductoController();
     try {
@@ -851,7 +809,8 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
         const productosCompletos = resultado.productos.map(producto => {
             return {
                 idProducto: producto.getIdProducto(),
-                nombreProducto: producto.getDescripcion(),
+                nombreProducto: producto.getNombre(),
+                descripcionProducto: producto.getDescripcion(),
                 cantidad: producto.getCantidad(),
                 unidadMedicion: producto.getUnidadMedicion(),
                 estadoProducto: producto.getEstado(),
