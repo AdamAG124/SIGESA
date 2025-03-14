@@ -164,6 +164,9 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-productos', (event, productos) => callback(productos));
     },
 
+    /* --------------------------------                   ------------------------------------------
+       -------------------------------- PUESTO DE TRABAJO ------------------------------------------
+       --------------------------------                    ------------------------------------------ */
     obtenerPuestosTrabajo: (pageSize, currentPage, estado, valorBusqueda, callback) => {
         ipcRenderer.send('listar-puestos-trabajo', { pageSize, currentPage, estado, valorBusqueda });
         ipcRenderer.once('cargar-puestos-trabajo', (event, respuesta) => callback(respuesta));

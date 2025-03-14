@@ -81,7 +81,7 @@ class CategoriaProductoDB {
 
             // Calcular el número total de páginas
             const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
-
+            
             // Retornar las categorías y los datos de paginación
             return {
                 categorias,

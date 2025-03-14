@@ -466,6 +466,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 6:
         cargarFacturasTabla(pagination.pageSize, page, pagination.estadoFactura, pagination.idProveedor, pagination.fechaInicio, pagination.fechaFin, pagination.idComprobantePago, pagination.valorBusqueda);
         break;
+      case 7:
+        cargarProductosTabla(pagination.pageSize, page, pagination.estado, pagination.idCategoria, pagination.valorBusqueda);
+        break;
       default:
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
         break;
@@ -1927,6 +1930,88 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
+function cargarCategorias(idSelect, mensajeQuemado) {
+  window.api.obtenerCategorias(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null, (respuesta) => {
+
+    idSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    option.selected = true;
+    idSelect.appendChild(option);
+
+    respuesta.categorias.forEach((categoria) => {
+      const option = document.createElement("option");
+      option.value = categoria.idCategoria;
+      option.textContent = categoria.nombreCategoria;
+      idSelect.appendChild(option);
+    });
+  });
+}
+
+function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCategoriaFiltro = 0, valorBusqueda = null) {
+  // Obtener el select por su id
+  const selectEstado = document.getElementById('estado-filtro');
+  const selectPageSize = document.getElementById('selectPageSize');
+  const selectCategoria = document.getElementById("categoria-filtro");
+
+  // Verificar el valor del estado
+  if (estado === 0 || estado === 1) {
+    selectEstado.value = estado;
+  } else {
+    selectEstado.value = 2;
+  }
+
+  selectPageSize.value = pageSize;
+
+  cargarCategorias(selectCategoria, "Filtrar por categoría");
+
+  setTimeout(() => {
+    selectCategoria.value = idCategoriaFiltro;
+    // Cargar los productos
+    window.api.obtenerProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda, (respuesta) => {
+      const tbody = document.getElementById("productos-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
+
+      // Iterar sobre los colaboradores y generar las filas de la tabla
+      respuesta.productos.forEach((producto) => {
+        const estado = producto.estadoProducto === 1 ? "Activo" : "Inactivo";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${producto.nombreProducto}</td>
+          <td>${producto.cantidad}</td>
+          <td>${producto.unidadMedicion}</td>
+          <td>${estado}</td>
+          <td class="action-icons">
+              <button class="tooltip" value="${producto.idProducto}" onclick="editarProducto(this.value, this)">
+                  <span class="material-icons">edit</span>
+                  <span class="tooltiptext">Editar producto</span>
+              </button>
+              <button class="tooltip" value="${producto.idProducto}" onclick="${producto.estadoProducto === 1 ? `actualizarEstado(this.value, 0, 'Eliminando producto', '¿Está seguro que desea eliminar este producto?', 2)` : `actualizarEstado(this.value, 1, 'Reactivando producto', '¿Está seguro que desea reactivar este producto?', 2)`}">
+                  <span class="material-icons">
+                      ${producto.estadoProducto === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
+                  </span>
+                  <span class="tooltiptext">
+                      ${producto.estadoProducto === 1 ? 'Eliminar producto' : 'Reactivar producto'} <!-- Cambia el tooltip dependiendo del estado -->
+                  </span>
+              </button>
+              <button class="tooltip" value="${producto.idProducto}" onclick="verDetallesProducto(this.value)">
+                  <span class="material-icons">info</span>
+                  <span class="tooltiptext">Ver detalles</span>
+              </button>
+          </td>
+      `;
+        tbody.appendChild(row);
+      });
+
+      // Actualizar los botones de paginación
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 7);
+
+      cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
+    });
+  }, 100);
+}
 
 function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
   // Obtener los elementos del DOM
