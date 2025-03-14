@@ -17,6 +17,7 @@ const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
 const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
+const ComprobantePagoController = require('./controllers/ComprobantePagoController');
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -997,5 +998,50 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
         console.error('Error al imprimir PDF:', error)
         dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
         return false
+    }
+});
+
+ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
+    const comprobantePagoController = new ComprobantePagoController();
+
+    try {
+        // Llamar al método del controlador
+        const resultado = await comprobantePagoController.obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado);
+
+        // Mapear los objetos ComprobantePago a un formato plano para enviar al frontend
+        const comprobantesCompletos = resultado.comprobantes.map(comprobante => {
+            return {
+                idComprobantePago: comprobante.getIdComprobantePago(),
+                fechaPago: comprobante.getFechaPago(),
+                numeroComprobantePago: comprobante.getNumero(),
+                monto: comprobante.getMonto(),
+                estadoComprobantePago: comprobante.getEstado(),
+                idEntidadFinanciera: comprobante.getIdEntidadFinanciera().getIdEntidadFinanciera(),
+                nombreEntidadFinanciera: comprobante.getIdEntidadFinanciera().getNombre(),
+                tipoEntidadFinanciera: comprobante.getIdEntidadFinanciera().getTipo(),
+                estadoEntidadFinanciera: comprobante.getIdEntidadFinanciera().getEstado()
+            };
+        });
+
+        // Construir la respuesta con metadatos de paginación
+        const respuesta = {
+            comprobantes: comprobantesCompletos,
+            paginacion: {
+                total: resultado.total,
+                pageSize: resultado.pageSize,
+                currentPage: resultado.currentPage,
+                totalPages: resultado.totalPages
+            }
+        };
+
+        // Enviar la respuesta al proceso de renderizado
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-comprobantes-pago', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar los comprobantes de pago:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-comprobantes-pago', 'Hubo un error al cargar los comprobantes de pago.');
+        }
     }
 });

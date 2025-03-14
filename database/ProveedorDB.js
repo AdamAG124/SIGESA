@@ -33,7 +33,7 @@ class ProveedorDB {
 
             let whereClauseAdded = false;
 
-            if (estadoProveedor !== null) {
+            if (estadoProveedor !== null && currentPage !== null) {
                 query += ` WHERE P.ESTADO = ${estadoProveedor}`;
                 whereClauseAdded = true;
             }
@@ -49,7 +49,7 @@ class ProveedorDB {
             // Agregar el orden y la paginación
             query += ` ORDER BY P.ID_PROVEEDOR DESC`; // Ordenar por ID_PROVEEDOR de forma descendente
 
-            if (pageSize && currentPage) {
+            if (pageSize !== null) {
                 query += ` LIMIT ${pageSize} OFFSET ${offset}`;
             }
 
