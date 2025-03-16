@@ -198,4 +198,14 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('listar-comprobantes-pago', { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado });
         ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
     },
+
+     /* --------------------------------           ------------------------------------------
+       --------------------------------  Salida Producto  ------------------------------------------
+       --------------------------------           ------------------------------------------ */
+    obtenerSalidasProductos: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-salidas-productos', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-salidas-productos', (event, respuesta) => callback(respuesta));
+    }
+
 });
+

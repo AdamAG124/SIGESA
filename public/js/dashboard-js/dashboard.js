@@ -2198,3 +2198,40 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
     });
   });
 }
+ /* SALIDA PRODUCTOOOO*/ 
+ 
+ function cargarSalidasProductosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+    window.api.obtenerSalidasProductos(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+      const tbody = document.querySelector("#salidasProductosTableBody");
+      tbody.innerHTML = "";
+
+      if (respuesta.error) {
+          const mensajeError = document.createElement("tr");
+          mensajeError.innerHTML = `
+              <td colspan="7" style="text-align: center; color: red; font-style: italic;">
+                  Error: ${respuesta.error}
+              </td>
+          `;
+          tbody.appendChild(mensajeError);
+          return;
+      }
+
+      respuesta.salidasProductos.forEach(salidaProducto => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td>${salidaProducto.idSalidaProducto}</td>
+              <td>${salidaProducto.nombreProducto}</td> <!-- Mostrar el nombre del producto -->
+              <td>${salidaProducto.cantidadAnterior}</td>
+              <td>${salidaProducto.cantidadSaliendo}</td>
+              <td>${salidaProducto.cantidadNueva}</td>
+              <td>${salidaProducto.estado}</td>
+              <td>
+                  <!-- Aquí puedes agregar botones de acción como editar o eliminar -->
+              </td>
+          `;
+          tbody.appendChild(row);
+      });
+
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
+  });
+}

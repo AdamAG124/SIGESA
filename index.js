@@ -15,6 +15,7 @@ const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
+const SalidaProductoController = require('./controllers/SalidaProductoController');
 const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
 const ComprobantePagoController = require('./controllers/ComprobantePagoController');
@@ -999,7 +1000,24 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
         dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
         return false
     }
+
 });
+
+ /* --------------------------------           ------------------------------------------
+       --------------------------------  salida producto  ------------------------------------------
+       --------------------------------           ------------------------------------------ */
+       ipcMain.on('listar-salidas-productos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+        const salidaProductoController = new SalidaProductoController();
+        try {
+            const resultado = await salidaProductoController.listarSalidasProductos(pageSize, currentPage, estado, valorBusqueda);
+            console.log('Datos enviados al frontend:', resultado); // Verificar los datos
+            event.reply('cargar-salidas-productos', resultado);
+        } catch (error) {
+            console.error('Error al listar salidas de productos:', error);
+            event.reply('cargar-salidas-productos', { success: false, message: error.message });
+        }
+    });
+
 
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
     const comprobantePagoController = new ComprobantePagoController();
