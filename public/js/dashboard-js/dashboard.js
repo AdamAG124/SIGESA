@@ -2058,11 +2058,11 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
                 <td>${fechaFactura}</td>
                 <td>${factura.numeroComprobantePago || 'Sin comprobante'}</td>
                 <td class="action-icons">
-                    <button class="tooltip" value="${factura.idFactura}" onclick="editarFactura(this.value, this)">
+                    <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/editar-factura.html', 2)">
                         <span class="material-icons">edit</span>
                         <span class="tooltiptext">Editar factura</span>
                     </button>
-                    <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, this)">
+                    <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/detalles-factura.html', 1)">
                         <span class="material-icons">info</span>
                         <span class="tooltiptext">Ver detalles</span>
                     </button>
@@ -2085,9 +2085,13 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
   }, 100);
 }
 
-function verDetallesFactura(idFactura, button) {
-  adjuntarHTML('/factura-view/detalles-factura.html', false);
-  cargarFactura(idFactura);
+function verDetallesFactura(idFactura, ruta, option) {
+  adjuntarHTML(ruta, false);
+  if (option === 1) {
+    cargarFactura(idFactura);
+  }else if (option === 2) {
+    cargarFacturaEditable(idFactura)
+  }
 }
 
 function cargarFactura(idFactura) {
@@ -2196,5 +2200,80 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
       option.textContent = comprobante.numeroComprobantePago;
       comprobantePagoSelect.appendChild(option);
     });
+  });
+}
+
+function cargarFacturaEditable(idFactura) {
+  window.api.obtenerFactura(idFactura, (respuesta) => {
+      const productos = respuesta.productos;
+
+      if (productos && productos.length > 0) {
+          // Usar el primer producto para la información general
+          const primerProducto = productos[0];
+
+          // Título
+          document.getElementById('invoice-title').textContent = `Editar Factura #${primerProducto.numeroFactura}`;
+
+          // Información general
+          document.getElementById('numero-factura').value = primerProducto.numeroFactura;
+          document.getElementById('fecha-factura').value = new Date(primerProducto.fechaFactura).toISOString().slice(0, 16);
+          document.getElementById('comprobante-pago').value = primerProducto.numeroComprobantePago;
+          document.getElementById('proveedor').value = primerProducto.nombreProveedor;
+          document.getElementById('estado').checked = primerProducto.estadoFactura === 1;
+          const estadoLabel = document.getElementById('estado-label');
+          estadoLabel.textContent = primerProducto.estadoFactura === 1 ? 'ACTIVA' : 'INACTIVA';
+          estadoLabel.className = `form-check-label status-badge ${primerProducto.estadoFactura === 1 ? 'status-active' : 'status-inactive'}`;
+
+          // Información del colaborador (solo lectura)
+          document.querySelector('#invoice-form .readonly-value:nth-child(1)').textContent = primerProducto.nombreUsuario; // Registrado por
+          document.querySelector('#invoice-form .readonly-value:nth-child(2)').textContent = primerProducto.nombreDepartamento; // Departamento
+          document.querySelector('#invoice-form .readonly-value:nth-child(3)').textContent = primerProducto.numTelefono || '+506 6313 3860'; // Teléfono (default si no hay)
+          document.querySelector('#invoice-form .readonly-value:nth-child(4)').textContent = `${primerProducto.nombreColaborador} ${primerProducto.primerApellido} ${primerProducto.segundoApellido}`; // Nombre completo
+          document.querySelector('#invoice-form .readonly-value:nth-child(5)').textContent = primerProducto.nombrePuesto; // Puesto
+          document.querySelector('#invoice-form .readonly-value:nth-child(6)').textContent = primerProducto.correoColaborador; // Correo
+          document.querySelector('#invoice-form .readonly-value:nth-child(7)').textContent = primerProducto.cedulaColaborador; // Cédula
+          document.querySelector('#invoice-form .readonly-value:nth-child(8)').textContent = primerProducto.nombreDepartamento; // Departamento
+          document.querySelector('#invoice-form .readonly-value:nth-child(9)').textContent = primerProducto.numTelefono || '+506 6313 3860'; // Teléfono
+
+          // Productos
+          const productsBody = document.getElementById('products-body');
+          productsBody.innerHTML = ''; // Limpiar tabla previa
+          productos.forEach(producto => {
+              const row = document.createElement('tr');
+              row.className = 'product-row';
+              row.innerHTML = `
+                  <td><input type="text" class="form-control product-name" value="${producto.nombreProducto}"></td>
+                  <td><input type="text" class="form-control product-description" value="${producto.descripcionProducto}"></td>
+                  <td><input type="text" class="form-control product-unit" value="${producto.unidadMedicion}"></td>
+                  <td><input type="number" class="form-control product-prev-qty" value="${producto.cantidadAnterior}"></td>
+                  <td><input type="number" class="form-control product-new-qty" value="${producto.cantidadEntrando}"></td>
+                  <td><input type="number" class="form-control product-price" value="${producto.precioNueva.toFixed(2)}" step="0.01"></td>
+                  <td><input type="number" class="form-control product-subtotal" value="${(producto.cantidadEntrando * producto.precioNueva).toFixed(2)}" step="0.01"></td>
+                  <td class="no-print"><i class="material-icons delete-product" onclick="deleteProduct(this)">delete</i></td>
+              `;
+              productsBody.appendChild(row);
+          });
+
+          // Resumen
+          const subtotal = productos.reduce((sum, prod) => sum + (prod.cantidadEntrando * prod.precioNueva), 0);
+          const impuesto = primerProducto.impuesto || (subtotal * 0.13); // Usa el valor de la factura o calcula 13%
+          const descuento = primerProducto.descuento || 0;
+          const total = subtotal + impuesto - descuento;
+
+          document.getElementById('invoice-subtotal').value = subtotal.toFixed(2);
+          document.getElementById('invoice-tax').value = impuesto.toFixed(2);
+          document.getElementById('tax-rate').value = primerProducto.impuesto ? (primerProducto.impuesto / subtotal * 100).toFixed(0) : 13;
+          document.getElementById('invoice-discount').value = descuento.toFixed(2);
+          document.getElementById('invoice-total').value = total.toFixed(2);
+
+          // Detalles adicionales
+          document.getElementById('notas').value = primerProducto.detallesAdicionales || '';
+
+          // Escuchar cambios para recalcular el resumen
+          actualizarResumenListeners();
+      } else {
+          console.error('No se recibieron productos para la factura');
+          alert('No se encontraron datos para la factura con ID: ' + idFactura);
+      }
   });
 }

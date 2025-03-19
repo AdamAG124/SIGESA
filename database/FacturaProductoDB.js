@@ -6,7 +6,7 @@ class FacturaProductoDB {
     #db;
 
     constructor() {
-        this.#table = 'SIGM_FACTURA_PRODUCTO';
+        this.#table = 'sigt_factura_producto';
         this.#db = new ConectarDB();
     }
 
@@ -78,7 +78,7 @@ class FacturaProductoDB {
                     -- Información del puesto de trabajo
                     pt.DSC_NOMBRE AS nombrePuestoTrabajo
                 FROM 
-                    sigt_factura_producto fp
+                    ${this.#table} fp
                 INNER JOIN 
                     sigm_factura f ON fp.ID_FACTURA = f.ID_FACTURA
                 INNER JOIN 
