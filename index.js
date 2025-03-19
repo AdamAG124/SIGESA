@@ -15,6 +15,7 @@ const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
+const SalidaController = require('./controllers/SalidaController');
 const SalidaProductoController = require('./controllers/SalidaProductoController');
 const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
@@ -1003,21 +1004,30 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
 
 });
 
- /* --------------------------------           ------------------------------------------
-       --------------------------------  salida producto  ------------------------------------------
-       --------------------------------           ------------------------------------------ */
-       ipcMain.on('listar-salidas-productos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
-        const salidaProductoController = new SalidaProductoController();
-        try {
-            const resultado = await salidaProductoController.listarSalidasProductos(pageSize, currentPage, estado, valorBusqueda);
-            console.log('Datos enviados al frontend:', resultado); // Verificar los datos
-            event.reply('cargar-salidas-productos', resultado);
-        } catch (error) {
-            console.error('Error al listar salidas de productos:', error);
-            event.reply('cargar-salidas-productos', { success: false, message: error.message });
-        }
-    });
+/* --------------------------------           ------------------------------------------
+      --------------------------------  salida  y salida producto  ------------------------------------------
+      --------------------------------           ------------------------------------------ */
+ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const salidaController = new SalidaController();
+    try {
+        const resultado = await salidaController.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
+        event.reply('cargar-salidas', resultado);
+    } catch (error) {
+        console.error('Error al listar salidas:', error);
+        event.reply('error-cargar-salidas', { success: false, message: error.message });
+    }
+});
 
+ipcMain.on('listar-productos-por-salida', async (event, { idSalida }) => {
+    const salidaProductoController = new SalidaProductoController();
+    try {
+        const productos = await salidaProductoController.obtenerSalidaProductos(idSalida);
+        event.reply('cargar-productos-por-salida', productos);
+    } catch (error) {
+        console.error('Error al listar productos de la salida:', error);
+        event.reply('error-cargar-productos-por-salida', { success: false, message: error.message });
+    }
+});
 
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
     const comprobantePagoController = new ComprobantePagoController();

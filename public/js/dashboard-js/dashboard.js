@@ -2200,33 +2200,20 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
 }
  /* SALIDA PRODUCTOOOO*/ 
  
- function cargarSalidasProductosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
-    window.api.obtenerSalidasProductos(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
-      const tbody = document.querySelector("#salidasProductosTableBody");
+ function cargarSalidasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+  window.api.obtenerSalidas(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+      const tbody = document.querySelector("#salidas-table-body");
       tbody.innerHTML = "";
 
-      if (respuesta.error) {
-          const mensajeError = document.createElement("tr");
-          mensajeError.innerHTML = `
-              <td colspan="7" style="text-align: center; color: red; font-style: italic;">
-                  Error: ${respuesta.error}
-              </td>
-          `;
-          tbody.appendChild(mensajeError);
-          return;
-      }
-
-      respuesta.salidasProductos.forEach(salidaProducto => {
+      respuesta.salidas.forEach(salida => {
           const row = document.createElement("tr");
           row.innerHTML = `
-              <td>${salidaProducto.idSalidaProducto}</td>
-              <td>${salidaProducto.nombreProducto}</td> <!-- Mostrar el nombre del producto -->
-              <td>${salidaProducto.cantidadAnterior}</td>
-              <td>${salidaProducto.cantidadSaliendo}</td>
-              <td>${salidaProducto.cantidadNueva}</td>
-              <td>${salidaProducto.estado}</td>
+              <td>${salida.idSalida}</td>
+              <td>${salida.idColaboradorSacando}</td>
+              <td>${salida.idColaboradorRecibiendo}</td>
+              <td>${new Date(salida.fechaSalida).toLocaleDateString()}</td>
               <td>
-                  <!-- Aquí puedes agregar botones de acción como editar o eliminar -->
+                  <button onclick="verDetallesSalida(${salida.idSalida})">Ver Detalles</button>
               </td>
           `;
           tbody.appendChild(row);
@@ -2234,4 +2221,41 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
 
       actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
   });
+}
+function cargarProductosSalida(idSalida) {
+  window.api.obtenerProductosPorSalida(idSalida, (productos) => {
+      console.log("Productos recibidos:", productos); // Depuración
+      const tbody = document.querySelector("#productos-salida-table-body");
+      tbody.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+
+      if (!productos || productos.length === 0) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td colspan="7" style="text-align: center; color: gray; font-style: italic;">
+                  No hay productos registrados para esta salida.
+              </td>
+          `;
+          tbody.appendChild(row);
+          return;
+      }
+
+      productos.forEach(producto => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td>${producto.idSalidaProducto}</td>
+              <td>${producto.idProducto}</td>
+              <td>${producto.nombreProducto}</td>
+              <td>${producto.cantidadAnterior}</td>
+              <td>${producto.cantidadSaliendo}</td>
+              <td>${producto.cantidadNueva}</td>
+              <td>${producto.estado === null ? 'Sin estado' : producto.estado}</td>
+          `;
+          tbody.appendChild(row);
+      });
+  });
+}
+
+function verDetallesSalida(idSalida) {
+  cargarProductosSalida(idSalida); // Llama a la función para cargar los productos
+  adjuntarHTML('/salida-producto/salida-producto.html'); // Cambia la vista al detalle de la salida
 }
