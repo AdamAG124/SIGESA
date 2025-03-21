@@ -39,6 +39,7 @@ class FacturaProductoDB {
                     
                     -- Información del proveedor
                     prov.DSC_NOMBRE AS nombreProveedor,
+                    prov.ID_PROVEEDOR AS idProveedor,
                     
                     -- Información del comprobante de pago
                     cp.NUM_COMPROBANTE_PAGO AS numeroComprobantePago,
@@ -113,6 +114,7 @@ class FacturaProductoDB {
 
                 // Llenar Factura (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdFactura().setIdFactura(row.idFactura);
+                facturaProducto.getIdFactura().getIdProveedor().setIdProveedor(row.idProveedor);
                 facturaProducto.getIdFactura().getIdProveedor().setNombre(row.nombreProveedor); // Nombre del proveedor
                 facturaProducto.getIdFactura().getIdComprobante().setNumero(row.numeroComprobantePago); // Número del comprobante
                 facturaProducto.getIdFactura().setNumeroFactura(row.numeroFactura);
