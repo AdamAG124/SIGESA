@@ -58,13 +58,20 @@
                 <input type="text" id="descripcion" name="descripcion" required>
 
                 <label for="cantidad">Cantidad:</label>
-                <input type="text" id="cantidad" name="cantidad" required>
+                <input type="number" id="cantidad" name="cantidad" min="0" required>
 
                 <label for="unidadMedicion">Unidad medición:</label>
-                <input type="text" id="unidadMedicion" name="unidadMedicion" required>
-
-                <label for="categoria">Puesto:</label>
-                <select id="categoria" name="categoria" required>
+                <select type="text" id="unidadMedicion" name="unidadMedicion" required>
+                    <option value="Unidades">Unidades</option>
+                    <option value="Kilogramos">Kilogramos</option>
+                    <option value="Gramos">Gramos</option>   
+                    <option value="Litros">Litros</option>
+                    <option value="Mililitros">Mililitros</option>
+                    <option value="Onzas">Onzas</option>
+                    <option value="Centímetros cúbicos">Centímetros cúbicos</option>
+                </select>
+                <label for="categorias">Categoría:</label>
+                <select id="categorias" name="categorias" required>
                     <!-- Opciones de categoria se llenarán aquí -->
                 </select>
                 <p id="errorMessage" style="color: red;"></p>

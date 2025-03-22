@@ -19,6 +19,10 @@ class ProductoService {
         
         return await this.#productoDB.listarProductos(pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda);
     }
+
+    async crearProducto(producto){
+        return await this.#productoDB.crearProducto(producto);
+    }
 }
 
 // Exportar la clase

@@ -12,6 +12,10 @@ class ProductoController {
         return await this.#productoService.obtenerProductos(pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda);
     }
 
+    async crearProducto(producto) {
+        return await this.#productoService.crearProducto(producto);
+    }
+
 }
 
 module.exports = ProductoController;

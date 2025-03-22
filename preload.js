@@ -164,6 +164,11 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-productos', (event, productos) => callback(productos));
     },
 
+    // Método para enviar la información del nuevo usuario al proceso principal para su creación
+    crearProducto: (productoData) => ipcRenderer.send('crear-producto', productoData),
+    onRespuestaCrearProducto: (callback) => ipcRenderer.on('respuesta-crear-producto', (event, respuesta) => callback(respuesta)),
+
+
     /* --------------------------------                   ------------------------------------------
        -------------------------------- PUESTO DE TRABAJO ------------------------------------------
        --------------------------------                    ------------------------------------------ */

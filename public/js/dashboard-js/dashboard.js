@@ -2020,6 +2020,108 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCate
   }, 100);
 }
 
+function agregarProducto() {
+  const categoriaSelect = document.getElementById("categorias");
+
+  // Crear un array para almacenar los textos de las opciones del select
+  cargarCategorias(categoriaSelect, "Seleccionar categoría");
+
+  // Cambiar el título del modal a "Editar Colaborador"
+  document.getElementById("modalTitle").innerText = "Crear Producto";
+  document.getElementById("buttonModal").onclick = enviarCreacionProducto;
+  // Mostrar el modal
+  document.getElementById("editarProductoModal").style.display = "block";
+}
+
+function enviarCreacionProducto() {
+
+  const nombre = document.getElementById("nombre").value;
+  const descripcion = document.getElementById("descripcion").value || "N/A";
+  const cantidad = document.getElementById("cantidad").value || 0;
+  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const categoria = document.getElementById("categorias").value;
+  
+  // console.log(
+  //   'nombre: ' + nombre,
+  //   'descripction: ' + descripcion, 
+  //   'cantidad: ' + cantidad, 
+  //   'unidadMedicion: ' + unidadMedicion,
+  //   'categoria: ' + categoria);
+  // console.log("Enviando creación de producto...");
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombre") },
+    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: categoria, element: document.getElementById("categorias") }
+
+    // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
+    // Si quieren registrar un nuevo producto y luego asignarle la cantidad el sistema debe soportarlo
+    
+    // { value: descripcion, element: document.getElementById("descripcion") }, 
+    // { value: cantidad, element: document.getElementById("cantidad") },       
+  ];
+
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const productoData = {
+    nombre: nombre,
+    descripcion: descripcion,
+    cantidad: cantidad,
+    unidadMedicion: unidadMedicion,
+    categoria: categoria
+  };
+
+  Swal.fire({
+    title: "Creando producto",
+    text: "¿Está seguro que desea crear este nuevo producto?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearProducto(productoData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearProducto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(7);
+            cerrarModal("editarProductoModal", "editarProductoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+/* --------------------------------          ------------------------------------------
+   -------------------------------- FACTURAS ------------------------------------------
+   --------------------------------          ------------------------------------------ */
 function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
   // Obtener los elementos del DOM
   const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
