@@ -551,6 +551,9 @@ function filterTable(moduloFiltrar) {
     case 6:
       cargarFacturasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("proveedorFiltro").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, Number(document.getElementById("comprobanteFiltro").value), document.getElementById("search-bar").value);
       break;
+    case 7:
+      cargarProductosTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), Number(document.getElementById("categoria-filtro").value), document.getElementById("search-bar").value);
+      break;
   }
 }
 
@@ -1945,11 +1948,15 @@ function cargarCategorias(idSelect, mensajeQuemado) {
 function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
   const selectEstado = document.getElementById('estado-filtro');
+  if (!selectEstado) {
+    console.error("Elemento 'estadoFiltro' no encontrado en el DOM.");
+    return;
+  }
   const selectPageSize = document.getElementById('selectPageSize');
   const selectCategoria = document.getElementById("categoria-filtro");
 
   // Verificar el valor del estado
-  if (estado === 0 || estado === 1) {
+  if (estado == 0 || estado == 1) {
     selectEstado.value = estado;
   } else {
     selectEstado.value = 2;
