@@ -2037,38 +2037,32 @@ function enviarCreacionProducto() {
 
   const nombre = document.getElementById("nombre").value;
   const descripcion = document.getElementById("descripcion").value || "N/A";
-  const cantidad = document.getElementById("cantidad").value || 0;
+  const cantidad = document.getElementById("cantidad").value;
   const unidadMedicion = document.getElementById("unidadMedicion").value;
   const categoria = document.getElementById("categorias").value;
-  
-  // console.log(
-  //   'nombre: ' + nombre,
-  //   'descripction: ' + descripcion, 
-  //   'cantidad: ' + cantidad, 
-  //   'unidadMedicion: ' + unidadMedicion,
-  //   'categoria: ' + categoria);
-  // console.log("Enviando creación de producto...");
+
   // Array para almacenar los campos vacíos
   const camposVacios = [];
 
   const inputs = [
     { value: nombre, element: document.getElementById("nombre") },
     { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
-    { value: categoria, element: document.getElementById("categorias") }
+    { value: categoria, element: document.getElementById("categorias") },
 
     // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
     // Si quieren registrar un nuevo producto y luego asignarle la cantidad el sistema debe soportarlo
-    
+
     // { value: descripcion, element: document.getElementById("descripcion") }, 
-    // { value: cantidad, element: document.getElementById("cantidad") },       
+    { value: cantidad, element: document.getElementById("cantidad") }   
   ];
 
   inputs.forEach(input => {
-    if (!input.value) {
-      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+    if (!input.value || (input.value == 0 && input.element.id === "categorias") || (input.value < 0 && input.element.id === "cantidad")) {
+      // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
+      input.element.style.border = "2px solid red";
       camposVacios.push(input.element);
     } else {
-      input.element.style.border = ""; // Resetear el borde
+      input.element.style.border = ""; // Resetear el borde si no está vacío o es válido
     }
   });
 
@@ -2078,7 +2072,7 @@ function enviarCreacionProducto() {
     errorMessage.textContent = "Por favor, llene todos los campos.";
     return; // Salir de la función si hay campos vacíos
   } else {
-    errorMessage.textContent = ""; // Resetear mensaje de error
+    errorMessage.textContent = ""; // Resetear mensaje de error si no hay campos vacíos
   }
 
   // Crear el objeto categoría con los datos del formulario

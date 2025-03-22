@@ -843,7 +843,7 @@ ipcMain.on('crear-producto', async (event, productoData) => {
     try {
         const producto = new Producto();
         const categoria = new CategoriaProducto();
-        categoria.setNombre(productoData.categoria);
+        categoria.setIdCategoria(productoData.categoria);
         
         producto.setNombre(productoData.nombre);
         producto.setDescripcion(productoData.descripcion);

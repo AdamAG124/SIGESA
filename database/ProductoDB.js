@@ -140,15 +140,16 @@ class ProductoDB {
             connection = await db.conectar();
 
             // Obtener atributos del producto
-            const nombre = producto.getNombre() || ''; // Evita valores null
-            const descripcion = producto.getDescripcion() || '';
+            const nombre = producto.getNombre() || 'Acción requerida: ingrese un nombre'; 
+            const descripcion = producto.getDescripcion();
             const cantidad = producto.getCantidad() || 0;
-            const unidadMedicion = producto.getUnidadMedicion() || 'Unidad';
-            const categoria = producto.getCategoria()?.getIdCategoria(); // Obtener ID de la categoría
-            const estado = producto.getEstado() ?? 1; // Si es null, establece 1 (Activo)
+            const unidadMedicion = producto.getUnidadMedicion() || 'Acción requerida: ingrese una unidad'; 
+            // Si producto.getCategoria() no es null ni undefined, entonces se invoca el método getIdCategoria() y se asigna su valor a categoria.
+            const categoria = producto.getCategoria()?.getIdCategoria(); 
+            const estado = producto.getEstado() ?? 1; // 1 (Activo)
 
             if (!categoria) {
-                return { success: false, message: 'La categoría del producto es obligatoria.' };
+                return { success: false, message: 'La categoría del producto es necesaria.' };
             }
 
             // Verificar si el producto ya existe en la misma categoría
