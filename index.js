@@ -802,10 +802,11 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
-ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda }) => {
+ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda }) => {
     const productoController = new ProductoController();
+
     try {
-        const resultado = await productoController.getProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda);
+        const resultado = await productoController.getProductos(pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda);
 
         const productosCompletos = resultado.productos.map(producto => {
             return {
