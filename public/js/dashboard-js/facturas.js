@@ -3,24 +3,70 @@
 function addProduct() {
     const tbody = document.getElementById('products-body');
     const newRow = document.createElement('tr');
+    const uniqueId = `product-select-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     newRow.className = 'product-row';
     newRow.innerHTML = `
-        <td><input type="text" class="form-control product-name" value=""></td>
-        <td><input type="text" class="form-control product-unit" value="Unidad"></td>
-        <td><input type="number" class="form-control product-prev-qty" value="0"></td>
+        <td><select class="form-control product-name" id="${uniqueId}" onchange="actualizarCantidadPrevia(this)">
+            <option value="0">Seleccione un producto</option>
+        </select></td>
+        <td><input type="text" class="form-control product-unit" disabled></td>
+        <td><input type="number" class="form-control product-prev-qty" value="0" disabled></td>
         <td><input type="number" class="form-control product-new-qty" value="0"></td>
         <td><input type="number" class="form-control product-price" value="0.00" step="0.01"></td>
         <td class="no-print"><i class="material-icons delete-product" onclick="deleteProduct(this)">delete</i></td>
     `;
     tbody.appendChild(newRow);
+    llenarProductosSelect(uniqueId);
 }
 
 // Eliminar producto
 function deleteProduct(icon) {
-    if (confirm('¿Está seguro de eliminar este producto?')) {
-        const row = icon.closest('tr');
-        row.remove();
-    }
+    const row = icon.closest('tr');
+    row.remove();
+}
+
+function marcarProductosFacturaEliminar(icon, idFacturaProducto) {
+    const row = icon.closest('tr');
+    row.style.border = "2px solid red";
+    const column = icon.closest('td');
+
+    const formEditarFacturaProducto = document.getElementById('invoice-form');
+    const inputProductosEliminar = document.createElement('input');
+    inputProductosEliminar.type = 'hidden';
+    inputProductosEliminar.name = 'productosEliminar[]';
+    inputProductosEliminar.value = idFacturaProducto;
+    formEditarFacturaProducto.appendChild(inputProductosEliminar);
+
+    icon.remove();
+
+    const botonCancerlaEliminacion = document.createElement('i');
+    botonCancerlaEliminacion.className = 'material-icons remove-product';
+    botonCancerlaEliminacion.textContent = 'remove';
+    botonCancerlaEliminacion.addEventListener('click', () => { cancelarEliminacionProductosFactura(botonCancerlaEliminacion, idFacturaProducto) });
+    botonCancerlaEliminacion.style.color = 'white';
+    botonCancerlaEliminacion.style.backgroundColor = 'red';
+    botonCancerlaEliminacion.style.cursor = 'pointer';
+    column.appendChild(botonCancerlaEliminacion);
+}
+
+function cancelarEliminacionProductosFactura(icon, idFacturaProducto) {
+    const row = icon.closest('tr');
+    row.style.border = "";
+    const column = icon.closest('td');
+
+    const inputProductosEliminar = document.querySelectorAll('input[name="productosEliminar[]"]');
+    inputProductosEliminar.forEach(elemento => {
+        if (Number(elemento.value) === Number(idFacturaProducto)) {
+            elemento.remove();
+        }
+    });
+    icon.remove();
+
+    const botonEliminar = document.createElement('i');
+    botonEliminar.className = 'material-icons delete-product';
+    botonEliminar.textContent = 'delete';
+    botonEliminar.addEventListener('click', () => { marcarProductosFacturaEliminar(botonEliminar, idFacturaProducto) });
+    column.appendChild(botonEliminar);
 }
 
 function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
@@ -112,6 +158,7 @@ function cargarFactura(idFactura) {
             // Usar el primer objeto para la información general
             const primerProducto = productos[0];
 
+            document.getElementById('buttonEditFactura').value = idFactura;
             // Título
             document.getElementById('numero-factura').textContent = primerProducto.numeroFactura;
             document.getElementById('numero-factura-info').textContent = primerProducto.numeroFactura;
@@ -141,9 +188,11 @@ function cargarFactura(idFactura) {
             document.getElementById('notas').textContent = primerProducto.detallesAdicionales;
 
             // Llenar la tabla de productos (iterar sobre todos los productos)
+            var total = 0;
             const productosBody = document.getElementById('productos-body');
             productosBody.innerHTML = ''; // Limpiar el contenido previo
             productos.forEach(producto => {
+                total += producto.cantidadEntrando * producto.precioNueva;
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${producto.nombreProducto}</td>
@@ -152,21 +201,13 @@ function cargarFactura(idFactura) {
                     <td>${producto.cantidadAnterior}</td>
                     <td>${producto.cantidadEntrando}</td>
                     <td>₡${parseFloat(producto.precioNueva).toFixed(2)}</td>
-                    <td>₡${parseFloat(producto.cantidadEntrando * producto.precioNueva).toFixed(2)}</td>
                 `;
                 productosBody.appendChild(row);
             });
 
-            // Calcular y llenar el resumen
-            const subtotal = productos.reduce((sum, prod) => sum + (prod.cantidadEntrando * prod.precioNueva), 0);
-            const impuesto = primerProducto.impuesto || (subtotal * 0.13); // Usa el valor de la factura o calcula 13%
-            const descuento = primerProducto.descuento || 0;
-            const total = subtotal + impuesto - descuento;
-
-            document.getElementById('subtotal').textContent = `₡${subtotal.toFixed(2)}`;
-            document.getElementById('impuesto').textContent = `₡${impuesto.toFixed(2)}`;
-            document.getElementById('descuento').textContent = `₡${descuento.toFixed(2)}`;
-            document.getElementById('total').textContent = `₡${total.toFixed(2)}`;
+            document.getElementById('impuesto').textContent = `₡${primerProducto.impuesto.toFixed(2)}`;
+            document.getElementById('descuento').textContent = `₡${primerProducto.descuento.toFixed(2)}`;
+            document.getElementById('total').textContent = `₡${((total - primerProducto.descuento) + primerProducto.impuesto).toFixed(2)}`;
         } else {
             console.error('No se recibieron productos para la factura');
         }
@@ -179,65 +220,104 @@ async function handlePrintPreview() {
 
 function cargarFacturaEditable(idFactura) {
     cargarPtroveedores('proveedor', 'Seleccione un proveedor');
+    cargarComprobantesPago('comprobante-pago', 'Seleccione un comprobante');
+    setTimeout(function () {
+        window.api.obtenerFactura(idFactura, (respuesta) => {
+            const productos = respuesta.productos;
 
-    window.api.obtenerFactura(idFactura, (respuesta) => {
-        const productos = respuesta.productos;
+            if (productos && productos.length > 0) {
+                // Usar el primer producto para la información general
+                const primerProducto = productos[0];
 
-        if (productos && productos.length > 0) {
-            // Usar el primer producto para la información general
-            const primerProducto = productos[0];
+                // Título
+                document.getElementById('invoice-title').textContent = `Editar Factura #${primerProducto.numeroFactura}`;
 
-            // Título
-            document.getElementById('invoice-title').textContent = `Editar Factura #${primerProducto.numeroFactura}`;
+                // Información general
+                document.getElementById('numero-factura').value = primerProducto.numeroFactura;
+                document.getElementById('fecha-factura').value = new Date(primerProducto.fechaFactura).toISOString().slice(0, 16);
+                document.getElementById('comprobante-pago').value = Number(primerProducto.idComprobantePago);
+                document.getElementById('proveedor').value = Number(primerProducto.idProveedor);
+                console.log(primerProducto.idComprobantePago);
+                const estadoLabel = document.getElementById('estado-label');
+                estadoLabel.textContent = primerProducto.estadoFactura === 1 ? 'ACTIVA' : 'INACTIVA';
+                estadoLabel.className = `form-check-label status-badge ${primerProducto.estadoFactura === 1 ? 'status-active' : 'status-inactive'}`;
 
-            // Información general
-            document.getElementById('numero-factura').value = primerProducto.numeroFactura;
-            document.getElementById('fecha-factura').value = new Date(primerProducto.fechaFactura).toISOString().slice(0, 16);
-            document.getElementById('comprobante-pago').value = primerProducto.numeroComprobantePago;
-            document.getElementById('proveedor').value = Number(primerProducto.idProveedor);
-            const estadoLabel = document.getElementById('estado-label');
-            estadoLabel.textContent = primerProducto.estadoFactura === 1 ? 'ACTIVA' : 'INACTIVA';
-            estadoLabel.className = `form-check-label status-badge ${primerProducto.estadoFactura === 1 ? 'status-active' : 'status-inactive'}`;
+                // Información del colaborador (solo lectura)
+                document.getElementById('registradoPor').textContent = primerProducto.nombreUsuario; // Registrado por
+                document.getElementById('departamento').textContent = primerProducto.nombreDepartamento; // Departamento
+                document.getElementById('telefonoColaborador').textContent = primerProducto.numTelefono;
+                document.getElementById('nombreColaborador').textContent = `${primerProducto.nombreColaborador} ${primerProducto.primerApellido} ${primerProducto.segundoApellido}`; // Nombre completo
+                document.getElementById('puesto').textContent = primerProducto.nombrePuesto; // Puesto
+                document.getElementById('correoColaborador').textContent = primerProducto.correoColaborador; // Correo
+                document.getElementById('cedula').textContent = primerProducto.cedulaColaborador; // Cédula
+                document.getElementById('departamentoColaborador').textContent = primerProducto.nombreDepartamento; // Departamento
+                document.getElementById('telefonoColab').textContent = primerProducto.numTelefono;
 
-            // Información del colaborador (solo lectura)
-            document.getElementById('registradoPor').textContent = primerProducto.nombreUsuario; // Registrado por
-            document.getElementById('departamento').textContent = primerProducto.nombreDepartamento; // Departamento
-            document.getElementById('telefonoColaborador').textContent = primerProducto.numTelefono;
-            document.getElementById('nombreColaborador').textContent = `${primerProducto.nombreColaborador} ${primerProducto.primerApellido} ${primerProducto.segundoApellido}`; // Nombre completo
-            document.getElementById('puesto').textContent = primerProducto.nombrePuesto; // Puesto
-            document.getElementById('correoColaborador').textContent = primerProducto.correoColaborador; // Correo
-            document.getElementById('cedula').textContent = primerProducto.cedulaColaborador; // Cédula
-            document.getElementById('departamentoColaborador').textContent = primerProducto.nombreDepartamento; // Departamento
-            document.getElementById('telefonoColab').textContent = primerProducto.numTelefono;
+                var total = 0;
+                // Productos
+                const productsBody = document.getElementById('products-body');
+                productsBody.innerHTML = ''; // Limpiar tabla previa
+                productos.forEach((producto, index) => {
+                    total += producto.cantidadEntrando * producto.precioNueva;
+                    const row = document.createElement('tr');
+                    row.className = 'product-row';
+                    row.innerHTML = `
+                        <td><select class="form-control product-name" id="product-select-${index}" disabled>
+                            <option value="0">Seleccione un producto</option>
+                        </select></td>
+                        <td><input type="text" class="form-control product-unit" value="${producto.unidadMedicion}" disabled></td>
+                        <td><input type="number" class="form-control product-prev-qty" value="${producto.cantidadAnterior}"disabled></td>
+                        <td><input type="number" class="form-control product-new-qty" value="${producto.cantidadEntrando}"></td>
+                        <td><input type="number" class="form-control product-price" value="${producto.precioNueva.toFixed(2)}" step="0.01"></td>
+                        <td class="no-print"><i class="material-icons delete-product" onclick="marcarProductosFacturaEliminar(this, ${producto.idFacturaProducto})">delete</i></td>
+                    `;
+                    productsBody.appendChild(row);
 
-            var total = 0;
-            // Productos
-            const productsBody = document.getElementById('products-body');
-            productsBody.innerHTML = ''; // Limpiar tabla previa
-            productos.forEach(producto => {
-                total += producto.cantidadEntrando * producto.precioNueva;
-                const row = document.createElement('tr');
-                row.className = 'product-row';
-                row.innerHTML = `
-                    <td><input type="text" class="form-control product-name" value="${producto.nombreProducto}"></td>
-                    <td><input type="text" class="form-control product-unit" value="${producto.unidadMedicion}"></td>
-                    <td><input type="number" class="form-control product-prev-qty" value="${producto.cantidadAnterior}"></td>
-                    <td><input type="number" class="form-control product-new-qty" value="${producto.cantidadEntrando}"></td>
-                    <td><input type="number" class="form-control product-price" value="${producto.precioNueva.toFixed(2)}" step="0.01"></td>
-                    <td class="no-print"><i class="material-icons delete-product" onclick="deleteProduct(this)">delete</i></td>
-                `;
-                productsBody.appendChild(row);
+                    llenarProductosSelect(`product-select-${index}`);
+
+                    setTimeout(() => {
+                        document.getElementById(`product-select-${index}`).value = producto.idProducto;
+                    }, 100);
+                });
+
+                document.getElementById('invoice-tax').value = primerProducto.impuesto.toFixed(2);
+                document.getElementById('invoice-discount').value = primerProducto.descuento.toFixed(2);
+                document.getElementById('invoice-total').value = ((total - primerProducto.descuento) + primerProducto.impuesto).toFixed(2);
+
+                // Detalles adicionales
+                document.getElementById('notas').value = primerProducto.detallesAdicionales;
+            } else {
+                console.error('No se recibieron productos para la factura');
+                alert('No se encontraron datos para la factura con ID: ' + idFactura);
+            }
+        });
+    }, 100);
+
+
+}
+function llenarProductosSelect(selectId) {
+    window.api.obtenerProductos(null, null, 1, null, null, (respuesta) => {
+        const select = document.getElementById(selectId);
+        if (respuesta && respuesta.productos) {
+            respuesta.productos.forEach(producto => {
+                const option = document.createElement('option');
+                option.value = producto.idProducto;
+                option.textContent = producto.nombreProducto;
+                option.setAttribute('data-cantidad', producto.cantidad);
+                option.setAttribute('data-unidad-medicion', producto.unidadMedicion);
+                select.appendChild(option);
             });
-
-            document.getElementById('invoice-tax').value = primerProducto.impuesto.toFixed(2);
-            document.getElementById('invoice-discount').value = primerProducto.descuento.toFixed(2);
-            document.getElementById('invoice-total').value = ((total - primerProducto.descuento) + primerProducto.impuesto).toFixed(2);
-
-            // Detalles adicionales
-            document.getElementById('notas').value = primerProducto.detallesAdicionales;
-        } else {
-            console.error('No se recibieron productos para la factura');
-            alert('No se encontraron datos para la factura con ID: ' + idFactura);
         }
     });
+}
+
+function actualizarCantidadPrevia(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const cantidad = selectedOption.getAttribute('data-cantidad') || 0;
+    const unidadMedicion = selectedOption.getAttribute('data-unidad-medicion') || 'Unidad';
+    const row = select.closest('tr');
+    const prevQtyInput = row.querySelector('.product-prev-qty');
+    const unitInput = row.querySelector('.product-unit');
+    prevQtyInput.value = cantidad;
+    unitInput.value = unidadMedicion;
 }

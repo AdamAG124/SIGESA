@@ -898,6 +898,7 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 estadoFactura: facturaProducto.getIdFactura().getEstado(),
                 idProveedor: facturaProducto.getIdFactura().getIdProveedor().getIdProveedor(),
                 nombreProveedor: facturaProducto.getIdFactura().getIdProveedor().getNombre(),
+                idComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getIdComprobantePago(),
                 numeroComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getNumero(),
                 idProducto: facturaProducto.getIdProducto().getIdProducto(),
                 nombreProducto: facturaProducto.getIdProducto().getNombre(),

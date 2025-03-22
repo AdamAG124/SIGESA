@@ -183,7 +183,7 @@
             <span class="material-icons">print</span>
             Imprimir
         </button>
-        <button class="btn btn-secondary">
+        <button class="btn btn-secondary" id="buttonEditFactura" onclick="verDetallesFactura(this.value, '/factura-view/editar-factura.html', 2)">
             <span class="material-icons">edit</span>
             Editar
         </button>
@@ -255,7 +255,6 @@
                     <th>Cant. Anterior</th>
                     <th>Cant. Entrando</th>
                     <th>Precio Unitario</th>
-                    <th>Subtotal</th>
                 </tr>
             </thead>
             <tbody id="productos-body"></tbody>
@@ -264,15 +263,11 @@
         <div class="summary-section" style="margin-top: 20px;">
             <table class="summary-table">
                 <tr>
-                    <td>Subtotal:</td>
-                    <td id="subtotal"></td>
-                </tr>
-                <tr>
-                    <td>Impuesto (13%):</td>
+                    <td>Impuesto (Monto):</td>
                     <td id="impuesto"></td>
                 </tr>
                 <tr>
-                    <td>Descuento:</td>
+                    <td>Descuento (Monto):</td>
                     <td id="descuento"></td>
                 </tr>
                 <tr>
