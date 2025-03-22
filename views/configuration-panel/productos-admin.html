@@ -7,7 +7,7 @@
         </button>
     </div>
     <div class="search-bar">
-        <input id="search-bar" type="text" placeholder="Buscar productos..." onkeypress="filterTable(7)">
+        <input id="search-bar" type="text" placeholder="Buscar productos..." onkeydown="checkEmpty(event, 7)" oninput="checkEmpty(event, 7)">
     </div>
     <div class="filters">
         <select id="selectPageSize" onchange="filterTable(7)">

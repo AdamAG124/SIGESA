@@ -12,7 +12,7 @@ class ProductoDB {
     async listarProductos(pageSize = 10, currentPage = 1, estadoProducto = null, idCategoriaFiltro = null, valorBusqueda = null) {
         const db = new ConectarDB();
         let connection;
-
+        // console.log('estado: ' + estadoProducto, idCategoriaFiltro, valorBusqueda);
         try {
             connection = await db.conectar();
 
@@ -47,7 +47,7 @@ class ProductoDB {
                         P.NUM_CANTIDAD LIKE ?
                     )
                 `);
-                const searchParam = `${valorBusqueda}%`;
+                const searchParam = `%${valorBusqueda}%`;
                 params.push(searchParam, searchParam, searchParam);
             }
 

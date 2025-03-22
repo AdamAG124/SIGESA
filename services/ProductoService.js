@@ -12,6 +12,7 @@ class ProductoService {
         if(estadoProducto == 2){
             estadoProducto = null;
         }
+
         if(idCategoriaFiltro == 0){
             idCategoriaFiltro = null;
         }       
