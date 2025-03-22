@@ -15,6 +15,7 @@ class ProductoDB {
         // console.log('estado: ' + estadoProducto, idCategoriaFiltro, valorBusqueda);
         try {
             connection = await db.conectar();
+        
             const offset = (currentPage - 1) * pageSize;
 
             // Base SQL query para listado y conteo
@@ -95,11 +96,8 @@ class ProductoDB {
                 return producto;
             });
 
-            // Query para obtener el conteo total de productos con los filtros aplicados
             const countQuery = `SELECT COUNT(DISTINCT P.ID_PRODUCTO) as total ${baseQuery} ${whereClause}`;
-            // Si se usó paginación, eliminamos los últimos dos parámetros (pageSize, offset)
-            const paramsForCount = pageSize ? params.slice(0, -2) : params;
-            const [countResult] = await connection.query(countQuery, paramsForCount);
+            const [countResult] = await connection.query(countQuery, params.slice(0, -2)); // Excluir LIMIT y OFFSET para el conteo
 
             const totalRecords = countResult[0].total;
             const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
