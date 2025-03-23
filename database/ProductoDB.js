@@ -15,9 +15,10 @@ class ProductoDB {
         // console.log('estado: ' + estadoProducto, idCategoriaFiltro, valorBusqueda);
         try {
             connection = await db.conectar();
-        
-            const offset = (currentPage - 1) * pageSize;
 
+            const offset = (currentPage - 1) * pageSize;
+            pageSize = null;
+            currentPage = null;
             // Base SQL query para listado y conteo
             const baseQuery = `
                 FROM ${this.#table} P
@@ -97,7 +98,10 @@ class ProductoDB {
             });
 
             const countQuery = `SELECT COUNT(DISTINCT P.ID_PRODUCTO) as total ${baseQuery} ${whereClause}`;
-            const [countResult] = await connection.query(countQuery, params.slice(0, -2)); // Excluir LIMIT y OFFSET para el conteo
+
+            // Si se usó paginación, eliminamos los últimos dos parámetros (pageSize, offset)
+            const paramsForCount = pageSize ? params.slice(0, -2) : params;
+            const [countResult] = await connection.query(countQuery, paramsForCount);
 
             const totalRecords = countResult[0].total;
             const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
@@ -138,12 +142,12 @@ class ProductoDB {
             connection = await db.conectar();
 
             // Obtener atributos del producto
-            const nombre = producto.getNombre() || 'Acción requerida: ingrese un nombre'; 
+            const nombre = producto.getNombre() || 'Acción requerida: ingrese un nombre';
             const descripcion = producto.getDescripcion();
             const cantidad = producto.getCantidad() || 0;
-            const unidadMedicion = producto.getUnidadMedicion() || 'Acción requerida: ingrese una unidad'; 
+            const unidadMedicion = producto.getUnidadMedicion() || 'Acción requerida: ingrese una unidad';
             // Si producto.getCategoria() no es null ni undefined, entonces se invoca el método getIdCategoria() y se asigna su valor a categoria.
-            const categoria = producto.getCategoria()?.getIdCategoria(); 
+            const categoria = producto.getCategoria()?.getIdCategoria();
             const estado = producto.getEstado() ?? 1; // 1 (Activo)
 
             if (!categoria) {
