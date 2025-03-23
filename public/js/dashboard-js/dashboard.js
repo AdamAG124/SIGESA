@@ -1934,7 +1934,7 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
 function cargarCategorias(idSelect, mensajeQuemado) {
-  window.api.obtenerCategorias(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null, (respuesta) => {
+  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
     idSelect.innerHTML = ""; // Limpiar las opciones existentes
     const option = document.createElement("option");
