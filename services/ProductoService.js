@@ -23,6 +23,10 @@ class ProductoService {
     async crearProducto(producto){
         return await this.#productoDB.crearProducto(producto);
     }
+
+    // async eliminarProducto(producto) {
+    //     return await this.#productoDB.eliminarProducto(producto);
+    // }
 }
 
 // Exportar la clase
