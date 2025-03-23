@@ -181,18 +181,17 @@ class FacturaProductoDB {
             // Actualizar la factura en sigm_factura
             const factura = facturaProductoActual.getIdFactura();
             const updateFacturaQuery = `
-                UPDATE sigm_factura
-                SET 
-                    ID_PROVEEDOR = ${factura.getIdProveedor().getIdProveedor()},
-                    ID_COMPROBANTE_PAGO = ${factura.getIdComprobante().getIdComprobantePago()},
-                    NUM_FACTURA = '${factura.getNumeroFactura()}',
-                    FEC_FACTURA = '${factura.getFechaFactura()}',
-                    DSC_DETALLE_FACTURA = '${factura.getDetallesAdicionales()}',
-                    MONTO_IMPUESTO = ${factura.getImpuesto()},
-                    MONTO_DESCUENTO = ${factura.getDescuento()},
-                    ESTADO = ${factura.getEstado() ? 1 : 0}
-                WHERE ID_FACTURA = ${factura.getIdFactura()}
-            `;
+            UPDATE sigm_factura
+            SET 
+                ID_PROVEEDOR = ${factura.getIdProveedor().getIdProveedor()},
+                ID_COMPROBANTE_PAGO = ${factura.getIdComprobante().getIdComprobantePago()},
+                NUM_FACTURA = '${factura.getNumeroFactura()}',
+                FEC_FACTURA = '${factura.getFechaFactura()}',
+                DSC_DETALLE_FACTURA = '${factura.getDetallesAdicionales()}',
+                MONTO_IMPUESTO = ${factura.getImpuesto()},
+                MONTO_DESCUENTO = ${factura.getDescuento()}
+            WHERE ID_FACTURA = ${factura.getIdFactura()}
+        `;
             const [updateFacturaResult] = await connection.query(updateFacturaQuery);
 
             if (updateFacturaResult.affectedRows === 0) {
@@ -204,10 +203,10 @@ class FacturaProductoDB {
                 for (const nuevo of nuevosFacturaProducto) {
                     // Obtener la cantidad actual del producto desde sigm_producto
                     const selectProductoQuery = `
-                        SELECT NUM_CANTIDAD 
-                        FROM sigm_producto 
-                        WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
-                    `;
+                    SELECT NUM_CANTIDAD 
+                    FROM sigm_producto 
+                    WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
+                `;
                     const [productoResult] = await connection.query(selectProductoQuery);
 
                     if (productoResult.length === 0) {
@@ -219,36 +218,35 @@ class FacturaProductoDB {
 
                     // Actualizar la cantidad en sigm_producto
                     const updateProductoQuery = `
-                        UPDATE sigm_producto
-                        SET NUM_CANTIDAD = ${nuevaCantidad}
-                        WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
-                    `;
+                    UPDATE sigm_producto
+                    SET NUM_CANTIDAD = ${nuevaCantidad}
+                    WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
+                `;
                     const [updateProductoResult] = await connection.query(updateProductoQuery);
 
                     if (updateProductoResult.affectedRows === 0) {
+                        console.log('Esta mamando');
                         throw new Error(`No se actualizó la cantidad del producto con ID ${nuevo.getIdProducto().getIdProducto()}`);
                     }
 
                     // Insertar el nuevo FacturaProducto en sigt_factura_producto
                     const insertQuery = `
-                        INSERT INTO sigt_factura_producto (
-                            ID_FACTURA, 
-                            ID_PRODUCTO, 
-                            NUM_CANTIDAD_ANTERIOR, 
-                            NUM_CANTIDAD_ENTRANDO, 
-                            MONTO_PRECIO_NUEVA, 
-                            ID_USUARIO, 
-                            ESTADO
-                        ) VALUES (
-                            ${nuevo.getIdFactura().getIdFactura()},
-                            ${nuevo.getIdProducto().getIdProducto()},
-                            ${nuevo.getCantidadAnterior()},
-                            ${nuevo.getCantidadEntrando()},
-                            ${nuevo.getPrecioNuevo()},
-                            ${nuevo.getIdUsuario().getIdUsuario()},
-                            ${nuevo.getEstado() ? 1 : 0}
-                        )
-                    `;
+                    INSERT INTO ${this.#table} (
+                        ID_PRODUCTO, 
+                        NUM_CANTIDAD_ANTERIOR, 
+                        NUM_CANTIDAD_ENTRANDO, 
+                        MONTO_PRECIO_NUEVA, 
+                        ID_USUARIO,
+                        ID_FACTURA
+                    ) VALUES (
+                        ${nuevo.getIdProducto().getIdProducto()},
+                        ${nuevo.getCantidadAnterior()},
+                        ${nuevo.getCantidadEntrando()},
+                        ${nuevo.getPrecioNuevo()},
+                        ${nuevo.getIdUsuario().getIdUsuario()},
+                        ${nuevo.getIdFactura().getIdFactura()}
+                    )
+                `;
                     await connection.query(insertQuery);
                 }
             }
@@ -258,10 +256,10 @@ class FacturaProductoDB {
                 for (const actualizar of actualizarFacturaProducto) {
                     // Obtener el valor actual de NUM_CANTIDAD_ENTRANDO desde sigt_factura_producto
                     const selectFacturaProductoQuery = `
-                        SELECT NUM_CANTIDAD_ENTRANDO
-                        FROM sigt_factura_producto
-                        WHERE ID_FACTURA_PRODUCTO = ${actualizar.getIdFacturaProducto()}
-                    `;
+                    SELECT NUM_CANTIDAD_ENTRANDO
+                    FROM ${this.#table}
+                    WHERE ID_FACTURA_PRODUCTO = ${actualizar.getIdFacturaProducto()}
+                `;
                     const [facturaProductoResult] = await connection.query(selectFacturaProductoQuery);
 
                     if (facturaProductoResult.length === 0) {
@@ -275,10 +273,10 @@ class FacturaProductoDB {
                     // Si la cantidad entrante cambió, actualizar NUM_CANTIDAD en sigm_producto
                     if (cantidadEntrandoAnterior !== cantidadEntrandoNueva) {
                         const selectProductoQuery = `
-                            SELECT NUM_CANTIDAD 
-                            FROM sigm_producto 
-                            WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
-                        `;
+                        SELECT NUM_CANTIDAD 
+                        FROM sigm_producto 
+                        WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
+                    `;
                         const [productoResult] = await connection.query(selectProductoQuery);
 
                         if (productoResult.length === 0) {
@@ -289,10 +287,10 @@ class FacturaProductoDB {
                         const nuevaCantidadProducto = cantidadActualProducto - cantidadEntrandoAnterior + cantidadEntrandoNueva;
 
                         const updateProductoQuery = `
-                            UPDATE sigm_producto
-                            SET NUM_CANTIDAD = ${nuevaCantidadProducto}
-                            WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
-                        `;
+                        UPDATE sigm_producto
+                        SET NUM_CANTIDAD = ${nuevaCantidadProducto}
+                        WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
+                    `;
                         const [updateProductoResult] = await connection.query(updateProductoQuery);
 
                         if (updateProductoResult.affectedRows === 0) {
@@ -302,14 +300,14 @@ class FacturaProductoDB {
 
                     // Actualizar el FacturaProducto en sigt_factura_producto
                     const updateQuery = `
-                        UPDATE sigt_factura_producto
-                        SET 
-                            ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()},
-                            NUM_CANTIDAD_ANTERIOR = ${actualizar.getCantidadAnterior()},
-                            NUM_CANTIDAD_ENTRANDO = ${actualizar.getCantidadEntrando()},
-                            MONTO_PRECIO_NUEVA = ${actualizar.getPrecioNuevo()}
-                        WHERE ID_FACTURA_PRODUCTO = ${actualizar.getIdFacturaProducto()}
-                    `;
+                    UPDATE ${this.#table}
+                    SET 
+                        ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()},
+                        NUM_CANTIDAD_ANTERIOR = ${actualizar.getCantidadAnterior()},
+                        NUM_CANTIDAD_ENTRANDO = ${actualizar.getCantidadEntrando()},
+                        MONTO_PRECIO_NUEVA = ${actualizar.getPrecioNuevo()}
+                    WHERE ID_FACTURA_PRODUCTO = ${actualizar.getIdFacturaProducto()}
+                `;
                     const [updateResult] = await connection.query(updateQuery);
                     if (updateResult.affectedRows === 0) {
                         console.warn(`No se actualizó el FacturaProducto con ID ${actualizar.getIdFacturaProducto()}`);
@@ -320,10 +318,53 @@ class FacturaProductoDB {
             // Eliminar FacturaProducto si el array no está vacío
             if (eliminarFacturaProducto.length > 0) {
                 for (const eliminar of eliminarFacturaProducto) {
-                    const deleteQuery = `
-                        DELETE FROM sigt_factura_producto
-                        WHERE ID_FACTURA_PRODUCTO = ${eliminar.getIdFacturaProducto()}
+                    // Obtener el valor actual de NUM_CANTIDAD_ENTRANDO desde sigt_factura_producto
+                    const selectFacturaProductoQuery = `
+                    SELECT NUM_CANTIDAD_ENTRANDO, ID_PRODUCTO
+                    FROM ${this.#table}
+                    WHERE ID_FACTURA_PRODUCTO = ${eliminar.getIdFacturaProducto()}
+                `;
+                    const [facturaProductoResult] = await connection.query(selectFacturaProductoQuery);
+
+                    if (facturaProductoResult.length > 0) {
+                        const cantidadEntrandoEliminar = facturaProductoResult[0].NUM_CANTIDAD_ENTRANDO || 0;
+                        const idProducto = facturaProductoResult[0].ID_PRODUCTO;
+
+                        // Obtener la cantidad actual del producto desde sigm_producto
+                        const selectProductoQuery = `
+                        SELECT NUM_CANTIDAD 
+                        FROM sigm_producto 
+                        WHERE ID_PRODUCTO = ${idProducto}
                     `;
+                        const [productoResult] = await connection.query(selectProductoQuery);
+
+                        if (productoResult.length === 0) {
+                            throw new Error(`No se encontró el producto con ID ${idProducto}`);
+                        }
+
+                        const cantidadActualProducto = productoResult[0].NUM_CANTIDAD || 0;
+                        const nuevaCantidadProducto = cantidadActualProducto - cantidadEntrandoEliminar;
+
+                        // Actualizar la cantidad en sigm_producto
+                        const updateProductoQuery = `
+                        UPDATE sigm_producto
+                        SET NUM_CANTIDAD = ${nuevaCantidadProducto}
+                        WHERE ID_PRODUCTO = ${idProducto}
+                    `;
+                        const [updateProductoResult] = await connection.query(updateProductoQuery);
+
+                        if (updateProductoResult.affectedRows === 0) {
+                            throw new Error(`No se actualizó la cantidad del producto con ID ${idProducto}`);
+                        }
+                    } else {
+                        console.warn(`No se encontró el FacturaProducto con ID ${eliminar.getIdFacturaProducto()} para ajustar la cantidad`);
+                    }
+
+                    // Eliminar el FacturaProducto de sigt_factura_producto
+                    const deleteQuery = `
+                    DELETE FROM ${this.#table}
+                    WHERE ID_FACTURA_PRODUCTO = ${eliminar.getIdFacturaProducto()}
+                `;
                     const [deleteResult] = await connection.query(deleteQuery);
                     if (deleteResult.affectedRows === 0) {
                         console.warn(`No se eliminó el FacturaProducto con ID ${eliminar.getIdFacturaProducto()}`);
@@ -349,7 +390,6 @@ class FacturaProductoDB {
             }
         }
     }
-
 }
 
 module.exports = FacturaProductoDB;

@@ -1,6 +1,10 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
+    #invoice-title{
+        font-size: 24px;
+    }
+
     .card {
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -20,6 +24,7 @@
         margin: 0;
         color: var(--primary-color);
         font-weight: 500;
+        font-size: 18px;
     }
 
     .card-body {
@@ -166,7 +171,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 id="invoice-title"></h1>
     <div class="btn-group no-print">
-        <button class="btn btn-secondary" onclick="saveInvoice()">
+        <button class="btn btn-secondary" onclick="validarYRecolectarDatosFactura()">
             <i class="material-icons">save</i> Guardar
         </button>
         <button class="btn btn-outline-primary"
@@ -192,6 +197,7 @@
                         <div class="info-label">Número de Factura:</div>
                         <div class="info-value">
                             <input type="text" class="form-control" id="numero-factura">
+                            <input type="hidden" id="idFactura">
                         </div>
                     </div>
                     <div class="info-row">
@@ -220,6 +226,7 @@
                         <div class="info-label">Registrado por:</div>
                         <div class="info-value">
                             <div class="readonly-value" id="registradoPor"></div>
+                            <input type="hidden" id="idUsuario">
                         </div>
                     </div>
                     <div class="info-row">
@@ -362,19 +369,6 @@
                     <textarea class="form-control" id="notas" rows="3"></textarea>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 id="invoice-title"></h1>
-        <div class="btn-group no-print">
-            <button class="btn btn-secondary" onclick="saveInvoice()">
-                <i class="material-icons">save</i> Guardar
-            </button>
-            <button class="btn btn-outline-primary"
-                onclick="adjuntarHTML('/factura-view/factura-admin.html', cargarFacturasTabla)">
-                <i class="material-icons">arrow_back</i> Volver
-            </button>
         </div>
     </div>
 </form>

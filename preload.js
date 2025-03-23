@@ -196,6 +196,11 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-productos-por-factura', (event, respuesta) => callback(respuesta));
     },
 
+    actualizarFacturaYProductos: (nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData, callback) => {
+        ipcRenderer.send('actualizar-factura-y-productos', {nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData});
+        ipcRenderer.once('factura-actualizada', (event, respuesta) => callback(respuesta));
+    },
+
     printToPDF: () => ipcRenderer.invoke('print-to-pdf'),
     printPDF: (pdfPath) => ipcRenderer.invoke('print-pdf', pdfPath),
 
