@@ -1927,7 +1927,7 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
 function cargarCategorias(idSelect, mensajeQuemado) {
-  window.api.obtenerCategorias(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null, (respuesta) => {
+  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
     idSelect.innerHTML = ""; // Limpiar las opciones existentes
     const option = document.createElement("option");
@@ -2013,6 +2013,173 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCate
   }, 100);
 }
 
+function agregarProducto() {
+  const categoriaSelect = document.getElementById("categorias");
+
+  // Crear un array para almacenar los textos de las opciones del select
+  cargarCategorias(categoriaSelect, "Seleccionar categoría");
+
+  // Cambiar el título del modal a "Editar Colaborador"
+  document.getElementById("modalTitle").innerText = "Crear Producto";
+  document.getElementById("buttonModal").onclick = enviarCreacionProducto;
+  // Mostrar el modal
+  document.getElementById("editarProductoModal").style.display = "block";
+}
+
+function enviarCreacionProducto() {
+
+  const nombre = document.getElementById("nombre").value;
+  const descripcion = document.getElementById("descripcion").value || "N/A";
+  const cantidad = document.getElementById("cantidad").value;
+  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const categoria = document.getElementById("categorias").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombre") },
+    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: categoria, element: document.getElementById("categorias") },
+
+    // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
+    // Si quieren registrar un nuevo producto y luego asignarle la cantidad el sistema debe soportarlo
+
+    // { value: descripcion, element: document.getElementById("descripcion") }, 
+    { value: cantidad, element: document.getElementById("cantidad") }   
+  ];
+
+  inputs.forEach(input => {
+    if (!input.value || (input.value == 0 && input.element.id === "categorias") || (input.value < 0 && input.element.id === "cantidad")) {
+      // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
+      input.element.style.border = "2px solid red";
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde si no está vacío o es válido
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error si no hay campos vacíos
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const productoData = {
+    nombre: nombre,
+    descripcion: descripcion,
+    cantidad: cantidad,
+    unidadMedicion: unidadMedicion,
+    categoria: categoria
+  };
+
+  Swal.fire({
+    title: "Creando producto",
+    text: "¿Está seguro que desea crear este nuevo producto?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearProducto(productoData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearProducto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(7);
+            cerrarModal("editarProductoModal", "editarProductoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+/* --------------------------------          ------------------------------------------
+   -------------------------------- FACTURAS ------------------------------------------
+   --------------------------------          ------------------------------------------ */
+   function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
+    // Obtener los elementos del DOM
+    const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+    const selectEstado = document.getElementById('estadoFiltro'); // Estado
+    const inputFechaInicio = document.getElementById('fechaInicialFiltro');
+    const inputFechaFin = document.getElementById('fechaFinalFiltro');
+    const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
+    const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
+    const searchInput = document.getElementById('search-bar');
+
+    // Configurar valores iniciales en los filtros
+    selectPageSize.value = pageSize;
+
+    // Configurar el select de estado
+    if (estadoFactura === 1) selectEstado.value = 1;
+    else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
+    else selectEstado.value = 2;
+
+    if (fechaInicio) inputFechaInicio.value = fechaInicio;
+    if (fechaFin) inputFechaFin.value = fechaFin;
+
+    if (searchValue) searchInput.value = searchValue;
+    cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
+    cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
+
+    setTimeout(function () {
+        if (idProveedor) selectProveedor.value = idProveedor;
+        if (idComprobantePago) selectComprobante.value = idComprobantePago;
+
+        window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
+            const tbody = document.getElementById("facturas-table-body");
+            tbody.innerHTML = ""; // Limpiar contenido previo
+
+            // Iterar sobre las facturas y agregarlas a la tabla
+            respuesta.facturas.forEach((factura) => {
+                const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
+                const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                  <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
+                  <td>${factura.numeroFactura || 'Sin número'}</td>
+                  <td>${fechaFactura}</td>
+                  <td>${factura.numeroComprobantePago || 'Sin comprobante'}</td>
+                  <td class="action-icons">
+                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/editar-factura.html', 2)">
+                          <span class="material-icons">edit</span>
+                          <span class="tooltiptext">Editar factura</span>
+                      </button>
+                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/detalles-factura.html', 1)">
+                          <span class="material-icons">info</span>
+                          <span class="tooltiptext">Ver detalles</span>
+                      </button>
+                      <button class="tooltip" value="${factura.idFactura}" onclick="${factura.estadoFactura === 1 ? `actualizarEstadoFactura(this.value, 0, 'Eliminando factura', '¿Está seguro que desea eliminar esta factura?', 1)` : `actualizarEstadoFactura(this.value, 1, 'Reactivando factura', '¿Está seguro que desea reactivar esta factura?', 1)`}">
+                          <span class="material-icons">
+                              ${factura.estadoFactura === 1 ? 'delete' : 'restore'}
+                          </span>
+                          <span class="tooltiptext">
+                              ${factura.estadoFactura === 1 ? 'Eliminar factura' : 'Reactivar factura'}
+                          </span>
+                      </button>
+                  </td>
+              `;
+                tbody.appendChild(row);
+            });
+
+            // Actualizar los botones de paginación
+            actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
+        });
+    }, 100);
+}
 
 
 function cargarPtroveedores(idSelect, mensajeQuemado) {

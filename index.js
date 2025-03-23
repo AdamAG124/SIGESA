@@ -839,6 +839,29 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoProd
     }
 });
 
+ipcMain.on('crear-producto', async (event, productoData) => {
+    try {
+        const producto = new Producto();
+        const categoria = new CategoriaProducto();
+        categoria.setIdCategoria(productoData.categoria);
+        
+        producto.setNombre(productoData.nombre);
+        producto.setDescripcion(productoData.descripcion);
+        producto.setCantidad(productoData.cantidad);
+        producto.setUnidadMedicion(productoData.unidadMedicion);
+        producto.setCategoria(categoria);
+        producto.setEstado(1); // estado activo por defecto
+
+        const productoController = new ProductoController();
+        const resultado = await productoController.crearProducto(producto);
+
+        event.reply('respuesta-crear-producto', resultado);
+    } catch (error) {
+        console.error('Error al crear el producto:', error);
+        event.reply('respuesta-crear-producto', { success: false, message: error.message });
+    }
+});
+
 /* --------------------------------                    ------------------------------------------
    --------------------------------       Factura      ------------------------------------------
    --------------------------------                    ------------------------------------------ */

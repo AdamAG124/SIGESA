@@ -231,8 +231,15 @@ th {
 }
 
 select {
+    border: 2px solid #ccc; /* Color de borde inicial */
     padding: 5px;
+    transition: border-color 0.3s; /* Transición suave al cambiar de borde */
     margin-bottom: 10px;
+}
+
+select:focus {
+    border-color: #8a2be2; /* Color de borde al hacer clic */
+    outline: none; /* Quitar el contorno */
 }
 
 #more-options-arrow {
@@ -316,7 +323,7 @@ form {
     gap: 10px; /* Espaciado entre los inputs */
 }
 
-input[type="text"], input[type="password"], input[type="tel"], input[type="date"], input[type="email"], textarea{
+input[type="text"],input[type="number"], input[type="password"], input[type="tel"], input[type="date"], input[type="email"], textarea{
     padding: 10px;
     border: 2px solid #ccc; /* Color de borde inicial */
     border-radius: 5px; /* Bordes redondeados para los inputs */
@@ -324,7 +331,7 @@ input[type="text"], input[type="password"], input[type="tel"], input[type="date"
     width: 100%; /* Asegura que el input siempre use el 100% del espacio disponible */
 }
 
-input[type="text"]:focus, input[type="password"]:focus, input[type="tel"]:focus, input[type="date"]:focus, input[type="email"]:focus, textarea:focus {
+input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, input[type="tel"]:focus, input[type="date"]:focus, input[type="email"]:focus, textarea:focus {
     border-color: #8a2be2; /* Color de borde al hacer clic */
     outline: none; /* Quitar el contorno */
 }
