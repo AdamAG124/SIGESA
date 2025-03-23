@@ -1,0 +1,376 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    #invoice-title{
+        font-size: 24px;
+    }
+
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        margin: 0;
+        color: var(--primary-color);
+        font-weight: 500;
+        font-size: 18px;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background-color: #e6f7e6;
+        color: #28a745;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #dc3545;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .info-label {
+        font-weight: 500;
+        min-width: 150px;
+        padding-right: 10px;
+    }
+
+    .info-value {
+        flex-grow: 1;
+    }
+
+    .readonly-value {
+        padding: 6px 12px;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        color: #6c757d;
+    }
+
+    .table-responsive {
+        margin-bottom: 20px;
+    }
+
+    .table th {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--hover-color);
+        border-color: var(--hover-color);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .btn-secondary:hover {
+        background-color: #7a1bd2;
+        border-color: #7a1bd2;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(74, 74, 244, 0.25);
+    }
+
+    .summary-table {
+        width: 300px;
+        margin-left: auto;
+    }
+
+    .summary-table td {
+        padding: 8px;
+    }
+
+    .summary-table td:last-child {
+        text-align: right;
+    }
+
+    .product-row td {
+        vertical-align: middle;
+    }
+
+    .delete-product {
+        color: #dc3545;
+        cursor: pointer;
+    }
+
+    .add-product-btn {
+        margin-bottom: 15px;
+    }
+
+    .currency-input {
+        position: relative;
+    }
+
+    .currency-input input {
+        padding-left: 20px;
+    }
+
+    .currency-input::before {
+        content: "₡";
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+    }
+
+    @media print {
+        .no-print {
+            display: none;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 id="invoice-title"></h1>
+    <div class="btn-group no-print">
+        <button class="btn btn-secondary" onclick="validarYRecolectarDatosFactura()">
+            <i class="material-icons">save</i> Guardar
+        </button>
+        <button class="btn btn-outline-primary"
+            onclick="adjuntarHTML('/factura-view/factura-admin.html', cargarFacturasTabla)">
+            <i class="material-icons">arrow_back</i> Volver
+        </button>
+    </div>
+</div>
+
+<form id="invoice-form">
+    <!-- Información General -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Información General</h5>
+            <div class="form-check form-switch">
+                <label class="form-check-label status-badge status-active" id="estado-label"></label>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Número de Factura:</div>
+                        <div class="info-value">
+                            <input type="text" class="form-control" id="numero-factura">
+                            <input type="hidden" id="idFactura">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Fecha de Factura:</div>
+                        <div class="info-value">
+                            <input type="datetime-local" class="form-control" id="fecha-factura">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Comprobante de Pago:</div>
+                        <div class="info-value">
+                            <select type="text" class="form-control" id="comprobante-pago">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Proveedor:</div>
+                        <div class="info-value">
+                            <select name="proveedor" class="form-control" id="proveedor">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Registrado por:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="registradoPor"></div>
+                            <input type="hidden" id="idUsuario">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Departamento:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="departamento"></div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Teléfono:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="telefonoColaborador"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Productos</h5>
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-outline-primary add-product-btn no-print" onclick="addProduct()">
+                <i class="material-icons">add</i> Agregar Producto
+            </button>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="products-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th>Cant. Anterior</th>
+                            <th>Cant. Entrando</th>
+                            <th>Precio Unitario en ₡</th>
+                            <th class="no-print">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-body">
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <table class="summary-table">
+                    <tr>
+                        <td>
+                            Impuesto (Monto):
+                        </td>
+                        <td>
+                            <div class="currency-input">
+                                <input type="number" class="form-control" id="invoice-tax" step="0.01">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Descuento (Monto):</td>
+                        <td>
+                            <div class="currency-input">
+                                <input type="number" class="form-control" id="invoice-discount" step="0.01">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total:</strong></td>
+                        <td>
+                            <div class="currency-input">
+                                <input type="number" class="form-control" id="invoice-total" step="0.01" disabled>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del Colaborador -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Información del Colaborador</h5>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Nombre:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="nombreColaborador"></div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Puesto:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="puesto"></div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Correo:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="correoColaborador"></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Cédula:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="cedula"></div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Departamento:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="departamentoColaborador"></div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Teléfono:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="telefonoColab"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles Adicionales -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Detalles Adicionales</h5>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <div class="info-label">Notas:</div>
+                <div class="info-value">
+                    <textarea class="form-control" id="notas" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

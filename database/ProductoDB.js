@@ -97,8 +97,6 @@ class ProductoDB {
             });
 
             const countQuery = `SELECT COUNT(DISTINCT P.ID_PRODUCTO) as total ${baseQuery} ${whereClause}`;
-
-            // Si se usó paginación, eliminamos los últimos dos parámetros (pageSize, offset)
             const paramsForCount = pageSize ? params.slice(0, -2) : params;
             const [countResult] = await connection.query(countQuery, paramsForCount);
 

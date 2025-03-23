@@ -18,6 +18,8 @@ const Colaborador = require('./domain/Colaborador');
 const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
 const ComprobantePagoController = require('./controllers/ComprobantePagoController');
+const Factura = require('./domain/Factura');
+const FacturaProducto = require('./domain/FacturaProducto');
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -920,7 +922,9 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 impuesto: facturaProducto.getIdFactura().getImpuesto(),
                 descuento: facturaProducto.getIdFactura().getDescuento(),
                 estadoFactura: facturaProducto.getIdFactura().getEstado(),
+                idProveedor: facturaProducto.getIdFactura().getIdProveedor().getIdProveedor(),
                 nombreProveedor: facturaProducto.getIdFactura().getIdProveedor().getNombre(),
+                idComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getIdComprobantePago(),
                 numeroComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getNumero(),
                 idProducto: facturaProducto.getIdProducto().getIdProducto(),
                 nombreProducto: facturaProducto.getIdProducto().getNombre(),
@@ -961,6 +965,80 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-productos-por-factura', 'Hubo un error al cargar los productos de la factura.');
         }
+    }
+});
+
+ipcMain.on('actualizar-factura-y-productos', async (event, data) => {
+    const { nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData } = data;
+    const controllerFacturaProducto = new FacturaProductoController();
+
+    try {
+        const factura = new Factura();
+        factura.setIdFactura(facturaData.idFactura);
+        factura.setNumeroFactura(facturaData.numeroFactura);
+        factura.setFechaFactura(facturaData.fechaFactura);
+
+        factura.getIdProveedor().setIdProveedor(facturaData.idProveedor);
+        factura.getIdComprobante().setIdComprobantePago(facturaData.idComprobantePago);
+
+        factura.setImpuesto(facturaData.impuesto);
+        factura.setDescuento(facturaData.descuento);
+        factura.setDetallesAdicionales(facturaData.detallesAdicionales);
+
+        const nuevos = nuevosFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFactura(factura);
+            
+            fp.getIdProducto().setIdProducto(data.idProducto);
+            fp.setCantidadAnterior(data.cantidadAnterior);
+            fp.setCantidadEntrando(data.cantidadEntrando);
+            fp.setPrecioNuevo(data.precioNuevo);
+            fp.getIdUsuario().setIdUsuario(data.idUsuario);
+
+            return fp;
+        });
+
+        // Actualizar FacturaProducto
+        const actualizar = actualizarFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFacturaProducto(data.idFacturaProducto);
+            fp.setIdFactura(factura);
+
+            fp.getIdProducto().setIdProducto(data.idProducto);
+            fp.setCantidadAnterior(data.cantidadAnterior);
+            fp.setCantidadEntrando(data.cantidadEntrando);
+            fp.setPrecioNuevo(data.precioNuevo);
+
+            return fp;
+        });
+
+        // Eliminar FacturaProducto
+        const eliminar = eliminarFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFacturaProducto(data.idFacturaProducto);
+            return fp;
+        });
+
+        // 3. Crear facturaProductoActual con el objeto factura
+        const facturaProductoActual = new FacturaProducto();
+        facturaProductoActual.setIdFactura(factura);
+
+        // 4. Llamar al método del controlador
+        const resultado = await controllerFacturaProducto.editarFacturaProducto(
+            facturaProductoActual,
+            nuevos,
+            actualizar,
+            eliminar
+        );
+
+        // 5. Enviar el resultado al renderer
+        event.reply('factura-actualizada', resultado);
+    } catch (error) {
+        console.error('Error en index.js:', error);
+        event.reply('factura-actualizada', {
+            success: false,
+            message: 'Error al procesar la factura: ' + error.message
+        });
     }
 });
 

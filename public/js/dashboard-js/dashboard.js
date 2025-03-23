@@ -549,13 +549,6 @@ function filterTable(moduloFiltrar) {
       cargarEntidadesFinancierasTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
     case 6:
-      console.log(document.getElementById("estadoFiltro").value);
-      console.log(document.getElementById("proveedorFiltro").value);
-      console.log(document.getElementById("fechaInicialFiltro").value);
-      console.log(document.getElementById("fechaFinalFiltro").value);
-      console.log(document.getElementById("comprobanteFiltro").value);
-      console.log(document.getElementById("search-bar").value);
-      console.log(pageSize);
       cargarFacturasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("proveedorFiltro").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, Number(document.getElementById("comprobanteFiltro").value), document.getElementById("search-bar").value);
       break;
     case 7:
@@ -2123,155 +2116,78 @@ function enviarCreacionProducto() {
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------
    --------------------------------          ------------------------------------------ */
-function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
-  // Obtener los elementos del DOM
-  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
-  const selectEstado = document.getElementById('estadoFiltro'); // Estado
-  const inputFechaInicio = document.getElementById('fechaInicialFiltro');
-  const inputFechaFin = document.getElementById('fechaFinalFiltro');
-  const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
-  const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
-  const searchInput = document.getElementById('search-bar');
+   function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
+    // Obtener los elementos del DOM
+    const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+    const selectEstado = document.getElementById('estadoFiltro'); // Estado
+    const inputFechaInicio = document.getElementById('fechaInicialFiltro');
+    const inputFechaFin = document.getElementById('fechaFinalFiltro');
+    const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
+    const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
+    const searchInput = document.getElementById('search-bar');
 
-  // Configurar valores iniciales en los filtros
-  selectPageSize.value = pageSize;
+    // Configurar valores iniciales en los filtros
+    selectPageSize.value = pageSize;
 
-  // Configurar el select de estado
-  if (estadoFactura === 1) selectEstado.value = 1;
-  else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
-  else selectEstado.value = 2;
+    // Configurar el select de estado
+    if (estadoFactura === 1) selectEstado.value = 1;
+    else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
+    else selectEstado.value = 2;
 
-  if (fechaInicio) inputFechaInicio.value = fechaInicio;
-  if (fechaFin) inputFechaFin.value = fechaFin;
+    if (fechaInicio) inputFechaInicio.value = fechaInicio;
+    if (fechaFin) inputFechaFin.value = fechaFin;
 
-  if (searchValue) searchInput.value = searchValue;
-  cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
-  cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
+    if (searchValue) searchInput.value = searchValue;
+    cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
+    cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
 
-  setTimeout(function () {
-    if (idProveedor) selectProveedor.value = idProveedor;
-    if (idComprobantePago) selectComprobante.value = idComprobantePago;
+    setTimeout(function () {
+        if (idProveedor) selectProveedor.value = idProveedor;
+        if (idComprobantePago) selectComprobante.value = idComprobantePago;
 
-    window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
-      const tbody = document.getElementById("facturas-table-body");
-      tbody.innerHTML = ""; // Limpiar contenido previo
+        window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
+            const tbody = document.getElementById("facturas-table-body");
+            tbody.innerHTML = ""; // Limpiar contenido previo
 
-      // Iterar sobre las facturas y agregarlas a la tabla
-      respuesta.facturas.forEach((factura) => {
-        const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
-        const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
+            // Iterar sobre las facturas y agregarlas a la tabla
+            respuesta.facturas.forEach((factura) => {
+                const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
+                const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-                <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
-                <td>${factura.numeroFactura || 'Sin número'}</td>
-                <td>${fechaFactura}</td>
-                <td>${factura.numeroComprobantePago || 'Sin comprobante'}</td>
-                <td class="action-icons">
-                    <button class="tooltip" value="${factura.idFactura}" onclick="editarFactura(this.value, this)">
-                        <span class="material-icons">edit</span>
-                        <span class="tooltiptext">Editar factura</span>
-                    </button>
-                    <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, this)">
-                        <span class="material-icons">info</span>
-                        <span class="tooltiptext">Ver detalles</span>
-                    </button>
-                    <button class="tooltip" value="${factura.idFactura}" onclick="${factura.estadoFactura === 1 ? `actualizarEstadoFactura(this.value, 0, 'Eliminando factura', '¿Está seguro que desea eliminar esta factura?', 1)` : `actualizarEstadoFactura(this.value, 1, 'Reactivando factura', '¿Está seguro que desea reactivar esta factura?', 1)`}">
-                        <span class="material-icons">
-                            ${factura.estadoFactura === 1 ? 'delete' : 'restore'}
-                        </span>
-                        <span class="tooltiptext">
-                            ${factura.estadoFactura === 1 ? 'Eliminar factura' : 'Reactivar factura'}
-                        </span>
-                    </button>
-                </td>
-            `;
-        tbody.appendChild(row);
-      });
-
-      // Actualizar los botones de paginación
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
-    });
-  }, 100);
-}
-
-function verDetallesFactura(idFactura, button) {
-  adjuntarHTML('/factura-view/detalles-factura.html', false);
-  cargarFactura(idFactura);
-}
-
-function cargarFactura(idFactura) {
-  window.api.obtenerFactura(idFactura, (respuesta) => {
-    const productos = respuesta.productos;
-
-    if (productos && productos.length > 0) {
-      // Usar el primer objeto para la información general
-      const primerProducto = productos[0];
-
-      // Título
-      document.getElementById('numero-factura').textContent = primerProducto.numeroFactura;
-      document.getElementById('numero-factura-info').textContent = primerProducto.numeroFactura;
-
-      // Información general de la factura
-      document.getElementById('fecha-factura').textContent = primerProducto.fechaFactura;
-      document.getElementById('comprobante-pago').textContent = primerProducto.numeroComprobantePago;
-      document.getElementById('estado-factura-info').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
-      document.getElementById('estado-factura').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
-      document.getElementById('estado-factura').classList.add(primerProducto.estadoFactura === 1 ? 'status-active' : 'status-inactive');
-
-      // Información del proveedor y registrado por
-      document.getElementById('proveedor').textContent = primerProducto.nombreProveedor; // Solo ID, ajusta si tienes el nombre
-      document.getElementById('registrado-por').textContent = primerProducto.nombreUsuario;
-      document.getElementById('departamento').textContent = primerProducto.nombreDepartamento; // No hay campo directo, ajusta si tienes esta info
-      document.getElementById('telefono').textContent = primerProducto.numTelefono || ''; // Ajusta si tienes teléfono del proveedor
-
-      // Información del colaborador
-      document.getElementById('nombre-colaborador').textContent = `${primerProducto.nombreColaborador} ${primerProducto.primerApellido} ${primerProducto.segundoApellido}`;
-      document.getElementById('cedula').textContent = primerProducto.cedulaColaborador;
-      document.getElementById('puesto').textContent = primerProducto.nombrePuesto; // No hay campo directo, ajusta si tienes esta info
-      document.getElementById('departamento-colaborador').textContent = primerProducto.nombreDepartamento; // No hay campo directo, ajusta si tienes esta info
-      document.getElementById('correo').textContent = primerProducto.correoColaborador;
-      document.getElementById('telefono-colaborador').textContent = primerProducto.numTelefono || ''; // Ajusta si tienes teléfono
-
-      // Detalles adicionales
-      document.getElementById('notas').textContent = primerProducto.detallesAdicionales;
-
-      // Llenar la tabla de productos (iterar sobre todos los productos)
-      const productosBody = document.getElementById('productos-body');
-      productosBody.innerHTML = ''; // Limpiar el contenido previo
-      productos.forEach(producto => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-                  <td>${producto.nombreProducto}</td>
-                  <td>${producto.descripcionProducto}</td>
-                  <td>${producto.unidadMedicion}</td>
-                  <td>${producto.cantidadAnterior}</td>
-                  <td>${producto.cantidadEntrando}</td>
-                  <td>₡${parseFloat(producto.precioNueva).toFixed(2)}</td>
-                  <td>₡${parseFloat(producto.cantidadEntrando * producto.precioNueva).toFixed(2)}</td>
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                  <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
+                  <td>${factura.numeroFactura || 'Sin número'}</td>
+                  <td>${fechaFactura}</td>
+                  <td>${factura.numeroComprobantePago || 'Sin comprobante'}</td>
+                  <td class="action-icons">
+                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/editar-factura.html', 2)">
+                          <span class="material-icons">edit</span>
+                          <span class="tooltiptext">Editar factura</span>
+                      </button>
+                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/detalles-factura.html', 1)">
+                          <span class="material-icons">info</span>
+                          <span class="tooltiptext">Ver detalles</span>
+                      </button>
+                      <button class="tooltip" value="${factura.idFactura}" onclick="${factura.estadoFactura === 1 ? `actualizarEstadoFactura(this.value, 0, 'Eliminando factura', '¿Está seguro que desea eliminar esta factura?', 1)` : `actualizarEstadoFactura(this.value, 1, 'Reactivando factura', '¿Está seguro que desea reactivar esta factura?', 1)`}">
+                          <span class="material-icons">
+                              ${factura.estadoFactura === 1 ? 'delete' : 'restore'}
+                          </span>
+                          <span class="tooltiptext">
+                              ${factura.estadoFactura === 1 ? 'Eliminar factura' : 'Reactivar factura'}
+                          </span>
+                      </button>
+                  </td>
               `;
-        productosBody.appendChild(row);
-      });
+                tbody.appendChild(row);
+            });
 
-      // Calcular y llenar el resumen
-      const subtotal = productos.reduce((sum, prod) => sum + (prod.cantidadEntrando * prod.precioNueva), 0);
-      const impuesto = primerProducto.impuesto || (subtotal * 0.13); // Usa el valor de la factura o calcula 13%
-      const descuento = primerProducto.descuento || 0;
-      const total = subtotal + impuesto - descuento;
-
-      document.getElementById('subtotal').textContent = `₡${subtotal.toFixed(2)}`;
-      document.getElementById('impuesto').textContent = `₡${impuesto.toFixed(2)}`;
-      document.getElementById('descuento').textContent = `₡${descuento.toFixed(2)}`;
-      document.getElementById('total').textContent = `₡${total.toFixed(2)}`;
-    } else {
-      console.error('No se recibieron productos para la factura');
-    }
-  });
+            // Actualizar los botones de paginación
+            actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
+        });
+    }, 100);
 }
 
-async function handlePrintPreview() {
-  const pdfPath = await window.api.printToPDF();
-}
 
 function cargarPtroveedores(idSelect, mensajeQuemado) {
   window.api.obtenerProveedores(null, null, 1, null, (respuesta) => {
