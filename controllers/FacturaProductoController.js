@@ -15,6 +15,10 @@ class FacturaProductoController {
         return await this.#facturaProductoService.editarFacturaProducto(facturaProductoActual, nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto);
     }
 
+    async agregarFacturaProducto(factura, nuevosFacturaProducto){
+        return await this.#facturaProductoService.agregarFacturaProducto(factura, nuevosFacturaProducto);
+    }
+
 }
 
 module.exports = FacturaProductoController;

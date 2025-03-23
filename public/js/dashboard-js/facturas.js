@@ -514,7 +514,7 @@ function validarYRecolectarDatosFacturaCrear() {
         const isSelect = input.tagName === 'SELECT';
         const isEmpty = value === '' || (isSelect && value === '0');
 
-        if (isEmpty && input.id !== 'notas' && input.id!== 'idFactura') { // Permitir que notas esté vacío
+        if (isEmpty && input.id !== 'notas' && input.id !== 'idFactura') { // Permitir que notas y idFactura estén vacíos
             isValid = false;
             input.style.border = '2px solid red';
             const errorMessage = document.createElement('span');
@@ -578,7 +578,7 @@ function validarYRecolectarDatosFacturaCrear() {
                 cantidadAnterior: Number(inputCantidadAnterior.value),
                 cantidadEntrando: Number(cantidadEntrando),
                 precioNuevo: Number(precioNuevo),
-                idUsuario: Number(document.getElementById('idUsuario').value)
+                idUsuario: Number(document.getElementById('idUsuario').value) // Obtener idUsuario del formulario
             };
             nuevosFacturaProducto.push(productoData);
         }
@@ -586,7 +586,7 @@ function validarYRecolectarDatosFacturaCrear() {
 
     // Si todo es válido, recolectar datos de la factura
     if (isValid) {
-        const idFactura = document.getElementById('idFactura').value;
+        const idFactura = document.getElementById('idFactura').value || 0; // 0 si está vacío (nueva factura)
         const numeroFactura = document.getElementById('numero-factura').value;
         const fechaFactura = document.getElementById('fecha-factura').value;
         const idComprobantePago = document.getElementById('comprobante-pago').value;
@@ -607,22 +607,34 @@ function validarYRecolectarDatosFacturaCrear() {
         };
 
         nuevosFacturaProducto.forEach(producto => producto.idFactura = facturaData);
-        console.log(facturaData);
-        console.log(nuevosFacturaProducto);
+
+        Swal.fire({
+            title: "Actualizando Factura",
+            text: "¿Está seguro que desea crear una nueva factura?, asegurese de tener toda la información correcta.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4a4af4",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.api.crearFacturaYProductos(nuevosFacturaProducto, facturaData, (respuesta) => {
+                    if (respuesta.success) {
+                        mostrarToastConfirmacion(respuesta.message);
+                        setTimeout(() => {
+                            console.log('Id de la factura crack: ', respuesta.idFactura);
+                            verDetallesFactura(respuesta.idFactura, '/factura-view/detalles-factura.html', 1);
+                        }, 2000);
+                    } else {
+                        mostrarToastError(respuesta.message);
+                    }
+                });
+
+            }
+        });
     }
-    /*window.api.crearFactura(facturaData, (respuesta) => {
-        if (respuesta.success) {
-            mostrarToastConfirmacion(respuesta.message);
-            setTimeout(() => {
-                window.location.href = 'facturas.html';
-            }, 2000);
-        } else {
-            mostrarToastError(respuesta.message);
-        }
-    });*/
-
 }
-
 
 const style = document.createElement('style');
 style.textContent = `
@@ -638,6 +650,7 @@ function cargarVistaCrearFactura() {
     cargarComprobantesPago('comprobante-pago', 'Seleccione un comprobante');
     window.api.obtenerUsuarioLogueado((respuesta) => {
         const usuario = respuesta.usuario;
+        console.log(usuario);
         document.getElementById('registradoPor').textContent = usuario.nombreUsuario;
         document.getElementById('idUsuario').value = usuario.idUsuario;
         document.getElementById('departamento').textContent = usuario.nombreDepartamento;

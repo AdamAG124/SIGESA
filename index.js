@@ -1068,6 +1068,47 @@ ipcMain.on('actualizar-factura-y-productos', async (event, data) => {
     }
 });
 
+ipcMain.on('crear-factura-y-productos', async (event, data) => {
+    const { nuevosFacturaProducto, facturaData } = data;
+    const controllerFacturaProducto = new FacturaProductoController();
+    try {
+        // 1. Crear el objeto Factura
+        const factura = new Factura();
+        factura.setIdFactura(facturaData.idFactura || 0); // 0 para nueva factura
+        factura.setNumeroFactura(facturaData.numeroFactura);
+        factura.setFechaFactura(facturaData.fechaFactura);
+        factura.getIdProveedor().setIdProveedor(facturaData.idProveedor);
+        factura.getIdComprobante().setIdComprobantePago(facturaData.idComprobantePago);
+        factura.setImpuesto(facturaData.impuesto);
+        factura.setDescuento(facturaData.descuento);
+        factura.setDetallesAdicionales(facturaData.detallesAdicionales);
+        factura.setEstado(true); // Nueva factura, asumimos activa
+
+        // 2. Crear array de FacturaProducto
+        const nuevos = nuevosFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFactura(factura);
+            fp.getIdProducto().setIdProducto(data.idProducto);
+            fp.setCantidadAnterior(data.cantidadAnterior);
+            fp.setCantidadEntrando(data.cantidadEntrando);
+            fp.setPrecioNuevo(data.precioNuevo);
+            fp.getIdUsuario().setIdUsuario(data.idUsuario);
+            fp.setEstado(true);
+            return fp;
+        });
+        const resultado = await controllerFacturaProducto.agregarFacturaProducto(factura, nuevos);
+
+        // 4. Enviar respuesta al renderer
+        event.reply('factura-creada', resultado);
+    } catch (error) {
+        console.error('Error en index.js al crear factura:', error);
+        event.reply('factura-creada', {
+            success: false,
+            message: 'Error al crear la factura: ' + error.message
+        });
+    }
+});
+
 ipcMain.handle('print-to-pdf', async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
 

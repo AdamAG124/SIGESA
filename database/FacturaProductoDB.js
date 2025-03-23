@@ -390,6 +390,119 @@ class FacturaProductoDB {
             }
         }
     }
+
+    async crearFacturaYProductos(factura, nuevosFacturaProducto) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+            await connection.beginTransaction(); // Iniciar transacción para garantizar consistencia
+
+            // 1. Insertar la factura en sigm_factura
+            const insertFacturaQuery = `
+                INSERT INTO sigm_factura (
+                    ID_PROVEEDOR, 
+                    ID_COMPROBANTE_PAGO, 
+                    NUM_FACTURA, 
+                    FEC_FACTURA, 
+                    DSC_DETALLE_FACTURA, 
+                    MONTO_IMPUESTO, 
+                    MONTO_DESCUENTO, 
+                    ESTADO
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+            const facturaValues = [
+                factura.getIdProveedor().getIdProveedor(),
+                factura.getIdComprobante().getIdComprobantePago(),
+                factura.getNumeroFactura(),
+                factura.getFechaFactura(),
+                factura.getDetallesAdicionales(),
+                factura.getImpuesto(),
+                factura.getDescuento(),
+                factura.getEstado() ? 1 : 0 // Convertir booleano a tinyint
+            ];
+
+            const [resultFactura] = await connection.query(insertFacturaQuery, facturaValues);
+            const idFactura = resultFactura.insertId; // Recuperar el ID generado
+
+            // 2. Insertar los productos en sigt_factura_producto y actualizar sigm_producto
+            const insertProductoQuery = `
+                INSERT INTO sigt_factura_producto (
+                    ID_FACTURA, 
+                    ID_PRODUCTO, 
+                    NUM_CANTIDAD_ANTERIOR, 
+                    NUM_CANTIDAD_ENTRANDO, 
+                    MONTO_PRECIO_NUEVA, 
+                    ID_USUARIO, 
+                    ESTADO
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            const updateProductoQuery = `
+                UPDATE sigm_producto 
+                SET NUM_CANTIDAD = ? 
+                WHERE ID_PRODUCTO = ?
+            `;
+
+            for (const fp of nuevosFacturaProducto) {
+                const idProducto = fp.getIdProducto().getIdProducto();
+
+                // Obtener la cantidad actual del producto
+                const [productoRows] = await connection.query(`
+                    SELECT NUM_CANTIDAD 
+                    FROM sigm_producto 
+                    WHERE ID_PRODUCTO = ?
+                `, [idProducto]);
+
+                if (productoRows.length === 0) {
+                    throw new Error(`Producto con ID ${idProducto} no encontrado`);
+                }
+
+                const cantidadActual = productoRows[0].NUM_CANTIDAD || 0;
+                const cantidadEntrando = fp.getCantidadEntrando();
+                const nuevaCantidad = cantidadActual + cantidadEntrando;
+
+                // Insertar en sigt_factura_producto
+                const productoValues = [
+                    idFactura,
+                    idProducto,
+                    fp.getCantidadAnterior(),
+                    cantidadEntrando,
+                    fp.getPrecioNuevo(),
+                    fp.getIdUsuario().getIdUsuario(),
+                    fp.getEstado() ? 1 : 0
+                ];
+                await connection.query(insertProductoQuery, productoValues);
+
+                // Actualizar NUM_CANTIDAD en sigm_producto
+                await connection.query(updateProductoQuery, [nuevaCantidad, idProducto]);
+            }
+
+            // 3. Confirmar la transacción
+            await connection.commit();
+
+            // 4. Retornar éxito
+            return {
+                success: true,
+                message: 'Factura creada correctamente',
+                idFactura: idFactura
+            };
+        } catch (error) {
+            if (connection) {
+                await connection.rollback(); // Revertir cambios en caso de error
+            }
+            console.error('Error al crear factura y productos:', error);
+            return {
+                success: false,
+                message: 'Error al crear la factura: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Cerrar la conexión
+            }
+        }
+    }
 }
 
 module.exports = FacturaProductoDB;

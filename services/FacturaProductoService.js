@@ -15,6 +15,9 @@ class FacturaProductoService{
         return await this.#facturaProductoDB.actualizarFacturaYProductos(facturaProductoActual, nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto);
     }
 
+    async agregarFacturaProducto(factura, nuevosFacturaProducto){
+        return await this.#facturaProductoDB.crearFacturaYProductos(factura, nuevosFacturaProducto);
+    }
 }
 
 module.exports = FacturaProductoService;
