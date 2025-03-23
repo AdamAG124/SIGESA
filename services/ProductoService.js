@@ -19,6 +19,10 @@ class ProductoService {
         
         return await this.#productoDB.listarProductos(pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda);
     }
+
+    async eliminarProducto(producto) {
+        return await this.#productoDB.eliminarProducto(producto);
+    }
 }
 
 // Exportar la clase
