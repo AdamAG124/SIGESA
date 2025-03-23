@@ -17,8 +17,7 @@ class ProductoDB {
             connection = await db.conectar();
 
             const offset = (currentPage - 1) * pageSize;
-            pageSize = null;
-            currentPage = null;
+           
             // Base SQL query para listado y conteo
             const baseQuery = `
                 FROM ${this.#table} P
