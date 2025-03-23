@@ -201,6 +201,43 @@ th {
     color: var(--background-color);
 }
 
+/* Estilo general para las filas */
+tr {
+    border: 2px solid transparent; /* Establece un borde transparente por defecto */
+    transition: border-color 0.3s ease; /* Transición suave para el cambio de borde */
+}
+
+/* Estilo para las filas con índice par (even) */
+tr:nth-child(even) {
+    background-color: #f3f3f3;
+}
+
+/* Efecto hover para cambiar el color del borde */
+tr:hover {
+    border-radius: 5px;
+    box-shadow: 0 0 15px 5px rgba(136, 0, 255, 0.6); /* Efecto de neón con sombra roja */
+    transform: scale(1.01); /* Escalado leve para mayor efecto visual */
+}
+
+/* Estilo para las filas con bajo stock (cantidad <= 10) */
+.low-stock {
+    background: linear-gradient(45deg, #ff0000be, #ff7f7f); /* Gradiente en diagonal */
+    color: white; /* Texto en blanco */
+    padding: 10px;
+    border: 2px solid transparent;
+    border-radius: 10px; /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave */
+    transition: background 0.5s ease, box-shadow 0.3s ease, border 0.3s ease; /* Transición suave */
+}
+
+/* Efecto hover */
+.low-stock:hover {
+    background: linear-gradient(45deg, #ff0000be, #ff7f7f); /* Mantén el gradiente en hover */
+    box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.6); /* Efecto de neón con sombra roja */
+    border: 2px solid transparent; /* Borde rojo brillante */
+    transform: scale(1.01); /* Escalado leve para mayor efecto visual */
+}
+
 .action-icons {
     display: flex;
     justify-content: space-around;

@@ -15,9 +15,9 @@ class ProductoDB {
         // console.log('estado: ' + estadoProducto, idCategoriaFiltro, valorBusqueda);
         try {
             connection = await db.conectar();
-        
-            const offset = (currentPage - 1) * pageSize;
 
+            const offset = (currentPage - 1) * pageSize;
+           
             // Base SQL query para listado y conteo
             const baseQuery = `
                 FROM ${this.#table} P
@@ -97,7 +97,10 @@ class ProductoDB {
             });
 
             const countQuery = `SELECT COUNT(DISTINCT P.ID_PRODUCTO) as total ${baseQuery} ${whereClause}`;
-            const [countResult] = await connection.query(countQuery, params.slice(0, -2)); // Excluir LIMIT y OFFSET para el conteo
+
+            // Si se usó paginación, eliminamos los últimos dos parámetros (pageSize, offset)
+            const paramsForCount = pageSize ? params.slice(0, -2) : params;
+            const [countResult] = await connection.query(countQuery, paramsForCount);
 
             const totalRecords = countResult[0].total;
             const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
@@ -138,12 +141,12 @@ class ProductoDB {
             connection = await db.conectar();
 
             // Obtener atributos del producto
-            const nombre = producto.getNombre() || 'Acción requerida: ingrese un nombre'; 
+            const nombre = producto.getNombre() || 'Acción requerida: ingrese un nombre';
             const descripcion = producto.getDescripcion();
             const cantidad = producto.getCantidad() || 0;
-            const unidadMedicion = producto.getUnidadMedicion() || 'Acción requerida: ingrese una unidad'; 
+            const unidadMedicion = producto.getUnidadMedicion() || 'Acción requerida: ingrese una unidad';
             // Si producto.getCategoria() no es null ni undefined, entonces se invoca el método getIdCategoria() y se asigna su valor a categoria.
-            const categoria = producto.getCategoria()?.getIdCategoria(); 
+            const categoria = producto.getCategoria()?.getIdCategoria();
             const estado = producto.getEstado() ?? 1; // 1 (Activo)
 
             if (!categoria) {
@@ -185,6 +188,50 @@ class ProductoDB {
             }
         }
     }
+
+    // async eliminarProducto(producto) {
+    //     const db = new ConectarDB();
+    //     let connection;
+
+    //     try {
+    //         connection = await db.conectar(); 1
+
+    //         // Construimos la consulta SQL
+    //         const query = `UPDATE ${this.#table} SET estado = ? WHERE ID_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)
+    //         const params = [producto.getEstado(), producto.getIdProducto()];
+
+    //         // Ejecutar la consulta
+    //         const [result] = await connection.query(query, params);
+
+    //         if (result.affectedRows > 0) {
+    //             if (producto.getEstado() === 0) {
+    //                 return {
+    //                     success: true,
+    //                     message: 'Producto desactivado exitosamente.'
+    //                 };
+    //             } else {
+    //                 return {
+    //                     success: true,
+    //                     message: 'Producto reactivado exitosamente.'
+    //                 };
+    //             }
+    //         } else {
+    //             return {
+    //                 success: false,
+    //                 message: 'No se encontró el producto o no se desactivó.'
+    //             };
+    //         }
+    //     } catch (error) {
+    //         return {
+    //             success: false,
+    //             message: 'Error al eliminar el producto: ' + error.message
+    //         };
+    //     } finally {
+    //         if (connection) {
+    //             await connection.end(); // Asegurarse de cerrar la conexión
+    //         }
+    //     }
+    // }
 }
 
 module.exports = ProductoDB;

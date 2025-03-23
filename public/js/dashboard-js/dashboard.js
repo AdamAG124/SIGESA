@@ -1985,6 +1985,12 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCate
         const estado = producto.estadoProducto === 1 ? "Activo" : "Inactivo";
 
         const row = document.createElement("tr");
+
+        // Verificar si la cantidad es menor o igual a 10 para aplicar el color rojo
+        if (producto.cantidad <= 10) {
+          row.classList.add("low-stock"); // Agregar la clase 'low-stock' a la fila
+        }
+
         row.innerHTML = `
           <td>${producto.nombreProducto}</td>
           <td>${producto.cantidad}</td>
@@ -2008,16 +2014,17 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCate
                   <span class="tooltiptext">Ver detalles</span>
               </button>
           </td>
-      `;
+        `;
+
         tbody.appendChild(row);
+
+        // Actualizar los botones de paginación
+        actualizarPaginacion(respuesta.paginacion, ".pagination", 7);
+
+        cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
       });
-
-      // Actualizar los botones de paginación
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 7);
-
-      cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
-    });
-  }, 100);
+    }, 100);
+  });
 }
 
 function agregarProducto() {
@@ -2053,7 +2060,7 @@ function enviarCreacionProducto() {
     // Si quieren registrar un nuevo producto y luego asignarle la cantidad el sistema debe soportarlo
 
     // { value: descripcion, element: document.getElementById("descripcion") }, 
-    { value: cantidad, element: document.getElementById("cantidad") }   
+    { value: cantidad, element: document.getElementById("cantidad") }
   ];
 
   inputs.forEach(input => {
