@@ -115,6 +115,32 @@ ipcMain.on('cambiar-vista', async (event, result) => {
     }
 });
 
+ipcMain.on('obtener-usuario-logueado', async (event) => {
+    try {
+        const store = await getStore(); // Obtener la instancia de Store de manera asíncrona
+        const usuarioGuardado = store.get('usuario');
+
+        if (!usuarioGuardado || !usuarioGuardado.idUsuario) {
+            event.reply('usuario-recuperado', {
+                success: false,
+                message: 'No hay un usuario logueado'
+            });
+        } else {
+            event.reply('usuario-recuperado', {
+                success: true,
+                message: 'Usuario recuperado correctamente',
+                usuario: usuarioGuardado
+            });
+        }
+    } catch (error) {
+        console.error('Error al recuperar usuario:', error);
+        event.reply('usuario-recuperado', {
+            success: false,
+            message: 'Error al recuperar el usuario: ' + error.message
+        });
+    }
+});
+
 ipcMain.on('leer-html', (event, filePath) => {
     const fullPath = path.join(__dirname, 'views', filePath); // Construir la ruta completa del archivo
 
@@ -846,7 +872,7 @@ ipcMain.on('crear-producto', async (event, productoData) => {
         const producto = new Producto();
         const categoria = new CategoriaProducto();
         categoria.setIdCategoria(productoData.categoria);
-        
+
         producto.setNombre(productoData.nombre);
         producto.setDescripcion(productoData.descripcion);
         producto.setCantidad(productoData.cantidad);
@@ -988,7 +1014,7 @@ ipcMain.on('actualizar-factura-y-productos', async (event, data) => {
         const nuevos = nuevosFacturaProducto.map(data => {
             const fp = new FacturaProducto();
             fp.setIdFactura(factura);
-            
+
             fp.getIdProducto().setIdProducto(data.idProducto);
             fp.setCantidadAnterior(data.cantidadAnterior);
             fp.setCantidadEntrando(data.cantidadEntrando);

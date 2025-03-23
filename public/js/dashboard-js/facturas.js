@@ -493,6 +493,137 @@ function validarYRecolectarDatosFactura() {
     }
 }
 
+function validarYRecolectarDatosFacturaCrear() {
+    // Limpiar mensajes de error previos y estilos
+    const existingErrors = document.querySelectorAll('.error-message');
+    existingErrors.forEach(error => error.remove());
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => input.style.border = '');
+
+    // Seleccionar todos los inputs y selects no deshabilitados dentro del formulario
+    const form = document.getElementById('invoice-form');
+    const inputs = form.querySelectorAll('input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+    let isValid = true;
+
+    const nuevosFacturaProducto = [];
+    let facturaData = null;
+
+    // Validar campos generales
+    inputs.forEach(input => {
+        const value = input.value.trim();
+        const isSelect = input.tagName === 'SELECT';
+        const isEmpty = value === '' || (isSelect && value === '0');
+
+        if (isEmpty && input.id !== 'notas' && input.id!== 'idFactura') { // Permitir que notas esté vacío
+            isValid = false;
+            input.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Este campo es obligatorio';
+            input.parentElement.appendChild(errorMessage);
+        }
+    });
+
+    // Validar y recolectar datos de productos
+    const productRows = document.querySelectorAll('.product-row');
+    productRows.forEach(row => {
+        const selectProducto = row.querySelector('.product-name');
+        const inputCantidadAnterior = row.querySelector('.product-prev-qty');
+        const inputCantidadEntrando = row.querySelector('.product-new-qty');
+        const inputPrecio = row.querySelector('.product-price');
+
+        const idProducto = selectProducto.value;
+        const cantidadEntrando = inputCantidadEntrando.value.trim();
+        const precioNuevo = inputPrecio.value.trim();
+
+        // Validar campos no deshabilitados
+        if (idProducto === '0') {
+            isValid = false;
+            selectProducto.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Seleccione un producto';
+            selectProducto.parentElement.appendChild(errorMessage);
+        }
+
+        if (cantidadEntrando === '') {
+            isValid = false;
+            inputCantidadEntrando.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Ingrese la cantidad entrante';
+            inputCantidadEntrando.parentElement.appendChild(errorMessage);
+        }
+
+        if (precioNuevo === '') {
+            isValid = false;
+            inputPrecio.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Ingrese el precio unitario';
+            inputPrecio.parentElement.appendChild(errorMessage);
+        }
+
+        if (idProducto !== '0' && cantidadEntrando !== '' && precioNuevo !== '') {
+            const productoData = {
+                idProducto: Number(idProducto),
+                cantidadAnterior: Number(inputCantidadAnterior.value),
+                cantidadEntrando: Number(cantidadEntrando),
+                precioNuevo: Number(precioNuevo),
+                idUsuario: Number(document.getElementById('idUsuario').value)
+            };
+            nuevosFacturaProducto.push(productoData);
+        }
+    });
+
+    // Si todo es válido, recolectar datos de la factura
+    if (isValid) {
+        const idFactura = document.getElementById('idFactura').value;
+        const numeroFactura = document.getElementById('numero-factura').value;
+        const fechaFactura = document.getElementById('fecha-factura').value;
+        const idComprobantePago = document.getElementById('comprobante-pago').value;
+        const idProveedor = document.getElementById('proveedor').value;
+        const impuesto = document.getElementById('invoice-tax').value;
+        const descuento = document.getElementById('invoice-discount').value;
+        const notas = document.getElementById('notas').value;
+
+        facturaData = {
+            idFactura: Number(idFactura),
+            numeroFactura,
+            fechaFactura,
+            idComprobantePago: Number(idComprobantePago),
+            idProveedor: Number(idProveedor),
+            impuesto: Number(impuesto),
+            descuento: Number(descuento),
+            detallesAdicionales: notas,
+        };
+
+        nuevosFacturaProducto.forEach(producto => producto.idFactura = facturaData);
+        console.log(facturaData);
+        console.log(nuevosFacturaProducto);
+    }
+    /*window.api.crearFactura(facturaData, (respuesta) => {
+        if (respuesta.success) {
+            mostrarToastConfirmacion(respuesta.message);
+            setTimeout(() => {
+                window.location.href = 'facturas.html';
+            }, 2000);
+        } else {
+            mostrarToastError(respuesta.message);
+        }
+    });*/
+
+}
+
+
 const style = document.createElement('style');
 style.textContent = `
     .error-message {
@@ -501,3 +632,22 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+function cargarVistaCrearFactura() {
+    cargarPtroveedores('proveedor', 'Seleccione un proveedor');
+    cargarComprobantesPago('comprobante-pago', 'Seleccione un comprobante');
+    window.api.obtenerUsuarioLogueado((respuesta) => {
+        const usuario = respuesta.usuario;
+        document.getElementById('registradoPor').textContent = usuario.nombreUsuario;
+        document.getElementById('idUsuario').value = usuario.idUsuario;
+        document.getElementById('departamento').textContent = usuario.nombreDepartamento;
+        document.getElementById('telefonoColaborador').textContent = usuario.numTelefono;
+
+        document.getElementById('nombreColaborador').textContent = `${usuario.nombre} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+        document.getElementById('puesto').textContent = usuario.nombrePuesto;
+        document.getElementById('correoColaborador').textContent = usuario.correo;
+        document.getElementById('cedula').textContent = usuario.cedula;
+        document.getElementById('departamentoColaborador').textContent = usuario.nombreDepartamento;
+        document.getElementById('telefonoColab').textContent = usuario.numTelefono;
+    });
+}

@@ -12,11 +12,11 @@ class UsuarioDB {
     async validarUsuario(username, password) {
         const db = new ConectarDB();
         let connection;
-
+    
         try {
             connection = await db.conectar();
-
-            // Consultar si el usuario existe
+    
+            // Consultar si el usuario existe, incluyendo datos adicionales del colaborador
             const [rows] = await connection.query(`
                 SELECT 
                     U.ID_USUARIO, U.DSC_NOMBRE AS nombreUsuario, U.DSC_PASSWORD,
@@ -24,7 +24,11 @@ class UsuarioDB {
                     C.DSC_NOMBRE AS colaboradorNombre,
                     C.DSC_PRIMER_APELLIDO,
                     C.DSC_SEGUNDO_APELLIDO,
-                    C.NUM_TELEFONO, C.DSC_CORREO,
+                    C.NUM_TELEFONO, 
+                    C.DSC_CORREO,
+                    C.DSC_CEDULA,  -- Número de cédula del colaborador
+                    D.DSC_NOMBRE_DEPARTAMENTO AS nombreDepartamento,  -- Nombre del departamento
+                    P.DSC_NOMBRE AS nombrePuesto,  -- Nombre del puesto de trabajo
                     R.DSC_NOMBRE AS nombreRol
                 FROM 
                     ${this.#table} U
@@ -32,27 +36,34 @@ class UsuarioDB {
                     SIGM_COLABORADOR C ON U.ID_COLABORADOR = C.ID_COLABORADOR
                 INNER JOIN
                     SIGM_ROL R ON U.ID_ROL = R.ID_ROL
+                LEFT JOIN
+                    SIGM_DEPARTAMENTO D ON C.ID_DEPARTAMENTO = D.ID_DEPARTAMENTO
+                LEFT JOIN
+                    SIGM_PUESTO_TRABAJO P ON C.ID_PUESTO = P.ID_PUESTO_TRABAJO
                 WHERE U.DSC_NOMBRE = ?`, [username]);
-
+    
             if (rows.length > 0) {
                 const usuarioDB = rows[0];
                 const match = await bcrypt.compare(password, usuarioDB.DSC_PASSWORD);
-
+    
                 if (match) {
                     // Crear objeto Usuario y setear la información
                     const usuario = new Usuario();
-
+    
                     // Llenar el objeto Usuario
                     usuario.setIdUsuario(usuarioDB.ID_USUARIO);
                     usuario.setNombreUsuario(usuarioDB.nombreUsuario);
                     usuario.getIdColaborador().setNombre(usuarioDB.colaboradorNombre);
                     usuario.getIdColaborador().setPrimerApellido(usuarioDB.DSC_PRIMER_APELLIDO);
                     usuario.getIdColaborador().setSegundoApellido(usuarioDB.DSC_SEGUNDO_APELLIDO);
-                    usuario.getIdColaborador().setCorreo(usuarioDB.NUM_TELEFONO);
+                    usuario.getIdColaborador().setNumTelefono(usuarioDB.NUM_TELEFONO);
                     usuario.getIdColaborador().setCorreo(usuarioDB.DSC_CORREO);
+                    usuario.getIdColaborador().setCedula(usuarioDB.DSC_CEDULA); // Setear la cédula
+                    usuario.getIdColaborador().getIdDepartamento().setNombre(usuarioDB.nombreDepartamento || ''); // Setear el nombre del departamento
+                    usuario.getIdColaborador().getIdPuesto().setNombre(usuarioDB.nombrePuesto || ''); // Setear el nombre del puesto
                     usuario.getRol().setNombre(usuarioDB.nombreRol);
                     usuario.setEstado(usuarioDB.estadoUsuario);
-
+    
                     // Verificar si el usuario está inactivo
                     if (usuario.getEstado() == 0) {
                         return {
@@ -61,8 +72,8 @@ class UsuarioDB {
                             view: 'login/login.html'
                         };
                     }
-
-                    // Retornar todos los datos del usuario
+    
+                    // Retornar todos los datos del usuario, incluyendo la información adicional
                     return {
                         success: true,
                         message: 'Inicio de sesión exitoso.',
@@ -75,6 +86,9 @@ class UsuarioDB {
                             segundoApellido: usuario.getIdColaborador().getSegundoApellido(),
                             numTelefono: usuario.getIdColaborador().getNumTelefono(),
                             correo: usuario.getIdColaborador().getCorreo(),
+                            cedula: usuario.getIdColaborador().getCedula(), // Número de cédula
+                            nombreDepartamento: usuario.getIdColaborador().getIdDepartamento().getNombre(), // Nombre del departamento
+                            nombrePuesto: usuario.getIdColaborador().getIdPuesto().getNombre(), // Nombre del puesto
                             roleName: usuario.getRol().getNombre(),
                             estado: usuario.getEstado(),
                         }
