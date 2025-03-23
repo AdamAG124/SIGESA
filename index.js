@@ -1018,14 +1018,17 @@ ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valo
     }
 });
 
+
 ipcMain.on('listar-productos-por-salida', async (event, { idSalida }) => {
+    console.log('Evento listar-productos-por-salida recibido con idSalida:', idSalida);
+  
     const salidaProductoController = new SalidaProductoController();
     try {
         const productos = await salidaProductoController.obtenerSalidaProductos(idSalida);
         event.reply('cargar-productos-por-salida', productos);
     } catch (error) {
         console.error('Error al listar productos de la salida:', error);
-        event.reply('error-cargar-productos-por-salida', { success: false, message: error.message });
+        event.reply('cargar-productos-por-salida', []);
     }
 });
 

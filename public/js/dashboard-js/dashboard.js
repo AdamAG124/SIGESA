@@ -2221,8 +2221,7 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
 
       actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
   });
-}
-function cargarProductosSalida(idSalida) {
+}function cargarProductosSalida(idSalida) {
   window.api.obtenerProductosPorSalida(idSalida, (productos) => {
       console.log("Productos recibidos:", productos); // Depuración
       const tbody = document.querySelector("#productos-salida-table-body");
@@ -2254,7 +2253,6 @@ function cargarProductosSalida(idSalida) {
       });
   });
 }
-
 function verDetallesSalida(idSalida) {
   cargarProductosSalida(idSalida); // Llama a la función para cargar los productos
   adjuntarHTML('/salida-producto/salida-producto.html'); // Cambia la vista al detalle de la salida

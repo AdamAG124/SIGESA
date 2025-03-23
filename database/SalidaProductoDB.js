@@ -23,7 +23,6 @@ class SalidaProductoDB {
                     sigm_producto p ON sp.ID_PRODUCTO = p.ID_PRODUCTO
                 WHERE 
                     sp.ID_SALIDA = ?
-                LIMIT 0, 25
             `;
 
             const [rows] = await connection.query(query, [idSalida]);
@@ -40,4 +39,4 @@ class SalidaProductoDB {
     }
 }
 
-module.exports = SalidaProductoDB;
+module.exports = SalidaProductoDB;  
