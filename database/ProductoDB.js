@@ -187,49 +187,49 @@ class ProductoDB {
         }
     }
 
-    // async eliminarProducto(producto) {
-    //     const db = new ConectarDB();
-    //     let connection;
+    async eliminarProducto(producto) {
+        const db = new ConectarDB();
+        let connection;
 
-    //     try {
-    //         connection = await db.conectar(); 1
+        try {
+            connection = await db.conectar(); 1
 
-    //         // Construimos la consulta SQL
-    //         const query = `UPDATE ${this.#table} SET estado = ? WHERE ID_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)
-    //         const params = [producto.getEstado(), producto.getIdProducto()];
+            // Construimos la consulta SQL
+            const query = `UPDATE ${this.#table} SET estado = ? WHERE ID_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)
+            const params = [producto.getEstado(), producto.getIdProducto()];
 
-    //         // Ejecutar la consulta
-    //         const [result] = await connection.query(query, params);
+            // Ejecutar la consulta
+            const [result] = await connection.query(query, params);
 
-    //         if (result.affectedRows > 0) {
-    //             if (producto.getEstado() === 0) {
-    //                 return {
-    //                     success: true,
-    //                     message: 'Producto desactivado exitosamente.'
-    //                 };
-    //             } else {
-    //                 return {
-    //                     success: true,
-    //                     message: 'Producto reactivado exitosamente.'
-    //                 };
-    //             }
-    //         } else {
-    //             return {
-    //                 success: false,
-    //                 message: 'No se encontró el producto o no se desactivó.'
-    //             };
-    //         }
-    //     } catch (error) {
-    //         return {
-    //             success: false,
-    //             message: 'Error al eliminar el producto: ' + error.message
-    //         };
-    //     } finally {
-    //         if (connection) {
-    //             await connection.end(); // Asegurarse de cerrar la conexión
-    //         }
-    //     }
-    // }
+            if (result.affectedRows > 0) {
+                if (producto.getEstado() === 0) {
+                    return {
+                        success: true,
+                        message: 'Producto desactivado exitosamente.'
+                    };
+                } else {
+                    return {
+                        success: true,
+                        message: 'Producto reactivado exitosamente.'
+                    };
+                }
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró el producto o no se desactivó.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al eliminar el producto: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Asegurarse de cerrar la conexión
+            }
+        }
+    }
 }
 
 module.exports = ProductoDB;

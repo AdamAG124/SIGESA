@@ -24,9 +24,9 @@ class ProductoService {
         return await this.#productoDB.crearProducto(producto);
     }
 
-    // async eliminarProducto(producto) {
-    //     return await this.#productoDB.eliminarProducto(producto);
-    // }
+    async eliminarProducto(producto) {
+        return await this.#productoDB.eliminarProducto(producto);
+    }
 }
 
 // Exportar la clase

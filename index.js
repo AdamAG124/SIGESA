@@ -890,6 +890,21 @@ ipcMain.on('crear-producto', async (event, productoData) => {
     }
 });
 
+ipcMain.on('eliminar-producto', async (event, id, estado) => {
+    try {
+        const productoController = new ProductoController();
+        const producto = new Producto();
+        producto.setIdProducto(id);
+        producto.setEstado(estado);
+        const resultado = await productoController.eliminarProducto(producto);
+
+        event.reply('respuesta-eliminar-producto', resultado);
+    } catch (error) {
+        console.error('Error al eliminar el producto:', error);
+        event.reply('respuesta-eliminar-producto', { success: false, message: error.message });
+    }
+});
+
 /* --------------------------------                    ------------------------------------------
    --------------------------------       Factura      ------------------------------------------
    --------------------------------                    ------------------------------------------ */

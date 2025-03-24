@@ -1,3 +1,5 @@
+const Producto = require("../../../domain/Producto");
+
 function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.classList.toggle("active");
@@ -755,6 +757,18 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
           window.api.eliminarEntidadFinanciera(Number(id), Number(estado));
 
           window.api.onRespuestaEliminarEntidadFinanciera((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              filterTable(moduloEstadoActualizar);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+          break;
+        case 7:
+          window.api.eliminarProducto(id, estado);
+
+          window.api.onRespuestaEliminarProducto((respuesta) => {
             if (respuesta.success) {
               mostrarToastConfirmacion(respuesta.message);
               filterTable(moduloEstadoActualizar);
@@ -1945,7 +1959,7 @@ function cargarCategorias(idSelect, mensajeQuemado) {
   });
 }
 
-function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCategoriaFiltro = 0, valorBusqueda = null) {
+function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
   const selectEstado = document.getElementById('estado-filtro');
   if (!selectEstado) {
@@ -1993,8 +2007,8 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCate
               <button class="tooltip" value="${producto.idProducto}" onclick="editarProducto(this.value, this)">
                   <span class="material-icons">edit</span>
                   <span class="tooltiptext">Editar producto</span>
-              </button>
-              <button class="tooltip" value="${producto.idProducto}" onclick="${producto.estadoProducto === 1 ? `actualizarEstado(this.value, 0, 'Eliminando producto', '¿Está seguro que desea eliminar este producto?', 2)` : `actualizarEstado(this.value, 1, 'Reactivando producto', '¿Está seguro que desea reactivar este producto?', 2)`}">
+              </button>                                                                                        
+              <button class="tooltip" value="${producto.idProducto}" onclick="${producto.estadoProducto === 1 ? `actualizarEstado(this.value, 0, 'Eliminando producto', '¿Está seguro que desea eliminar este producto?', 7)` : `actualizarEstado(this.value, 1, 'Reactivando producto', '¿Está seguro que desea reactivar este producto?', 7)`}">
                   <span class="material-icons">
                       ${producto.estadoProducto === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
                   </span>
@@ -2116,46 +2130,46 @@ function enviarCreacionProducto() {
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------
    --------------------------------          ------------------------------------------ */
-   function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
-    // Obtener los elementos del DOM
-    const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
-    const selectEstado = document.getElementById('estadoFiltro'); // Estado
-    const inputFechaInicio = document.getElementById('fechaInicialFiltro');
-    const inputFechaFin = document.getElementById('fechaFinalFiltro');
-    const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
-    const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
-    const searchInput = document.getElementById('search-bar');
+function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
+  // Obtener los elementos del DOM
+  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+  const selectEstado = document.getElementById('estadoFiltro'); // Estado
+  const inputFechaInicio = document.getElementById('fechaInicialFiltro');
+  const inputFechaFin = document.getElementById('fechaFinalFiltro');
+  const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
+  const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
+  const searchInput = document.getElementById('search-bar');
 
-    // Configurar valores iniciales en los filtros
-    selectPageSize.value = pageSize;
+  // Configurar valores iniciales en los filtros
+  selectPageSize.value = pageSize;
 
-    // Configurar el select de estado
-    if (estadoFactura === 1) selectEstado.value = 1;
-    else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
-    else selectEstado.value = 2;
+  // Configurar el select de estado
+  if (estadoFactura === 1) selectEstado.value = 1;
+  else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
+  else selectEstado.value = 2;
 
-    if (fechaInicio) inputFechaInicio.value = fechaInicio;
-    if (fechaFin) inputFechaFin.value = fechaFin;
+  if (fechaInicio) inputFechaInicio.value = fechaInicio;
+  if (fechaFin) inputFechaFin.value = fechaFin;
 
-    if (searchValue) searchInput.value = searchValue;
-    cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
-    cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
+  if (searchValue) searchInput.value = searchValue;
+  cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
+  cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
 
-    setTimeout(function () {
-        if (idProveedor) selectProveedor.value = idProveedor;
-        if (idComprobantePago) selectComprobante.value = idComprobantePago;
+  setTimeout(function () {
+    if (idProveedor) selectProveedor.value = idProveedor;
+    if (idComprobantePago) selectComprobante.value = idComprobantePago;
 
-        window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
-            const tbody = document.getElementById("facturas-table-body");
-            tbody.innerHTML = ""; // Limpiar contenido previo
+    window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
+      const tbody = document.getElementById("facturas-table-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
 
-            // Iterar sobre las facturas y agregarlas a la tabla
-            respuesta.facturas.forEach((factura) => {
-                const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
-                const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
+      // Iterar sobre las facturas y agregarlas a la tabla
+      respuesta.facturas.forEach((factura) => {
+        const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
+        const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
 
-                const row = document.createElement("tr");
-                row.innerHTML = `
+        const row = document.createElement("tr");
+        row.innerHTML = `
                   <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
                   <td>${factura.numeroFactura || 'Sin número'}</td>
                   <td>${fechaFactura}</td>
@@ -2179,13 +2193,13 @@ function enviarCreacionProducto() {
                       </button>
                   </td>
               `;
-                tbody.appendChild(row);
-            });
+        tbody.appendChild(row);
+      });
 
-            // Actualizar los botones de paginación
-            actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
-        });
-    }, 100);
+      // Actualizar los botones de paginación
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
+    });
+  }, 100);
 }
 
 
