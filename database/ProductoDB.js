@@ -294,6 +294,7 @@ class ProductoDB {
             const cantidad = producto.getCantidad();
             const unidadMedicion = producto.getUnidadMedicion();
             const idCategoria = producto.getCategoria().getIdCategoria();
+            const estado = producto.getEstado();
 
             // Construir la consulta SQL para actualizar el producto
             let query = `
@@ -302,10 +303,11 @@ class ProductoDB {
                     DSC_PRODUCTO = ?, 
                     NUM_CANTIDAD = ?, 
                     DSC_UNIDAD_MEDICION = ?, 
-                    ID_CATEGORIA_PRODUCTO = ? 
+                    ID_CATEGORIA_PRODUCTO = ?,
+                    ESTADO = ?
                 WHERE ID_PRODUCTO = ?`;
 
-            let params = [nombre, descripcion, cantidad, unidadMedicion, idCategoria, idProducto];
+            let params = [nombre, descripcion, cantidad, unidadMedicion, idCategoria, idProducto, estado];
 
             // Ejecutar la consulta
             const [result] = await connection.query(query, params);

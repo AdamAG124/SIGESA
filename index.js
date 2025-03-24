@@ -901,6 +901,31 @@ ipcMain.on('obtener-producto-por-id', async (event, idProducto) => {
     }
 });
 
+ipcMain.on('actualizar-producto', async (event, productoData) => {
+    try {
+        const producto = new Producto();
+        const categoria = new CategoriaProducto();
+        categoria.setIdCategoria(productoData.categoria);
+        
+        producto.setIdProducto(productoData.idProducto);
+        producto.setNombre(productoData.nombre);
+        producto.setDescripcion(productoData.descripcion);
+        producto.setCantidad(productoData.cantidad);
+        producto.setUnidadMedicion(productoData.unidadMedicion);
+        producto.setCategoria(categoria);
+        producto.setEstado(1); // estado activo por defecto
+
+        const productoController = new ProductoController();
+        const resultado = await productoController.actualizarProducto(producto);
+
+        event.reply('respuesta-actualizar-producto', resultado);
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+
+        event.reply('respuesta-actualizar-producto', { success: false, message: error.message });
+    }
+});
+
 /* --------------------------------                    ------------------------------------------
    --------------------------------       Factura      ------------------------------------------
    --------------------------------                    ------------------------------------------ */
