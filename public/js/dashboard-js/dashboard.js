@@ -1940,22 +1940,34 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
-function cargarCategorias(idSelect, mensajeQuemado) {
-  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
-
-    idSelect.innerHTML = ""; // Limpiar las opciones existentes
-    const option = document.createElement("option");
-    option.value = "0";
-    option.textContent = mensajeQuemado;
-    option.selected = true;
-    idSelect.appendChild(option);
-
-    respuesta.categorias.forEach((categoria) => {
+function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoriasInactivas = 0) {
+  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado, valorBusqueda = null, (respuesta) => {
+    if (respuesta && respuesta.categorias) {
+      idSelect.innerHTML = ""; // Limpiar las opciones existentes
       const option = document.createElement("option");
-      option.value = categoria.idCategoria;
-      option.textContent = categoria.nombreCategoria;
+      option.value = "0";
+      option.textContent = mensajeQuemado;
+      option.selected = true;
       idSelect.appendChild(option);
-    });
+
+      respuesta.categorias.forEach((categoria) => {
+        const option = document.createElement("option");
+        option.value = categoria.idCategoria;
+
+        // Si se debe validar si las categorías están deshabilitadas
+        if (validarCategoriasInactivas === 1 && categoria.estado === 0) {
+          option.textContent = `Categoría ${categoria.nombreCategoria} Inactiva`;
+          option.disabled = true; // Deshabilitar la opción
+          option.classList.add("categoria-inactiva"); // Añadir clase para aplicar estilos específicos
+        } else {
+          option.textContent = categoria.nombreCategoria;
+        }
+
+        idSelect.appendChild(option);
+      });
+    } else {
+      console.log("No se pudieron cargar las categorías.");
+    }
   });
 }
 
@@ -2015,10 +2027,6 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
                   <span class="tooltiptext">
                       ${producto.estadoProducto === 1 ? 'Eliminar producto' : 'Reactivar producto'} <!-- Cambia el tooltip dependiendo del estado -->
                   </span>
-              </button>
-              <button class="tooltip" value="${producto.idProducto}" onclick="verDetallesProducto(this.value)">
-                  <span class="material-icons">info</span>
-                  <span class="tooltiptext">Ver detalles</span>
               </button>
           </td>
         `;
@@ -2127,6 +2135,120 @@ function enviarCreacionProducto() {
     }
   });
 }
+
+async function editarProducto(id, boton) {
+
+  const selectCategoria = document.getElementById("categorias");
+  cargarCategorias(selectCategoria, 'Seleccionar categoría', estado = null, validarCategoriasInactivas = 1);
+
+  window.api.obtenerProductoPorId(id);
+
+  window.api.onRespuestaObtenerProductoPorId((producto) => {
+    if (producto) {
+      // Asignar valores extraídos a los campos del formulario de edición
+      document.getElementById("idProducto").value = producto.idProducto;
+      document.getElementById("nombre").value = producto.nombre;
+      document.getElementById("descripcion").value = producto.descripcion;
+      document.getElementById("cantidad").value = producto.cantidad;
+      document.getElementById("unidadMedicion").value = producto.unidadMedicion;
+      console.log(producto.idCategoria);
+      // Usar setTimeout para esperar un poco y luego asignar el valor al select
+      setTimeout(() => {
+        selectCategoria.value = producto.idCategoria; // Asignamos el valor después de un pequeño retraso
+      }, 100);
+
+      // Cambiar el título del modal a "Detalles del Producto"
+      document.getElementById("modalTitle").innerText = "Detalles del Producto";
+
+      document.getElementById("buttonModal").onclick = enviarEdicionProducto;
+
+      document.getElementById("editarProductoModal").style.display = "block";
+    } else {
+      console.log("Error al obtener el producto, viene nulo");
+    }
+  });
+}
+
+function enviarEdicionProducto() {
+  const id = document.getElementById("idProducto").value;
+  const nombre = document.getElementById("nombre").value;
+  const descripcion = document.getElementById("descripcion").value || "N/A";
+  const cantidad = document.getElementById("cantidad").value;
+  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const categoria = document.getElementById("categorias").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombre") },
+    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: categoria, element: document.getElementById("categorias") },
+
+    // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
+    // Si quieren editar un producto y luego asignarle la cantidad el sistema debe soportarlo
+    { value: cantidad, element: document.getElementById("cantidad") }
+  ];
+
+  inputs.forEach(input => {
+    if (!input.value || (input.value == 0 && input.element.id === "categorias") || (input.value < 0 && input.element.id === "cantidad")) {
+      // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
+      input.element.style.border = "2px solid red";
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde si no está vacío o es válido
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error si no hay campos vacíos
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const productoData = {
+    idProducto: id,
+    nombre: nombre,
+    descripcion: descripcion,
+    cantidad: cantidad,
+    unidadMedicion: unidadMedicion,
+    categoria: categoria
+  };
+
+  Swal.fire({
+    title: "Editando producto",
+    text: "¿Está seguro que desea actualizar este producto?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.actualizarProducto(productoData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaActualizarProducto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(7);
+            cerrarModal("editarProductoModal", "editarProductoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------
    --------------------------------          ------------------------------------------ */

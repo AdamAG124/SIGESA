@@ -177,6 +177,13 @@ contextBridge.exposeInMainWorld('api', {
     onRespuestaEliminarProducto: (callback) => ipcRenderer.on('respuesta-eliminar-producto', (event, respuesta) => callback(respuesta)),
 
 
+    obtenerProductoPorId: (id) => ipcRenderer.send('obtener-producto-por-id', id),
+    onRespuestaObtenerProductoPorId: (callback) => ipcRenderer.on('respuesta-obtener-producto-por-id', (event, respuesta) => callback(respuesta)),
+
+    actualizarProducto: (productoData) => ipcRenderer.send('actualizar-producto', productoData),
+    onRespuestaActualizarProducto: (callback) => ipcRenderer.on('respuesta-actualizar-producto', (event, respuesta) => callback(respuesta)),
+
+
     /* --------------------------------                   ------------------------------------------
        -------------------------------- PUESTO DE TRABAJO ------------------------------------------
        --------------------------------                    ------------------------------------------ */
