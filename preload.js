@@ -168,6 +168,9 @@ contextBridge.exposeInMainWorld('api', {
     crearProducto: (productoData) => ipcRenderer.send('crear-producto', productoData),
     onRespuestaCrearProducto: (callback) => ipcRenderer.on('respuesta-crear-producto', (event, respuesta) => callback(respuesta)),
 
+    eliminarProducto: (id, estado) => ipcRenderer.send('eliminar-producto', id, estado),
+    onRespuestaEliminarProducto: (callback) => ipcRenderer.on('respuesta-eliminar-producto', (event, respuesta) => callback(respuesta)),
+
 
     /* --------------------------------                   ------------------------------------------
        -------------------------------- PUESTO DE TRABAJO ------------------------------------------
