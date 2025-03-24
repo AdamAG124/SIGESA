@@ -2127,6 +2127,33 @@ function enviarCreacionProducto() {
     }
   });
 }
+
+async function verDetallesProducto(id, boton) {
+
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombreProveedor = fila.children[0].textContent;
+  const provincia = fila.children[3].textContent;
+  const canton = fila.children[4].textContent;
+  const distrito = fila.children[5].textContent;
+  const direccion = fila.children[6].textContent;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idProveedor").value = id;
+  document.getElementById("nombreProveedor").value = nombreProveedor;
+  document.getElementById("provincia").value = provincia;
+  document.getElementById("canton").value = canton;
+  document.getElementById("distrito").value = distrito;
+  document.getElementById("direccion").value = direccion;
+
+  // Cambiar el título del modal a "Editar Proveedor"
+  document.getElementById("modalTitle").innerText = "Editar Proveedor";
+  document.getElementById("buttonModal").onclick = enviarEdicionProveedor;
+  // Mostrar el modal
+  document.getElementById("editarProveedorModal").style.display = "block";
+}
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------
    --------------------------------          ------------------------------------------ */

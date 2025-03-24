@@ -230,6 +230,72 @@ class ProductoDB {
             }
         }
     }
+
+    async actualizarProducto(producto) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Obtén los atributos del objeto Usuario
+            const idProducto = producto.getIdProducto();
+            const nombre = producto.getNombre();
+            const descripcion = producto.getDescripcion();
+            const cantidad = producto.getCantidad();
+            const unidadMedicion = producto.getUnidadMedicion();
+            const idCategoria = producto.getCategoria().getIdCategoria();
+
+            // Validar si el nombre de usuario ya existe
+            let query = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = '${nombreUsuario}'`;
+            const [rowsNombreUsuario] = await connection.query(query);
+
+            if (rowsNombreUsuario[0].count > 0) {
+                return {
+                    success: false,
+                    message: 'El nombre de usuario ya está en uso.'
+                };
+            }
+
+            // Construimos la consulta SQL dinámicamente
+            query = `UPDATE ${this.#table} SET DSC_NOMBRE = ?, ID_ROL = ?`;
+            let params = [nombreUsuario, idRol];
+
+            // Evaluar si el password no es vacío
+            if (password && password.trim() !== '') {
+                const hashedPassword = await bcrypt.hash(password, 10);
+                query += `, DSC_PASSWORD = ?`;
+                params.push(hashedPassword);
+            }
+
+            query += ` WHERE ID_USUARIO = ?`;
+            params.push(idUsuario);
+
+            // Ejecutar la consulta
+            const [result] = await connection.query(query, params);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Usuario actualizado exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró el usuario o no se realizaron cambios.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al actualizar el usuario: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Asegurarse de cerrar la conexión
+            }
+        }
+    }
 }
 
 module.exports = ProductoDB;
