@@ -2199,7 +2199,7 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
   });
 }
  /* SALIDA PRODUCTOOOO*/ 
- 
+
  function cargarSalidasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   window.api.obtenerSalidas(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
       const tbody = document.querySelector("#salidas-table-body");
@@ -2209,8 +2209,8 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
           const row = document.createElement("tr");
           row.innerHTML = `
               <td>${salida.idSalida}</td>
-              <td>${salida.idColaboradorSacando}</td>
-              <td>${salida.idColaboradorRecibiendo}</td>
+              <td>${salida.nombreColaboradorSacando || 'Sin colaborador'}</td>
+              <td>${salida.nombreColaboradorRecibiendo || 'Sin colaborador'}</td>
               <td>${new Date(salida.fechaSalida).toLocaleDateString()}</td>
               <td>
                   <button onclick="verDetallesSalida(${salida.idSalida})">Ver Detalles</button>
@@ -2221,13 +2221,23 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
 
       actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
   });
-}function cargarProductosSalida(idSalida) {
+}
+function cargarProductosSalida(idSalida) {
+  console.log("Iniciando carga de productos para la salida con ID:", idSalida); // Depuración inicial
+
   window.api.obtenerProductosPorSalida(idSalida, (productos) => {
-      console.log("Productos recibidos:", productos); // Depuración
+      console.log("Productos recibidos desde el backend:", productos); // Verificar los datos recibidos
+
       const tbody = document.querySelector("#productos-salida-table-body");
+      if (!tbody) {
+          console.error("El elemento #productos-salida-table-body no existe en el DOM."); // Depuración
+          return;
+      }
+
       tbody.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
 
       if (!productos || productos.length === 0) {
+          console.warn("No se encontraron productos para la salida con ID:", idSalida); // Advertencia si no hay productos
           const row = document.createElement("tr");
           row.innerHTML = `
               <td colspan="7" style="text-align: center; color: gray; font-style: italic;">
@@ -2239,6 +2249,7 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
       }
 
       productos.forEach(producto => {
+          console.log("Procesando producto:", producto); // Depuración para cada producto
           const row = document.createElement("tr");
           row.innerHTML = `
               <td>${producto.idSalidaProducto}</td>
@@ -2247,13 +2258,18 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
               <td>${producto.cantidadAnterior}</td>
               <td>${producto.cantidadSaliendo}</td>
               <td>${producto.cantidadNueva}</td>
-              <td>${producto.estado === null ? 'Sin estado' : producto.estado}</td>
+              <td>${producto.estado === 1 ? 'Activo' : 'Inactivo'}</td>
           `;
           tbody.appendChild(row);
       });
   });
 }
+
 function verDetallesSalida(idSalida) {
-  cargarProductosSalida(idSalida); // Llama a la función para cargar los productos
-  adjuntarHTML('/salida-producto/salida-producto.html'); // Cambia la vista al detalle de la salida
+  console.log("Cargando detalles para la salida con ID:", idSalida); // Depuración inicial
+
+  adjuntarHTML('/salida-producto/salida-producto.html', () => {
+      console.log("Vista salida-producto.html cargada correctamente."); // Confirmar que la vista se cargó
+      cargarProductosSalida(idSalida);
+  });
 }

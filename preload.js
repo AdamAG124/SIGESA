@@ -202,10 +202,23 @@ contextBridge.exposeInMainWorld('api', {
      /* --------------------------------           ------------------------------------------
        --------------------------------  Salida Producto  ------------------------------------------
        --------------------------------           ------------------------------------------ */
-    obtenerSalidasProductos: (pageSize, currentPage, estado, valorBusqueda, callback) => {
-        ipcRenderer.send('listar-salidas-productos', { pageSize, currentPage, estado, valorBusqueda });
-        ipcRenderer.once('cargar-salidas-productos', (event, respuesta) => callback(respuesta));
-    }
+       obtenerSalidas: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        console.log("Enviando solicitud para listar salidas..."); // Depuración inicial
+        ipcRenderer.send('listar-salidas', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-salidas', (event, respuesta) => {
+            console.log("Salidas recibidas en preload:", respuesta); // Verificar los datos recibidos
+            callback(respuesta);
+        });
+    },
 
+    // Función para listar productos por salida
+    obtenerProductosPorSalida: (idSalida, callback) => {
+        console.log("Enviando solicitud para obtener productos de la salida con ID:", idSalida); // Depuración inicial
+        ipcRenderer.send('listar-productos-por-salida', { idSalida });
+        ipcRenderer.once('cargar-productos-por-salida', (event, productos) => {
+            console.log("Productos recibidos en preload desde el backend:", productos); // Verificar los datos recibidos
+            callback(productos);
+        });
+    }
 });
 

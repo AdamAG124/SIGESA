@@ -1007,6 +1007,7 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
 /* --------------------------------           ------------------------------------------
       --------------------------------  salida  y salida producto  ------------------------------------------
       --------------------------------           ------------------------------------------ */
+
 ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const salidaController = new SalidaController();
     try {
@@ -1019,19 +1020,32 @@ ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valo
 });
 
 
+ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    console.log("Evento listar-salidas recibido con los siguientes parámetros:", { pageSize, currentPage, estado, valorBusqueda }); // Depuración inicial
+
+    const salidaController = new SalidaController();
+    try {
+        const resultado = await salidaController.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
+        console.log("Salidas obtenidas desde el controlador:", resultado); // Verificar los datos obtenidos
+        event.reply('cargar-salidas', resultado);
+    } catch (error) {
+        console.error("Error al listar salidas:", error); // Mostrar el error en la consola
+        event.reply('cargar-salidas', { salidas: [], error: error.message });
+    }
+});
 ipcMain.on('listar-productos-por-salida', async (event, { idSalida }) => {
-    console.log('Evento listar-productos-por-salida recibido con idSalida:', idSalida);
-  
+    console.log("Evento listar-productos-por-salida recibido con ID:", idSalida); // Depuración inicial
+
     const salidaProductoController = new SalidaProductoController();
     try {
         const productos = await salidaProductoController.obtenerSalidaProductos(idSalida);
+        console.log("Productos obtenidos desde el controlador:", productos); // Verificar los datos obtenidos
         event.reply('cargar-productos-por-salida', productos);
     } catch (error) {
-        console.error('Error al listar productos de la salida:', error);
+        console.error("Error al listar productos de la salida:", error); // Mostrar el error en la consola
         event.reply('cargar-productos-por-salida', []);
     }
 });
-
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
     const comprobantePagoController = new ComprobantePagoController();
 

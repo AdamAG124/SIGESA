@@ -13,12 +13,16 @@ class SalidaDB {
                 SELECT 
                     s.ID_SALIDA AS idSalida,
                     s.ID_COLABORADOR_SACANDO AS idColaboradorSacando,
+                    c1.DSC_NOMBRE AS nombreColaboradorSacando,
                     s.ID_COLABORADOR_RECIBIENDO AS idColaboradorRecibiendo,
+                    c2.DSC_NOMBRE AS nombreColaboradorRecibiendo,
                     s.FEC_SALIDA AS fechaSalida,
                     s.ID_USUARIO AS idUsuario,
                     s.ESTADO AS estado
                 FROM 
                     sigt_salida s
+                LEFT JOIN sigm_colaborador c1 ON s.ID_COLABORADOR_SACANDO = c1.ID_COLABORADOR
+                LEFT JOIN sigm_colaborador c2 ON s.ID_COLABORADOR_RECIBIENDO = c2.ID_COLABORADOR
             `;
 
             let whereClauseAdded = false;
@@ -29,14 +33,24 @@ class SalidaDB {
             }
 
             if (valorBusqueda !== null) {
-                const searchCondition = `s.ID_SALIDA LIKE '%${valorBusqueda}%'`;
+                const searchCondition = `
+                    (s.ID_SALIDA LIKE '%${valorBusqueda}%' OR 
+                     c1.DSC_NOMBRE LIKE '%${valorBusqueda}%' OR 
+                     c2.DSC_NOMBRE LIKE '%${valorBusqueda}%')
+                `;
                 query += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
             }
 
             query += ` ORDER BY s.ID_SALIDA DESC LIMIT ${pageSize} OFFSET ${offset}`;
 
             const [rows] = await connection.query(query);
-            const [countResult] = await connection.query(`SELECT COUNT(*) AS total FROM sigt_salida`);
+
+            const [countResult] = await connection.query(`
+                SELECT COUNT(*) AS total
+                FROM sigt_salida s
+                LEFT JOIN sigm_colaborador c1 ON s.ID_COLABORADOR_SACANDO = c1.ID_COLABORADOR
+                LEFT JOIN sigm_colaborador c2 ON s.ID_COLABORADOR_RECIBIENDO = c2.ID_COLABORADOR
+            `);
 
             return {
                 salidas: rows,
@@ -46,8 +60,8 @@ class SalidaDB {
                 totalPages: Math.ceil(countResult[0].total / pageSize)
             };
         } catch (error) {
-            console.error('Error al listar salidas:', error);
-            throw new Error('Error al listar salidas: ' + error.message);
+            console.error("Error al listar salidas:", error);
+            throw new Error("Error al listar salidas: " + error.message);
         } finally {
             if (connection) {
                 await connection.end();

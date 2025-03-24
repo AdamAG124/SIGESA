@@ -6,7 +6,10 @@ class SalidaService {
     }
 
     async listarSalidas(pageSize, currentPage, estado, valorBusqueda) {
-        return await this.salidaDB.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
+        console.log("Llamando a la base de datos para listar salidas..."); // Depuración inicial
+        const resultado = await this.salidaDB.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
+        console.log("Resultado obtenido en el servicio:", resultado); // Verificar los datos obtenidos
+        return resultado;
     }
 }
 

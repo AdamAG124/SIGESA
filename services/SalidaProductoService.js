@@ -6,7 +6,10 @@ class SalidaProductoService {
     }
 
     async obtenerSalidaProductos(idSalida) {
-        return await this.salidaProductoDB.obtenerSalidaProductos(idSalida);
+        console.log("Llamando a la base de datos para obtener productos de la salida con ID:", idSalida); // Depuración inicial
+        const productos = await this.salidaProductoDB.obtenerProductosPorSalida(idSalida);
+        console.log("Productos obtenidos en el servicio:", productos); // Verificar los datos obtenidos
+        return productos;
     }
 }
 

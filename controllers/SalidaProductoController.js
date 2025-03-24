@@ -6,7 +6,10 @@ class SalidaProductoController {
     }
 
     async obtenerSalidaProductos(idSalida) {
-        return await this.salidaProductoService.obtenerSalidaProductos(idSalida);
+        console.log("Obteniendo productos para la salida con ID:", idSalida); // Depuración inicial
+        const productos = await this.salidaProductoService.obtenerSalidaProductos(idSalida);
+        console.log("Productos obtenidos en el controlador:", productos); // Verificar los datos obtenidos
+        return productos;
     }
 }
 

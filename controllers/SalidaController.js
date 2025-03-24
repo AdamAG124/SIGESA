@@ -6,7 +6,10 @@ class SalidaController {
     }
 
     async listarSalidas(pageSize, currentPage, estado, valorBusqueda) {
-        return await this.salidaService.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
+        console.log("Llamando al servicio para listar salidas..."); // Depuración inicial
+        const resultado = await this.salidaService.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
+        console.log("Resultado obtenido en el controlador:", resultado); // Verificar los datos obtenidos
+        return resultado;
     }
 }
 
