@@ -1,3 +1,5 @@
+const Producto = require("../../../domain/Producto");
+
 function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.classList.toggle("active");
@@ -1969,7 +1971,7 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
   });
 }
 
-function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCategoriaFiltro = 0, valorBusqueda = null) {
+function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
   const selectEstado = document.getElementById('estado-filtro');
   if (!selectEstado) {

@@ -229,7 +229,9 @@ class ProductoDB {
                 await connection.end(); // Asegurarse de cerrar la conexión
             }
         }
-    }
+
+ }
+
 
     async obtenerProductoPorId(idProducto) {
         const db = new ConectarDB();
