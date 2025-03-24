@@ -12,10 +12,10 @@ class FacturaProductoDB {
 
     async obtenerProductosPorFactura(idFactura) {
         let connection;
-
+    
         try {
             connection = await this.#db.conectar();
-
+    
             const query = `
                 SELECT 
                     fp.ID_FACTURA_PRODUCTO AS idFacturaProducto,
@@ -41,8 +41,8 @@ class FacturaProductoDB {
                     prov.DSC_NOMBRE AS nombreProveedor,
                     prov.ID_PROVEEDOR AS idProveedor,
                     
-                    -- Información del comprobante de pago
-                    cp.ID_COMPROBANTE_PAGO AS idComprobantePago,
+                    -- Información del comprobante de pago (puede ser NULL)
+                    cp.ID_COMPROBANTE_PAGO AS idComprobantePagoCp,
                     cp.NUM_COMPROBANTE_PAGO AS numeroComprobantePago,
                     
                     -- Información del producto
@@ -85,7 +85,7 @@ class FacturaProductoDB {
                     sigm_factura f ON fp.ID_FACTURA = f.ID_FACTURA
                 INNER JOIN 
                     sigm_proveedor prov ON f.ID_PROVEEDOR = prov.ID_PROVEEDOR
-                INNER JOIN 
+                LEFT JOIN 
                     sigm_comprobante_pago cp ON f.ID_COMPROBANTE_PAGO = cp.ID_COMPROBANTE_PAGO
                 INNER JOIN 
                     sigm_producto p ON fp.ID_PRODUCTO = p.ID_PRODUCTO
@@ -100,32 +100,40 @@ class FacturaProductoDB {
                 WHERE 
                     fp.ID_FACTURA = ${idFactura}
             `;
-
+    
             const [rows] = await connection.query(query);
-
+    
             const facturasProductos = rows.map(row => {
                 const facturaProducto = new FacturaProducto();
-
+    
                 // Llenar FacturaProducto
                 facturaProducto.setIdFacturaProducto(row.idFacturaProducto);
                 facturaProducto.setCantidadAnterior(row.cantidadAnterior);
                 facturaProducto.setCantidadEntrando(row.cantidadEntrando);
                 facturaProducto.setPrecioNuevo(row.precioNueva);
                 facturaProducto.setEstado(row.estadoFacturaProducto);
-
+    
                 // Llenar Factura (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdFactura().setIdFactura(row.idFactura);
                 facturaProducto.getIdFactura().getIdProveedor().setIdProveedor(row.idProveedor);
                 facturaProducto.getIdFactura().getIdProveedor().setNombre(row.nombreProveedor); // Nombre del proveedor
-                facturaProducto.getIdFactura().getIdComprobante().setIdComprobantePago(row.idComprobantePago); // Solo ID
-                facturaProducto.getIdFactura().getIdComprobante().setNumero(row.numeroComprobantePago); // Número del comprobante
+                
+                // Manejar el caso de ID_COMPROBANTE_PAGO NULL
+                if (row.idComprobantePago === null) {
+                    facturaProducto.getIdFactura().getIdComprobante().setIdComprobantePago(null);
+                    facturaProducto.getIdFactura().getIdComprobante().setNumero(null);
+                } else {
+                    facturaProducto.getIdFactura().getIdComprobante().setIdComprobantePago(row.idComprobantePago);
+                    facturaProducto.getIdFactura().getIdComprobante().setNumero(row.numeroComprobantePago);
+                }
+    
                 facturaProducto.getIdFactura().setNumeroFactura(row.numeroFactura);
                 facturaProducto.getIdFactura().setFechaFactura(row.fechaFactura);
                 facturaProducto.getIdFactura().setDetallesAdicionales(row.detallesAdicionales);
                 facturaProducto.getIdFactura().setImpuesto(row.impuesto);
                 facturaProducto.getIdFactura().setDescuento(row.descuento);
                 facturaProducto.getIdFactura().setEstado(row.estadoFactura);
-
+    
                 // Llenar Producto (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdProducto().setIdProducto(row.idProducto);
                 facturaProducto.getIdProducto().setCategoria(row.idCategoriaProducto); // Solo ID
@@ -134,14 +142,14 @@ class FacturaProductoDB {
                 facturaProducto.getIdProducto().setCantidad(row.cantidadTotalProducto);
                 facturaProducto.getIdProducto().setUnidadMedicion(row.unidadMedicion);
                 facturaProducto.getIdProducto().setEstado(row.estadoProducto);
-
+    
                 // Llenar Usuario (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdUsuario().setIdUsuario(row.idUsuario);
                 facturaProducto.getIdUsuario().setNombreUsuario(row.nombreUsuario);
                 facturaProducto.getIdUsuario().setRol(row.idRol); // Solo ID
                 facturaProducto.getIdUsuario().setPassword(row.password);
                 facturaProducto.getIdUsuario().setEstado(row.estadoUsuario);
-
+    
                 // Llenar Colaborador (usando el objeto existente dentro de Usuario)
                 facturaProducto.getIdUsuario().getIdColaborador().setIdColaborador(row.idColaborador);
                 facturaProducto.getIdUsuario().getIdColaborador().getIdDepartamento().setNombre(row.nombreDepartamento);
@@ -156,12 +164,12 @@ class FacturaProductoDB {
                 facturaProducto.getIdUsuario().getIdColaborador().setEstado(row.estadoColaborador);
                 facturaProducto.getIdUsuario().getIdColaborador().setCorreo(row.correo);
                 facturaProducto.getIdUsuario().getIdColaborador().setCedula(row.cedula);
-
+    
                 return facturaProducto;
             });
-
+    
             return facturasProductos;
-
+    
         } catch (error) {
             console.error('Error al obtener los productos de la factura:', error.message);
             throw new Error('Error al obtener los productos de la factura: ' + error.message);

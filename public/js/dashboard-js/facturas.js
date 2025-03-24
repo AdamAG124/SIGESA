@@ -165,7 +165,7 @@ function cargarFactura(idFactura) {
 
             // Información general de la factura
             document.getElementById('fecha-factura').textContent = primerProducto.fechaFactura;
-            document.getElementById('comprobante-pago').textContent = primerProducto.numeroComprobantePago;
+            document.getElementById('comprobante-pago').textContent = primerProducto.numeroComprobantePago || 'Sin comprobante';
             document.getElementById('estado-factura-info').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
             document.getElementById('estado-factura').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
             document.getElementById('estado-factura').classList.add(primerProducto.estadoFactura === 1 ? 'status-active' : 'status-inactive');
