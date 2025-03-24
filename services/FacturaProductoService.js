@@ -12,10 +12,16 @@ class FacturaProductoService{
     }
 
     async editarFacturaProducto(facturaProductoActual, nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto){
+        if (facturaProductoActual.getIdComprobante().getIdComprobantePago() === 0){
+            facturaProductoActual.getIdComprobante().setIdComprobantePago(null);
+        }
         return await this.#facturaProductoDB.actualizarFacturaYProductos(facturaProductoActual, nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto);
     }
 
     async agregarFacturaProducto(factura, nuevosFacturaProducto){
+        if (factura.getIdComprobante().getIdComprobantePago() === 0){
+            factura.getIdComprobante().setIdComprobantePago(null);
+        }
         return await this.#facturaProductoDB.crearFacturaYProductos(factura, nuevosFacturaProducto);
     }
 }
