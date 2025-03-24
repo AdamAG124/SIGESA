@@ -10,6 +10,11 @@ contextBridge.exposeInMainWorld('api', {
     logout: () => ipcRenderer.send('logout'),
     responseLogout: (callback) => ipcRenderer.on('logout-response', (event, response) => callback(response)),
 
+    obtenerUsuarioLogueado: (callback) => {
+        ipcRenderer.send('obtener-usuario-logueado');
+        ipcRenderer.once('usuario-recuperado', (event, respuesta) => callback(respuesta));
+    },
+
     // Función para solicitar el HTML y recibir la respuesta
     loadHTML: (filePath) => ipcRenderer.send('leer-html', filePath),
     onHTMLLoaded: (callback) => ipcRenderer.once('html-cargado', (event, data) => callback(data)),
@@ -197,8 +202,16 @@ contextBridge.exposeInMainWorld('api', {
     },
 
     actualizarFacturaYProductos: (nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData, callback) => {
-        ipcRenderer.send('actualizar-factura-y-productos', {nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData});
+        ipcRenderer.send('actualizar-factura-y-productos', { nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData });
         ipcRenderer.once('factura-actualizada', (event, respuesta) => callback(respuesta));
+    },
+
+    crearFacturaYProductos: (nuevosFacturaProducto, facturaData, callback) => {
+        ipcRenderer.send('crear-factura-y-productos', {
+            nuevosFacturaProducto,
+            facturaData
+        });
+        ipcRenderer.once('factura-creada', (event, respuesta) => callback(respuesta));
     },
 
     printToPDF: () => ipcRenderer.invoke('print-to-pdf'),

@@ -165,7 +165,7 @@ function cargarFactura(idFactura) {
 
             // Información general de la factura
             document.getElementById('fecha-factura').textContent = primerProducto.fechaFactura;
-            document.getElementById('comprobante-pago').textContent = primerProducto.numeroComprobantePago;
+            document.getElementById('comprobante-pago').textContent = primerProducto.numeroComprobantePago || 'Sin comprobante';
             document.getElementById('estado-factura-info').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
             document.getElementById('estado-factura').textContent = primerProducto.estadoFactura === 1 ? 'Activa' : 'Inactiva';
             document.getElementById('estado-factura').classList.add(primerProducto.estadoFactura === 1 ? 'status-active' : 'status-inactive');
@@ -335,18 +335,21 @@ function validarYRecolectarDatosFactura() {
     let isValid = true;
 
     // Arrays para cada tipo de FacturaProducto y datos de factura
-    const nuevosFacturaProducto = []; // Desde addProduct
-    const actualizarFacturaProducto = []; // Desde cargarFacturaEditable
-    const eliminarFacturaProducto = []; // Desde marcarProductosFacturaEliminar
+    const nuevosFacturaProducto = [];
+    const actualizarFacturaProducto = [];
+    const eliminarFacturaProducto = [];
     let facturaData = null;
 
     // Validar campos generales
     inputs.forEach(input => {
         const value = input.value.trim();
         const isSelect = input.tagName === 'SELECT';
+        const isNumber = input.type === 'number';
         const isEmpty = value === '' || (isSelect && value === '0');
+        const numericValue = isNumber ? Number(value) : null;
 
-        if (isEmpty && input.id !== 'notas') { // Permitir que notas esté vacío
+        // Validar campos obligatorios
+        if (isEmpty && input.id !== 'notas' && input.id !== 'idFactura' && input.id !== 'comprobante-pago' && input.id !== 'invoice-discount' && input.id !== 'invoice-tax') {
             isValid = false;
             input.style.border = '2px solid red';
             const errorMessage = document.createElement('span');
@@ -354,6 +357,246 @@ function validarYRecolectarDatosFactura() {
             errorMessage.style.color = 'red';
             errorMessage.style.fontSize = '12px';
             errorMessage.textContent = 'Este campo es obligatorio';
+            input.parentElement.appendChild(errorMessage);
+        }
+
+        // Validar que los campos numéricos no sean negativos
+        if (isNumber && value !== '' && numericValue < 0) {
+            isValid = false;
+            input.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'El valor no puede ser negativo';
+            input.parentElement.appendChild(errorMessage);
+        }
+    });
+
+    // Validar y recolectar datos de productos
+    const productRows = document.querySelectorAll('.product-row');
+    productRows.forEach(row => {
+        const selectProducto = row.querySelector('.product-name');
+        const inputCantidadAnterior = row.querySelector('.product-prev-qty');
+        const inputCantidadEntrando = row.querySelector('.product-new-qty');
+        const inputPrecio = row.querySelector('.product-price');
+
+        const idProducto = selectProducto.value;
+        const cantidadEntrando = inputCantidadEntrando.value.trim();
+        const precioNuevo = inputPrecio.value.trim();
+        const cantidadEntrandoNum = Number(cantidadEntrando);
+        const precioNuevoNum = Number(precioNuevo);
+
+        // Validar campos no deshabilitados
+        if (idProducto === '0') {
+            isValid = false;
+            selectProducto.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Seleccione un producto';
+            selectProducto.parentElement.appendChild(errorMessage);
+        }
+
+        if (cantidadEntrando === '') {
+            isValid = false;
+            inputCantidadEntrando.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Ingrese la cantidad entrante';
+            inputCantidadEntrando.parentElement.appendChild(errorMessage);
+        } else if (cantidadEntrandoNum < 0) {
+            isValid = false;
+            inputCantidadEntrando.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'La cantidad entrante no puede ser negativa';
+            inputCantidadEntrando.parentElement.appendChild(errorMessage);
+        }
+
+        if (precioNuevo === '') {
+            isValid = false;
+            inputPrecio.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Ingrese el precio unitario';
+            inputPrecio.parentElement.appendChild(errorMessage);
+        } else if (precioNuevoNum < 0) {
+            isValid = false;
+            inputPrecio.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'El precio no puede ser negativo';
+            inputPrecio.parentElement.appendChild(errorMessage);
+        }
+
+        if (idProducto !== '0' && cantidadEntrando !== '' && precioNuevo !== '' && cantidadEntrandoNum >= 0 && precioNuevoNum >= 0) {
+            const productoData = {
+                idProducto: Number(idProducto),
+                cantidadAnterior: Number(inputCantidadAnterior.value),
+                cantidadEntrando: cantidadEntrandoNum,
+                precioNuevo: precioNuevoNum,
+                idUsuario: Number(document.getElementById('idUsuario').value)
+            };
+
+            if (!selectProducto.disabled) {
+                nuevosFacturaProducto.push(productoData);
+            } else {
+                const idFacturaProducto = row.querySelector('.delete-product')?.getAttribute('onclick')?.match(/\d+/)?.[0];
+                if (idFacturaProducto) {
+                    productoData.idFacturaProducto = Number(idFacturaProducto);
+                    actualizarFacturaProducto.push(productoData);
+                }
+            }
+        }
+    });
+
+    // Recolectar productos a eliminar
+    const productosEliminar = form.querySelectorAll('input[name="productosEliminar[]"]');
+    productosEliminar.forEach(input => {
+        eliminarFacturaProducto.push({
+            idFacturaProducto: Number(input.value)
+        });
+    });
+
+    // Si todo es válido, recolectar datos de la factura
+    if (isValid) {
+        const idFactura = document.getElementById('idFactura').value;
+        const numeroFactura = document.getElementById('numero-factura').value;
+        const fechaFactura = document.getElementById('fecha-factura').value;
+        const idComprobantePago = document.getElementById('comprobante-pago').value;
+        const idProveedor = document.getElementById('proveedor').value;
+        const impuesto = document.getElementById('invoice-tax').value;
+        const descuento = document.getElementById('invoice-discount').value;
+        const notas = document.getElementById('notas').value;
+
+        const impuestoNum = impuesto === '' ? 0 : Number(impuesto);
+        const descuentoNum = descuento === '' ? 0 : Number(descuento);
+
+        // Validar que impuesto y descuento no sean negativos
+        if (impuestoNum < 0) {
+            isValid = false;
+            document.getElementById('invoice-tax').style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'El impuesto no puede ser negativo';
+            document.getElementById('invoice-tax').parentElement.appendChild(errorMessage);
+        }
+
+        if (descuentoNum < 0) {
+            isValid = false;
+            document.getElementById('invoice-discount').style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'El descuento no puede ser negativo';
+            document.getElementById('invoice-discount').parentElement.appendChild(errorMessage);
+        }
+
+        if (isValid) {
+            facturaData = {
+                idFactura: Number(idFactura),
+                numeroFactura,
+                fechaFactura,
+                idComprobantePago: Number(idComprobantePago),
+                idProveedor: Number(idProveedor),
+                impuesto: impuestoNum,
+                descuento: descuentoNum,
+                detallesAdicionales: notas,
+            };
+
+            nuevosFacturaProducto.forEach(producto => producto.idFactura = facturaData);
+            actualizarFacturaProducto.forEach(producto => producto.idFactura = facturaData);
+        }
+    }
+
+    if (isValid) {
+        Swal.fire({
+            title: "Creando Factura",
+            text: "¿Está seguro que desea actualizar esta factura?, algunos de los cambios no son reversibles!",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4a4af4",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.api.actualizarFacturaYProductos(
+                    nuevosFacturaProducto,
+                    actualizarFacturaProducto,
+                    eliminarFacturaProducto,
+                    facturaData,
+                    (respuesta) => {
+                        if (respuesta.success) {
+                            mostrarToastConfirmacion(respuesta.message);
+                            setTimeout(() => {
+                                cargarFacturaEditable(document.getElementById('idFactura').value);
+                            }, 2000);
+                        } else {
+                            mostrarToastError(respuesta.message);
+                        }
+                    }
+                );
+            }
+        });
+    }
+}
+
+function validarYRecolectarDatosFacturaCrear() {
+    // Limpiar mensajes de error previos y estilos
+    const existingErrors = document.querySelectorAll('.error-message');
+    existingErrors.forEach(error => error.remove());
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => input.style.border = '');
+
+    // Seleccionar todos los inputs y selects no deshabilitados dentro del formulario
+    const form = document.getElementById('invoice-form');
+    const inputs = form.querySelectorAll('input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+    let isValid = true;
+
+    const nuevosFacturaProducto = [];
+    let facturaData = null;
+
+    // Validar campos generales
+    inputs.forEach(input => {
+        const value = input.value.trim();
+        const isSelect = input.tagName === 'SELECT';
+        const isEmpty = value === '' || (isSelect && value === '0');
+        const isNumber = input.type === 'number';
+        const numericValue = isNumber ? Number(value) : null;
+
+        if (isEmpty && input.id !== 'notas' && input.id !== 'idFactura' && input.id != 'comprobante-pago' && input.id !== 'invoice-discount' && input.id !== 'invoice-tax') { // Permitir que notas y idFactura estén vacíos
+            isValid = false;
+            input.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'Este campo es obligatorio';
+            input.parentElement.appendChild(errorMessage);
+        }
+
+        if (isNumber && value !== '' && numericValue < 0) {
+            isValid = false;
+            input.style.border = '2px solid red';
+            const errorMessage = document.createElement('span');
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = 'red';
+            errorMessage.style.fontSize = '12px';
+            errorMessage.textContent = 'El valor no puede ser negativo';
             input.parentElement.appendChild(errorMessage);
         }
     });
@@ -410,32 +653,15 @@ function validarYRecolectarDatosFactura() {
                 cantidadAnterior: Number(inputCantidadAnterior.value),
                 cantidadEntrando: Number(cantidadEntrando),
                 precioNuevo: Number(precioNuevo),
-                idUsuario: Number(document.getElementById('idUsuario').value)
+                idUsuario: Number(document.getElementById('idUsuario').value) // Obtener idUsuario del formulario
             };
-
-            if (!selectProducto.disabled) {
-                nuevosFacturaProducto.push(productoData);
-            } else {
-                const idFacturaProducto = row.querySelector('.delete-product')?.getAttribute('onclick')?.match(/\d+/)?.[0];
-                if (idFacturaProducto) {
-                    productoData.idFacturaProducto = Number(idFacturaProducto);
-                    actualizarFacturaProducto.push(productoData);
-                }
-            }
+            nuevosFacturaProducto.push(productoData);
         }
-    });
-
-    // Recolectar productos a eliminar (marcarProductosFacturaEliminar)
-    const productosEliminar = form.querySelectorAll('input[name="productosEliminar[]"]');
-    productosEliminar.forEach(input => {
-        eliminarFacturaProducto.push({
-            idFacturaProducto: Number(input.value)
-        });
     });
 
     // Si todo es válido, recolectar datos de la factura
     if (isValid) {
-        const idFactura = document.getElementById('idFactura').value;
+        const idFactura = document.getElementById('idFactura').value || 0; // 0 si está vacío (nueva factura)
         const numeroFactura = document.getElementById('numero-factura').value;
         const fechaFactura = document.getElementById('fecha-factura').value;
         const idComprobantePago = document.getElementById('comprobante-pago').value;
@@ -456,13 +682,10 @@ function validarYRecolectarDatosFactura() {
         };
 
         nuevosFacturaProducto.forEach(producto => producto.idFactura = facturaData);
-        actualizarFacturaProducto.forEach(producto => producto.idFactura = facturaData);
-    }
 
-    if (isValid) {
         Swal.fire({
             title: "Actualizando Factura",
-            text: "¿Está seguro que desea actualizar esta factura?, algunos de los cambios no son reversibles!",
+            text: "¿Está seguro que desea crear una nueva factura?, asegurese de tener toda la información correcta.",
             icon: "question",
             showCancelButton: true,
             confirmButtonColor: "#4a4af4",
@@ -471,25 +694,20 @@ function validarYRecolectarDatosFactura() {
             cancelButtonText: "Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                window.api.actualizarFacturaYProductos(
-                    nuevosFacturaProducto,
-                    actualizarFacturaProducto,
-                    eliminarFacturaProducto,
-                    facturaData,
-                    (respuesta) => {
-                        if (respuesta.success) {
-                            mostrarToastConfirmacion(respuesta.message);
-                            setTimeout(() => {
-                                cargarFacturaEditable(document.getElementById('idFactura').value);
-                            }, 2000);
-                        } else {
-                            mostrarToastError(respuesta.message);
-                        }
+                window.api.crearFacturaYProductos(nuevosFacturaProducto, facturaData, (respuesta) => {
+                    if (respuesta.success) {
+                        mostrarToastConfirmacion(respuesta.message);
+                        setTimeout(() => {
+                            console.log('Id de la factura crack: ', respuesta.idFactura);
+                            verDetallesFactura(respuesta.idFactura, '/factura-view/detalles-factura.html', 1);
+                        }, 2000);
+                    } else {
+                        mostrarToastError(respuesta.message);
                     }
-                );
+                });
+
             }
         });
-
     }
 }
 
@@ -501,3 +719,23 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+function cargarVistaCrearFactura() {
+    cargarPtroveedores('proveedor', 'Seleccione un proveedor');
+    cargarComprobantesPago('comprobante-pago', 'Seleccione un comprobante');
+    window.api.obtenerUsuarioLogueado((respuesta) => {
+        const usuario = respuesta.usuario;
+        console.log(usuario);
+        document.getElementById('registradoPor').textContent = usuario.nombreUsuario;
+        document.getElementById('idUsuario').value = usuario.idUsuario;
+        document.getElementById('departamento').textContent = usuario.nombreDepartamento;
+        document.getElementById('telefonoColaborador').textContent = usuario.numTelefono;
+
+        document.getElementById('nombreColaborador').textContent = `${usuario.nombre} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+        document.getElementById('puesto').textContent = usuario.nombrePuesto;
+        document.getElementById('correoColaborador').textContent = usuario.correo;
+        document.getElementById('cedula').textContent = usuario.cedula;
+        document.getElementById('departamentoColaborador').textContent = usuario.nombreDepartamento;
+        document.getElementById('telefonoColab').textContent = usuario.numTelefono;
+    });
+}
