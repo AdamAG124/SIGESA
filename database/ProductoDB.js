@@ -17,7 +17,7 @@ class ProductoDB {
             connection = await db.conectar();
 
             const offset = (currentPage - 1) * pageSize;
-           
+
             // Base SQL query para listado y conteo
             const baseQuery = `
                 FROM ${this.#table} P
@@ -231,6 +231,55 @@ class ProductoDB {
         }
     }
 
+    async obtenerProductoPorId(idProducto) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Construir la consulta SQL
+            const query = `
+                SELECT
+                    P.ID_PRODUCTO AS idProducto, P.DSC_NOMBRE AS nombreProducto,
+                    P.DSC_PRODUCTO AS descripcionProducto, P.NUM_CANTIDAD AS cantidad,
+                    P.DSC_UNIDAD_MEDICION AS unidadMedicion, P.ESTADO AS estadoProducto,
+                    C.ID_CATEGORIA_PRODUCTO AS idCategoria
+                FROM ${this.#table} P
+                INNER JOIN SIGM_CATEGORIA_PRODUCTO C ON P.ID_CATEGORIA_PRODUCTO = C.ID_CATEGORIA_PRODUCTO
+                WHERE P.ID_PRODUCTO = ?
+            `;
+
+            const [rows] = await connection.query(query, [idProducto]);
+
+            if (rows.length > 0) {
+                const productoDB = rows[0];
+                const producto = new Producto();
+                producto.setIdProducto(productoDB.idProducto);
+                producto.setNombre(productoDB.nombreProducto);
+                producto.setDescripcion(productoDB.descripcionProducto);
+                producto.setCantidad(productoDB.cantidad);
+                producto.setUnidadMedicion(productoDB.unidadMedicion);
+                producto.setEstado(productoDB.estadoProducto);
+
+                // Setters para la categoría del producto
+                producto.getCategoria().setIdCategoria(productoDB.idCategoria);
+
+                return producto;
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.error('Error al obtener producto por ID:', error);
+            return null;
+        }
+        finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
     async actualizarProducto(producto) {
         const db = new ConectarDB();
         let connection;
@@ -238,7 +287,7 @@ class ProductoDB {
         try {
             connection = await db.conectar();
 
-            // Obtén los atributos del objeto Usuario
+            // Obtén los atributos del objeto Producto
             const idProducto = producto.getIdProducto();
             const nombre = producto.getNombre();
             const descripcion = producto.getDescripcion();
@@ -246,49 +295,37 @@ class ProductoDB {
             const unidadMedicion = producto.getUnidadMedicion();
             const idCategoria = producto.getCategoria().getIdCategoria();
 
-            // Validar si el nombre de usuario ya existe
-            let query = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = '${nombreUsuario}'`;
-            const [rowsNombreUsuario] = await connection.query(query);
+            // Construir la consulta SQL para actualizar el producto
+            let query = `
+                UPDATE ${this.#table}
+                    SET DSC_NOMBRE = ?,
+                    DSC_PRODUCTO = ?, 
+                    NUM_CANTIDAD = ?, 
+                    DSC_UNIDAD_MEDICION = ?, 
+                    ID_CATEGORIA_PRODUCTO = ? 
+                WHERE ID_PRODUCTO = ?`;
 
-            if (rowsNombreUsuario[0].count > 0) {
-                return {
-                    success: false,
-                    message: 'El nombre de usuario ya está en uso.'
-                };
-            }
-
-            // Construimos la consulta SQL dinámicamente
-            query = `UPDATE ${this.#table} SET DSC_NOMBRE = ?, ID_ROL = ?`;
-            let params = [nombreUsuario, idRol];
-
-            // Evaluar si el password no es vacío
-            if (password && password.trim() !== '') {
-                const hashedPassword = await bcrypt.hash(password, 10);
-                query += `, DSC_PASSWORD = ?`;
-                params.push(hashedPassword);
-            }
-
-            query += ` WHERE ID_USUARIO = ?`;
-            params.push(idUsuario);
+            let params = [nombre, descripcion, cantidad, unidadMedicion, idCategoria, idProducto];
 
             // Ejecutar la consulta
             const [result] = await connection.query(query, params);
 
+            // Verificar si se realizaron cambios
             if (result.affectedRows > 0) {
                 return {
                     success: true,
-                    message: 'Usuario actualizado exitosamente.'
+                    message: 'Producto actualizado exitosamente.'
                 };
             } else {
                 return {
                     success: false,
-                    message: 'No se encontró el usuario o no se realizaron cambios.'
+                    message: 'No se encontró el producto o no se realizaron cambios.'
                 };
             }
         } catch (error) {
             return {
                 success: false,
-                message: 'Error al actualizar el usuario: ' + error.message
+                message: 'Error al actualizar el producto: ' + error.message
             };
         } finally {
             if (connection) {

@@ -1,5 +1,3 @@
-const Producto = require("../../../domain/Producto");
-
 function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.classList.toggle("active");
@@ -2128,31 +2126,40 @@ function enviarCreacionProducto() {
   });
 }
 
-async function verDetallesProducto(id, boton) {
+async function editarProducto(id, boton) {
 
-  // Obtener la fila del botón clicado
-  const fila = boton.closest('tr');
+  const selectCategoria = document.getElementById("categorias");
+  cargarCategorias(selectCategoria, 'Seleccionar categoría');
 
-  // Extraer la información de la fila
-  const nombreProveedor = fila.children[0].textContent;
-  const provincia = fila.children[3].textContent;
-  const canton = fila.children[4].textContent;
-  const distrito = fila.children[5].textContent;
-  const direccion = fila.children[6].textContent;
+  window.api.obtenerProductoPorId(id);
 
-  // Asignar valores extraídos a los campos del formulario de edición
-  document.getElementById("idProveedor").value = id;
-  document.getElementById("nombreProveedor").value = nombreProveedor;
-  document.getElementById("provincia").value = provincia;
-  document.getElementById("canton").value = canton;
-  document.getElementById("distrito").value = distrito;
-  document.getElementById("direccion").value = direccion;
+  window.api.onRespuestaObtenerProductoPorId((producto) => {
+    if (producto) {
+      // Asignar valores extraídos a los campos del formulario de edición
+      document.getElementById("idProducto").value = producto.idProducto;
+      document.getElementById("nombre").value = producto.nombre;
+      document.getElementById("descripcion").value = producto.descripcion;
+      document.getElementById("cantidad").value = producto.cantidad;
+      document.getElementById("unidadMedicion").value = producto.unidadMedicion;
+      console.log(producto.idCategoria);
+      // Usar setTimeout para esperar un poco y luego asignar el valor al select
+      setTimeout(() => {
+        selectCategoria.value = producto.idCategoria; // Asignamos el valor después de un pequeño retraso
+      }, 100);
 
-  // Cambiar el título del modal a "Editar Proveedor"
-  document.getElementById("modalTitle").innerText = "Editar Proveedor";
-  document.getElementById("buttonModal").onclick = enviarEdicionProveedor;
-  // Mostrar el modal
-  document.getElementById("editarProveedorModal").style.display = "block";
+      // Cambiar el título del modal a "Detalles del Producto"
+      document.getElementById("modalTitle").innerText = "Detalles del Producto";
+      document.getElementById("buttonModal").onclick = enviarEdicionProducto;
+
+      document.getElementById("editarProductoModal").style.display = "block";
+    } else {
+      console.log("Error al obtener el producto, viene nulo");
+    }
+  });
+}
+
+function enviarEdicionProducto() {
+  console.log("No se puede editar un producto desde la vista de detalles");
 }
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------

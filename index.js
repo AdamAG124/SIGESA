@@ -879,6 +879,28 @@ ipcMain.on('eliminar-producto', async (event, id, estado) => {
     }
 });
 
+ipcMain.on('obtener-producto-por-id', async (event, idProducto) => {
+    try {
+        const productoController = new ProductoController();
+
+        const producto = await productoController.obtenerProductoPorId(idProducto);
+
+        const productoCompleto = {
+            idProducto: producto.getIdProducto(),
+            nombre: producto.getNombre(),
+            descripcion: producto.getDescripcion(),
+            cantidad: producto.getCantidad(),
+            unidadMedicion: producto.getUnidadMedicion(),
+            idCategoria: producto.getCategoria().getIdCategoria()
+        };
+
+        event.reply('respuesta-obtener-producto-por-id', productoCompleto);
+    } catch (error) {
+        console.error('Error al obtener el producto por ID:', error);
+        event.reply('respuesta-obtener-producto-por-id', { success: false, message: error.message });
+    }
+});
+
 /* --------------------------------                    ------------------------------------------
    --------------------------------       Factura      ------------------------------------------
    --------------------------------                    ------------------------------------------ */
