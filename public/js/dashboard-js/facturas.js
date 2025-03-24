@@ -346,7 +346,7 @@ function validarYRecolectarDatosFactura() {
         const isSelect = input.tagName === 'SELECT';
         const isEmpty = value === '' || (isSelect && value === '0');
 
-        if (isEmpty && input.id !== 'notas') { // Permitir que notas esté vacío
+        if (isEmpty && input.id !== 'notas' && input.id !== 'idFactura' && input.id != 'comprobante-pago' && input.id !== 'invoice-discount' && input.id !== 'invoice-tax') { // Permitir que notas y idFactura estén vacíos
             isValid = false;
             input.style.border = '2px solid red';
             const errorMessage = document.createElement('span');
@@ -514,7 +514,7 @@ function validarYRecolectarDatosFacturaCrear() {
         const isSelect = input.tagName === 'SELECT';
         const isEmpty = value === '' || (isSelect && value === '0');
 
-        if (isEmpty && input.id !== 'notas' && input.id !== 'idFactura') { // Permitir que notas y idFactura estén vacíos
+        if (isEmpty && input.id !== 'notas' && input.id !== 'idFactura' && input.id != 'comprobante-pago' && input.id !== 'invoice-discount' && input.id !== 'invoice-tax') { // Permitir que notas y idFactura estén vacíos
             isValid = false;
             input.style.border = '2px solid red';
             const errorMessage = document.createElement('span');
