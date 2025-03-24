@@ -1959,7 +1959,7 @@ function cargarCategorias(idSelect, mensajeQuemado) {
   });
 }
 
-function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCategoriaFiltro = 0, valorBusqueda = null) {
+function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
   const selectEstado = document.getElementById('estado-filtro');
   if (!selectEstado) {
