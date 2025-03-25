@@ -12,8 +12,8 @@ class FacturaProductoService{
     }
 
     async editarFacturaProducto(facturaProductoActual, nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto){
-        if (facturaProductoActual.getIdComprobante().getIdComprobantePago() === 0){
-            facturaProductoActual.getIdComprobante().setIdComprobantePago(null);
+        if (facturaProductoActual.getIdFactura().getIdComprobante().getIdComprobantePago() === 0){
+            facturaProductoActual.getIdFactura().getIdComprobante().setIdComprobantePago(null);
         }
         return await this.#facturaProductoDB.actualizarFacturaYProductos(facturaProductoActual, nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto);
     }
