@@ -1,5 +1,3 @@
-const Producto = require("../../../domain/Producto");
-
 function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.classList.toggle("active");

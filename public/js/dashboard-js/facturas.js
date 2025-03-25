@@ -16,7 +16,7 @@ function addProduct() {
         <td class="no-print"><i class="material-icons delete-product" onclick="deleteProduct(this)">delete</i></td>
     `;
     tbody.appendChild(newRow);
-    llenarProductosSelect(uniqueId);
+    llenarProductosSelect(uniqueId, 1);
 }
 
 // Eliminar producto
@@ -275,7 +275,7 @@ function cargarFacturaEditable(idFactura) {
                     `;
                     productsBody.appendChild(row);
 
-                    llenarProductosSelect(`product-select-${index}`);
+                    llenarProductosSelect(`product-select-${index}`, null);
 
                     setTimeout(() => {
                         document.getElementById(`product-select-${index}`).value = producto.idProducto;
@@ -295,14 +295,14 @@ function cargarFacturaEditable(idFactura) {
         });
     }, 100);
 }
-function llenarProductosSelect(selectId) {
-    window.api.obtenerProductos(null, null, 1, null, null, (respuesta) => {
+function llenarProductosSelect(selectId, estadoProducto) {
+    window.api.obtenerProductos(null, null, estadoProducto, null, null, (respuesta) => {
         const select = document.getElementById(selectId);
         if (respuesta && respuesta.productos) {
             respuesta.productos.forEach(producto => {
                 const option = document.createElement('option');
                 option.value = producto.idProducto;
-                option.textContent = producto.nombreProducto;
+                option.textContent = producto.estadoProducto != 0 ? producto.nombreProducto : producto.nombreProducto + ' (Producto Inactivo)';
                 option.setAttribute('data-cantidad', producto.cantidad);
                 option.setAttribute('data-unidad-medicion', producto.unidadMedicion);
                 select.appendChild(option);
