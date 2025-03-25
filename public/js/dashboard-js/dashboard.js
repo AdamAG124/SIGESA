@@ -1,3 +1,5 @@
+const Producto = require("../../../domain/Producto");
+
 function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.classList.toggle("active");
@@ -755,6 +757,18 @@ function actualizarEstado(id, estado, title, message, moduloEstadoActualizar) {
           window.api.eliminarEntidadFinanciera(Number(id), Number(estado));
 
           window.api.onRespuestaEliminarEntidadFinanciera((respuesta) => {
+            if (respuesta.success) {
+              mostrarToastConfirmacion(respuesta.message);
+              filterTable(moduloEstadoActualizar);
+            } else {
+              mostrarToastError(respuesta.message);
+            }
+          });
+          break;
+        case 7:
+          window.api.eliminarProducto(id, estado);
+
+          window.api.onRespuestaEliminarProducto((respuesta) => {
             if (respuesta.success) {
               mostrarToastConfirmacion(respuesta.message);
               filterTable(moduloEstadoActualizar);
@@ -1926,26 +1940,38 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
-function cargarCategorias(idSelect, mensajeQuemado) {
-  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
-
-    idSelect.innerHTML = ""; // Limpiar las opciones existentes
-    const option = document.createElement("option");
-    option.value = "0";
-    option.textContent = mensajeQuemado;
-    option.selected = true;
-    idSelect.appendChild(option);
-
-    respuesta.categorias.forEach((categoria) => {
+function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoriasInactivas = 0) {
+  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado, valorBusqueda = null, (respuesta) => {
+    if (respuesta && respuesta.categorias) {
+      idSelect.innerHTML = ""; // Limpiar las opciones existentes
       const option = document.createElement("option");
-      option.value = categoria.idCategoria;
-      option.textContent = categoria.nombreCategoria;
+      option.value = "0";
+      option.textContent = mensajeQuemado;
+      option.selected = true;
       idSelect.appendChild(option);
-    });
+
+      respuesta.categorias.forEach((categoria) => {
+        const option = document.createElement("option");
+        option.value = categoria.idCategoria;
+
+        // Si se debe validar si las categorías están deshabilitadas
+        if (validarCategoriasInactivas === 1 && categoria.estado === 0) {
+          option.textContent = `Categoría ${categoria.nombreCategoria} Inactiva`;
+          option.disabled = true; // Deshabilitar la opción
+          option.classList.add("categoria-inactiva"); // Añadir clase para aplicar estilos específicos
+        } else {
+          option.textContent = categoria.nombreCategoria;
+        }
+
+        idSelect.appendChild(option);
+      });
+    } else {
+      console.log("No se pudieron cargar las categorías.");
+    }
   });
 }
 
-function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCategoriaFiltro = 0, valorBusqueda = null) {
+function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
   const selectEstado = document.getElementById('estado-filtro');
   if (!selectEstado) {
@@ -1993,18 +2019,14 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 2, idCate
               <button class="tooltip" value="${producto.idProducto}" onclick="editarProducto(this.value, this)">
                   <span class="material-icons">edit</span>
                   <span class="tooltiptext">Editar producto</span>
-              </button>
-              <button class="tooltip" value="${producto.idProducto}" onclick="${producto.estadoProducto === 1 ? `actualizarEstado(this.value, 0, 'Eliminando producto', '¿Está seguro que desea eliminar este producto?', 2)` : `actualizarEstado(this.value, 1, 'Reactivando producto', '¿Está seguro que desea reactivar este producto?', 2)`}">
+              </button>                                                                                        
+              <button class="tooltip" value="${producto.idProducto}" onclick="${producto.estadoProducto === 1 ? `actualizarEstado(this.value, 0, 'Eliminando producto', '¿Está seguro que desea eliminar este producto?', 7)` : `actualizarEstado(this.value, 1, 'Reactivando producto', '¿Está seguro que desea reactivar este producto?', 7)`}">
                   <span class="material-icons">
                       ${producto.estadoProducto === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
                   </span>
                   <span class="tooltiptext">
                       ${producto.estadoProducto === 1 ? 'Eliminar producto' : 'Reactivar producto'} <!-- Cambia el tooltip dependiendo del estado -->
                   </span>
-              </button>
-              <button class="tooltip" value="${producto.idProducto}" onclick="verDetallesProducto(this.value)">
-                  <span class="material-icons">info</span>
-                  <span class="tooltiptext">Ver detalles</span>
               </button>
           </td>
         `;
@@ -2113,49 +2135,163 @@ function enviarCreacionProducto() {
     }
   });
 }
+
+async function editarProducto(id, boton) {
+
+  const selectCategoria = document.getElementById("categorias");
+  cargarCategorias(selectCategoria, 'Seleccionar categoría', estado = null, validarCategoriasInactivas = 1);
+
+  window.api.obtenerProductoPorId(id);
+
+  window.api.onRespuestaObtenerProductoPorId((producto) => {
+    if (producto) {
+      // Asignar valores extraídos a los campos del formulario de edición
+      document.getElementById("idProducto").value = producto.idProducto;
+      document.getElementById("nombre").value = producto.nombre;
+      document.getElementById("descripcion").value = producto.descripcion;
+      document.getElementById("cantidad").value = producto.cantidad;
+      document.getElementById("unidadMedicion").value = producto.unidadMedicion;
+      console.log(producto.idCategoria);
+      // Usar setTimeout para esperar un poco y luego asignar el valor al select
+      setTimeout(() => {
+        selectCategoria.value = producto.idCategoria; // Asignamos el valor después de un pequeño retraso
+      }, 100);
+
+      // Cambiar el título del modal a "Detalles del Producto"
+      document.getElementById("modalTitle").innerText = "Detalles del Producto";
+
+      document.getElementById("buttonModal").onclick = enviarEdicionProducto;
+
+      document.getElementById("editarProductoModal").style.display = "block";
+    } else {
+      console.log("Error al obtener el producto, viene nulo");
+    }
+  });
+}
+
+function enviarEdicionProducto() {
+  const id = document.getElementById("idProducto").value;
+  const nombre = document.getElementById("nombre").value;
+  const descripcion = document.getElementById("descripcion").value || "N/A";
+  const cantidad = document.getElementById("cantidad").value;
+  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const categoria = document.getElementById("categorias").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombre") },
+    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: categoria, element: document.getElementById("categorias") },
+
+    // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
+    // Si quieren editar un producto y luego asignarle la cantidad el sistema debe soportarlo
+    { value: cantidad, element: document.getElementById("cantidad") }
+  ];
+
+  inputs.forEach(input => {
+    if (!input.value || (input.value == 0 && input.element.id === "categorias") || (input.value < 0 && input.element.id === "cantidad")) {
+      // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
+      input.element.style.border = "2px solid red";
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde si no está vacío o es válido
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error si no hay campos vacíos
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const productoData = {
+    idProducto: id,
+    nombre: nombre,
+    descripcion: descripcion,
+    cantidad: cantidad,
+    unidadMedicion: unidadMedicion,
+    categoria: categoria
+  };
+
+  Swal.fire({
+    title: "Editando producto",
+    text: "¿Está seguro que desea actualizar este producto?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.actualizarProducto(productoData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaActualizarProducto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            filterTable(7);
+            cerrarModal("editarProductoModal", "editarProductoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------
    --------------------------------          ------------------------------------------ */
-   function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
-    // Obtener los elementos del DOM
-    const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
-    const selectEstado = document.getElementById('estadoFiltro'); // Estado
-    const inputFechaInicio = document.getElementById('fechaInicialFiltro');
-    const inputFechaFin = document.getElementById('fechaFinalFiltro');
-    const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
-    const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
-    const searchInput = document.getElementById('search-bar');
+function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
+  // Obtener los elementos del DOM
+  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+  const selectEstado = document.getElementById('estadoFiltro'); // Estado
+  const inputFechaInicio = document.getElementById('fechaInicialFiltro');
+  const inputFechaFin = document.getElementById('fechaFinalFiltro');
+  const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
+  const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
+  const searchInput = document.getElementById('search-bar');
 
-    // Configurar valores iniciales en los filtros
-    selectPageSize.value = pageSize;
+  // Configurar valores iniciales en los filtros
+  selectPageSize.value = pageSize;
 
-    // Configurar el select de estado
-    if (estadoFactura === 1) selectEstado.value = 1;
-    else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
-    else selectEstado.value = 2;
+  // Configurar el select de estado
+  if (estadoFactura === 1) selectEstado.value = 1;
+  else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
+  else selectEstado.value = 2;
 
-    if (fechaInicio) inputFechaInicio.value = fechaInicio;
-    if (fechaFin) inputFechaFin.value = fechaFin;
+  if (fechaInicio) inputFechaInicio.value = fechaInicio;
+  if (fechaFin) inputFechaFin.value = fechaFin;
 
-    if (searchValue) searchInput.value = searchValue;
-    cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
-    cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
+  if (searchValue) searchInput.value = searchValue;
+  cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
+  cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
 
-    setTimeout(function () {
-        if (idProveedor) selectProveedor.value = idProveedor;
-        if (idComprobantePago) selectComprobante.value = idComprobantePago;
+  setTimeout(function () {
+    if (idProveedor) selectProveedor.value = idProveedor;
+    if (idComprobantePago) selectComprobante.value = idComprobantePago;
 
-        window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
-            const tbody = document.getElementById("facturas-table-body");
-            tbody.innerHTML = ""; // Limpiar contenido previo
+    window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
+      const tbody = document.getElementById("facturas-table-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
 
-            // Iterar sobre las facturas y agregarlas a la tabla
-            respuesta.facturas.forEach((factura) => {
-                const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
-                const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
+      // Iterar sobre las facturas y agregarlas a la tabla
+      respuesta.facturas.forEach((factura) => {
+        const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
+        const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
 
-                const row = document.createElement("tr");
-                row.innerHTML = `
+        const row = document.createElement("tr");
+        row.innerHTML = `
                   <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
                   <td>${factura.numeroFactura || 'Sin número'}</td>
                   <td>${fechaFactura}</td>
@@ -2179,13 +2315,13 @@ function enviarCreacionProducto() {
                       </button>
                   </td>
               `;
-                tbody.appendChild(row);
-            });
+        tbody.appendChild(row);
+      });
 
-            // Actualizar los botones de paginación
-            actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
-        });
-    }, 100);
+      // Actualizar los botones de paginación
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
+    });
+  }, 100);
 }
 
 

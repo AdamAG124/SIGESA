@@ -890,6 +890,67 @@ ipcMain.on('crear-producto', async (event, productoData) => {
     }
 });
 
+ipcMain.on('eliminar-producto', async (event, id, estado) => {
+    try {
+        const productoController = new ProductoController();
+        const producto = new Producto();
+        producto.setIdProducto(id);
+        producto.setEstado(estado);
+        const resultado = await productoController.eliminarProducto(producto);
+
+        event.reply('respuesta-eliminar-producto', resultado);
+    } catch (error) {
+        console.error('Error al eliminar el producto:', error);
+        event.reply('respuesta-eliminar-producto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('obtener-producto-por-id', async (event, idProducto) => {
+    try {
+        const productoController = new ProductoController();
+
+        const producto = await productoController.obtenerProductoPorId(idProducto);
+
+        const productoCompleto = {
+            idProducto: producto.getIdProducto(),
+            nombre: producto.getNombre(),
+            descripcion: producto.getDescripcion(),
+            cantidad: producto.getCantidad(),
+            unidadMedicion: producto.getUnidadMedicion(),
+            idCategoria: producto.getCategoria().getIdCategoria()
+        };
+
+        event.reply('respuesta-obtener-producto-por-id', productoCompleto);
+    } catch (error) {
+        console.error('Error al obtener el producto por ID:', error);
+        event.reply('respuesta-obtener-producto-por-id', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('actualizar-producto', async (event, productoData) => {
+    try {
+        const producto = new Producto();
+        const categoria = new CategoriaProducto();
+        categoria.setIdCategoria(productoData.categoria);
+        
+        producto.setIdProducto(productoData.idProducto);
+        producto.setNombre(productoData.nombre);
+        producto.setDescripcion(productoData.descripcion);
+        producto.setCantidad(productoData.cantidad);
+        producto.setUnidadMedicion(productoData.unidadMedicion);
+        producto.setCategoria(categoria);
+        producto.setEstado(1); // estado activo por defecto
+
+        const productoController = new ProductoController();
+        const resultado = await productoController.actualizarProducto(producto);
+
+        event.reply('respuesta-actualizar-producto', resultado);
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+
+        event.reply('respuesta-actualizar-producto', { success: false, message: error.message });
+    }
+});
 /* --------------------------------                    ------------------------------------------
    --------------------------------       Factura      ------------------------------------------
    --------------------------------                    ------------------------------------------ */

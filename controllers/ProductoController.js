@@ -16,6 +16,18 @@ class ProductoController {
         return await this.#productoService.crearProducto(producto);
     }
 
+    async eliminarProducto(producto) {
+        return await this.#productoService.eliminarProducto(producto);
+    }
+
+
+    async obtenerProductoPorId(idProducto) {
+        return await this.#productoService.obtenerProductoPorId(idProducto);
+    }
+
+    async actualizarProducto(producto) {
+        return await this.#productoService.actualizarProducto(producto);
+    }
 }
 
 module.exports = ProductoController;

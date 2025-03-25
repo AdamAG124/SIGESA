@@ -24,9 +24,17 @@ class ProductoService {
         return await this.#productoDB.crearProducto(producto);
     }
 
-    // async eliminarProducto(producto) {
-    //     return await this.#productoDB.eliminarProducto(producto);
-    // }
+    async eliminarProducto(producto) {
+        return await this.#productoDB.eliminarProducto(producto);
+    }
+
+    async obtenerProductoPorId(idProducto) {
+        return await this.#productoDB.obtenerProductoPorId(idProducto);
+    }
+
+    async actualizarProducto(producto) {
+        return await this.#productoDB.actualizarProducto(producto);
+    }
 }
 
 // Exportar la clase
