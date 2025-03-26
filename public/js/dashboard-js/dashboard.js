@@ -2208,10 +2208,12 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
       respuesta.salidas.forEach(salida => {
           const row = document.createElement("tr");
           row.innerHTML = `
-              <td>${salida.idSalida}</td>
+             
               <td>${salida.nombreColaboradorSacando || 'Sin colaborador'}</td>
               <td>${salida.nombreColaboradorRecibiendo || 'Sin colaborador'}</td>
               <td>${new Date(salida.fechaSalida).toLocaleDateString()}</td>
+              <td>${salida.nombreUsuario || 'Desconocido'}</td> <!-- Mostrar el nombre del usuario -->
+               
               <td>
                   <button onclick="verDetallesSalida(${salida.idSalida})">Ver Detalles</button>
               </td>

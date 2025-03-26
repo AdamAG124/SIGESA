@@ -12,17 +12,19 @@ class SalidaDB {
             let query = `
                 SELECT 
                     s.ID_SALIDA AS idSalida,
-                    s.ID_COLABORADOR_SACANDO AS idColaboradorSacando,
-                    c1.DSC_NOMBRE AS nombreColaboradorSacando,
+                  s.ID_COLABORADOR_SACANDO AS idColaboradorSacando,
+                    CONCAT(c1.DSC_NOMBRE, ' ', c1.DSC_PRIMER_APELLIDO) AS nombreColaboradorSacando, 
                     s.ID_COLABORADOR_RECIBIENDO AS idColaboradorRecibiendo,
-                    c2.DSC_NOMBRE AS nombreColaboradorRecibiendo,
+                    CONCAT(c2.DSC_NOMBRE, ' ', c2.DSC_PRIMER_APELLIDO) AS nombreColaboradorRecibiendo, 
                     s.FEC_SALIDA AS fechaSalida,
                     s.ID_USUARIO AS idUsuario,
+                    u.DSC_NOMBRE AS nombreUsuario,
                     s.ESTADO AS estado
                 FROM 
                     sigt_salida s
                 LEFT JOIN sigm_colaborador c1 ON s.ID_COLABORADOR_SACANDO = c1.ID_COLABORADOR
                 LEFT JOIN sigm_colaborador c2 ON s.ID_COLABORADOR_RECIBIENDO = c2.ID_COLABORADOR
+                LEFT JOIN sigm_usuario u ON s.ID_USUARIO = u.ID_USUARIO -- Unión con la tabla de usuarios
             `;
 
             let whereClauseAdded = false;
@@ -35,8 +37,9 @@ class SalidaDB {
             if (valorBusqueda !== null) {
                 const searchCondition = `
                     (s.ID_SALIDA LIKE '%${valorBusqueda}%' OR 
-                     c1.DSC_NOMBRE LIKE '%${valorBusqueda}%' OR 
-                     c2.DSC_NOMBRE LIKE '%${valorBusqueda}%')
+                    CONCAT(c1.DSC_NOMBRE, ' ', c1.DSC_PRIMER_APELLIDO) LIKE '%${valorBusqueda}%' OR 
+                     CONCAT(c2.DSC_NOMBRE, ' ', c2.DSC_PRIMER_APELLIDO) LIKE '%${valorBusqueda}%' OR
+                        u.DSC_NOMBRE LIKE '%${valorBusqueda}%')
                 `;
                 query += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
             }
@@ -50,6 +53,7 @@ class SalidaDB {
                 FROM sigt_salida s
                 LEFT JOIN sigm_colaborador c1 ON s.ID_COLABORADOR_SACANDO = c1.ID_COLABORADOR
                 LEFT JOIN sigm_colaborador c2 ON s.ID_COLABORADOR_RECIBIENDO = c2.ID_COLABORADOR
+                LEFT JOIN sigm_usuario u ON s.ID_USUARIO = u.ID_USUARIO
             `);
 
             return {
