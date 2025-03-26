@@ -46,13 +46,13 @@ class SalidaDB {
             }
     
             if (filtroColaboradorSacando) {
-                whereConditions.push(`CONCAT(c1.DSC_NOMBRE, ' ', c1.DSC_PRIMER_APELLIDO) LIKE ?`);
-                queryParams.push(`%${filtroColaboradorSacando}%`);
+                whereConditions.push(`s.ID_COLABORADOR_SACANDO = ?`);
+                queryParams.push(filtroColaboradorSacando);
             }
     
             if (filtroColaboradorRecibiendo) {
-                whereConditions.push(`CONCAT(c2.DSC_NOMBRE, ' ', c2.DSC_PRIMER_APELLIDO) LIKE ?`);
-                queryParams.push(`%${filtroColaboradorRecibiendo}%`);
+                whereConditions.push(`s.ID_COLABORADOR_RECIBIENDO = ?`);
+                queryParams.push(filtroColaboradorRecibiendo);
             }
     
             if (filtroUsuario) {
@@ -101,7 +101,13 @@ class SalidaDB {
                 total: countResult[0].total,
                 pageSize: pageSize,
                 currentPage: currentPage,
-                totalPages: Math.ceil(countResult[0].total / pageSize)
+                totalPages: Math.ceil(countResult[0].total / pageSize),
+                valorBusqueda,
+                filtroColaboradorSacando,
+                filtroColaboradorRecibiendo,
+                fechaInicio,
+                fechaFin,
+                filtroUsuario
             };
         } catch (error) {
             console.error("Error al listar salidas:", error);
