@@ -11,12 +11,12 @@ class FacturaDB {
     async obtenerFacturas(pageSize, currentPage, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue) {
         const db = new ConectarDB();
         let connection;
-
+    
         try {
             connection = await db.conectar();
-
+    
             const offset = (currentPage - 1) * pageSize;
-
+    
             let query = `
                 SELECT 
                     f.ID_FACTURA AS idFactura,
@@ -34,24 +34,24 @@ class FacturaDB {
                     sigm_factura f
                 INNER JOIN 
                     sigm_proveedor p ON f.ID_PROVEEDOR = p.ID_PROVEEDOR
-                INNER JOIN 
+                LEFT JOIN 
                     sigm_comprobante_pago cp ON f.ID_COMPROBANTE_PAGO = cp.ID_COMPROBANTE_PAGO
             `;
-
+    
             let whereClauseAdded = false;
-
+    
             if (idComprobantePago !== null) {
                 query += ` WHERE f.ID_COMPROBANTE_PAGO = ${idComprobantePago}`;
                 whereClauseAdded = true;
             }
-
+    
             if (idProveedor !== null) {
                 query += whereClauseAdded ?
                     ` AND f.ID_PROVEEDOR = ${idProveedor}` :
                     ` WHERE f.ID_PROVEEDOR = ${idProveedor}`;
                 whereClauseAdded = true;
             }
-
+    
             if (fechaInicio !== null && fechaFin !== null) {
                 const fechaCondition = `f.FEC_FACTURA BETWEEN '${fechaInicio}' AND '${fechaFin}'`;
                 query += whereClauseAdded ? ` AND ${fechaCondition}` : ` WHERE ${fechaCondition}`;
@@ -67,14 +67,14 @@ class FacturaDB {
                     ` WHERE f.FEC_FACTURA <= '${fechaFin}'`;
                 whereClauseAdded = true;
             }
-
+    
             if (estadoFactura !== null) {
                 query += whereClauseAdded ?
                     ` AND f.ESTADO = ${estadoFactura}` :
                     ` WHERE f.ESTADO = ${estadoFactura}`;
                 whereClauseAdded = true;
             }
-
+    
             if (searchValue !== null) {
                 const searchCondition = `
                     (f.NUM_FACTURA LIKE '%${searchValue}%' OR 
@@ -83,14 +83,14 @@ class FacturaDB {
                 `;
                 query += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
             }
-
+    
             query += ` LIMIT ${pageSize} OFFSET ${offset}`;
-
+    
             const [rows] = await connection.query(query);
-
+    
             const facturas = rows.map(facturaDB => {
                 const factura = new Factura();
-
+    
                 factura.setIdFactura(facturaDB.idFactura);
                 factura.setNumeroFactura(facturaDB.numeroFactura);
                 factura.setFechaFactura(facturaDB.fechaFactura);
@@ -98,24 +98,30 @@ class FacturaDB {
                 factura.setImpuesto(facturaDB.impuesto);
                 factura.setDescuento(facturaDB.descuento);
                 factura.setEstado(facturaDB.estadoFactura);
-
+    
                 factura.getIdProveedor().setIdProveedor(facturaDB.idProveedor);
                 factura.getIdProveedor().setNombre(facturaDB.nombreProveedor);
-
-                factura.getIdComprobante().setIdComprobantePago(facturaDB.idComprobantePago);
-                factura.getIdComprobante().setNumero(facturaDB.numeroComprobantePago);
-
+    
+                // Manejar el caso de ID_COMPROBANTE_PAGO NULL
+                if (facturaDB.idComprobantePago === null) {
+                    factura.getIdComprobante().setIdComprobantePago(null);
+                    factura.getIdComprobante().setNumero(null);
+                } else {
+                    factura.getIdComprobante().setIdComprobantePago(facturaDB.idComprobantePago);
+                    factura.getIdComprobante().setNumero(facturaDB.numeroComprobantePago);
+                }
+    
                 return factura;
             });
-
+    
             // Obtener el total de facturas para la paginación
             let countQuery = `
                 SELECT COUNT(*) as total
                 FROM sigm_factura f
                 INNER JOIN sigm_proveedor p ON f.ID_PROVEEDOR = p.ID_PROVEEDOR
-                INNER JOIN sigm_comprobante_pago cp ON f.ID_COMPROBANTE_PAGO = cp.ID_COMPROBANTE_PAGO
+                LEFT JOIN sigm_comprobante_pago cp ON f.ID_COMPROBANTE_PAGO = cp.ID_COMPROBANTE_PAGO
             `;
-
+    
             // Añadir las mismas condiciones al query de conteo
             whereClauseAdded = false;
             if (idComprobantePago !== null) {
@@ -157,14 +163,14 @@ class FacturaDB {
                 `;
                 countQuery += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
             }
-
+    
             // Ejecutar la consulta para contar el total de facturas
             const [countResult] = await connection.query(countQuery);
             const totalRecords = countResult[0].total;
-
+    
             // Calcular el número total de páginas
             const totalPages = Math.ceil(totalRecords / pageSize);
-
+    
             // Retornar las facturas y los datos de paginación
             return {
                 facturas,
@@ -183,7 +189,7 @@ class FacturaDB {
                     searchValue
                 }
             };
-
+    
         } catch (error) {
             console.error('Error en la consulta a la base de datos:', error.message);
             return {

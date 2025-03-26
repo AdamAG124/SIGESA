@@ -20,6 +20,8 @@ const SalidaProductoController = require('./controllers/SalidaProductoController
 const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
 const ComprobantePagoController = require('./controllers/ComprobantePagoController');
+const Factura = require('./domain/Factura');
+const FacturaProducto = require('./domain/FacturaProducto');
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -112,6 +114,32 @@ ipcMain.on('cambiar-vista', async (event, result) => {
                 mainWindow.webContents.send('datos-usuario', store.get('usuario'));
             })
             .catch(err => console.error('Error al cargar el archivo:', err)); // Manejar error al cargar archivo
+    }
+});
+
+ipcMain.on('obtener-usuario-logueado', async (event) => {
+    try {
+        const store = await getStore(); // Obtener la instancia de Store de manera asíncrona
+        const usuarioGuardado = store.get('usuario');
+
+        if (!usuarioGuardado || !usuarioGuardado.idUsuario) {
+            event.reply('usuario-recuperado', {
+                success: false,
+                message: 'No hay un usuario logueado'
+            });
+        } else {
+            event.reply('usuario-recuperado', {
+                success: true,
+                message: 'Usuario recuperado correctamente',
+                usuario: usuarioGuardado
+            });
+        }
+    } catch (error) {
+        console.error('Error al recuperar usuario:', error);
+        event.reply('usuario-recuperado', {
+            success: false,
+            message: 'Error al recuperar el usuario: ' + error.message
+        });
     }
 });
 
@@ -804,10 +832,11 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
-ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda }) => {
+ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda }) => {
     const productoController = new ProductoController();
+
     try {
-        const resultado = await productoController.getProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda);
+        const resultado = await productoController.getProductos(pageSize, currentPage, estadoProducto, idCategoriaFiltro, valorBusqueda);
 
         const productosCompletos = resultado.productos.map(producto => {
             return {
@@ -840,6 +869,90 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estado, id
     }
 });
 
+ipcMain.on('crear-producto', async (event, productoData) => {
+    try {
+        const producto = new Producto();
+        const categoria = new CategoriaProducto();
+        categoria.setIdCategoria(productoData.categoria);
+
+        producto.setNombre(productoData.nombre);
+        producto.setDescripcion(productoData.descripcion);
+        producto.setCantidad(productoData.cantidad);
+        producto.setUnidadMedicion(productoData.unidadMedicion);
+        producto.setCategoria(categoria);
+        producto.setEstado(1); // estado activo por defecto
+
+        const productoController = new ProductoController();
+        const resultado = await productoController.crearProducto(producto);
+
+        event.reply('respuesta-crear-producto', resultado);
+    } catch (error) {
+        console.error('Error al crear el producto:', error);
+        event.reply('respuesta-crear-producto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-producto', async (event, id, estado) => {
+    try {
+        const productoController = new ProductoController();
+        const producto = new Producto();
+        producto.setIdProducto(id);
+        producto.setEstado(estado);
+        const resultado = await productoController.eliminarProducto(producto);
+
+        event.reply('respuesta-eliminar-producto', resultado);
+    } catch (error) {
+        console.error('Error al eliminar el producto:', error);
+        event.reply('respuesta-eliminar-producto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('obtener-producto-por-id', async (event, idProducto) => {
+    try {
+        const productoController = new ProductoController();
+
+        const producto = await productoController.obtenerProductoPorId(idProducto);
+
+        const productoCompleto = {
+            idProducto: producto.getIdProducto(),
+            nombre: producto.getNombre(),
+            descripcion: producto.getDescripcion(),
+            cantidad: producto.getCantidad(),
+            unidadMedicion: producto.getUnidadMedicion(),
+            idCategoria: producto.getCategoria().getIdCategoria()
+        };
+
+        event.reply('respuesta-obtener-producto-por-id', productoCompleto);
+    } catch (error) {
+        console.error('Error al obtener el producto por ID:', error);
+        event.reply('respuesta-obtener-producto-por-id', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('actualizar-producto', async (event, productoData) => {
+    try {
+        const producto = new Producto();
+        const categoria = new CategoriaProducto();
+        categoria.setIdCategoria(productoData.categoria);
+        
+        producto.setIdProducto(productoData.idProducto);
+        producto.setNombre(productoData.nombre);
+        producto.setDescripcion(productoData.descripcion);
+        producto.setCantidad(productoData.cantidad);
+        producto.setUnidadMedicion(productoData.unidadMedicion);
+        producto.setCategoria(categoria);
+        producto.setEstado(1); // estado activo por defecto
+
+        const productoController = new ProductoController();
+        const resultado = await productoController.actualizarProducto(producto);
+
+        event.reply('respuesta-actualizar-producto', resultado);
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+
+        event.reply('respuesta-actualizar-producto', { success: false, message: error.message });
+    }
+});
 /* --------------------------------                    ------------------------------------------
    --------------------------------       Factura      ------------------------------------------
    --------------------------------                    ------------------------------------------ */
@@ -898,7 +1011,9 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 impuesto: facturaProducto.getIdFactura().getImpuesto(),
                 descuento: facturaProducto.getIdFactura().getDescuento(),
                 estadoFactura: facturaProducto.getIdFactura().getEstado(),
+                idProveedor: facturaProducto.getIdFactura().getIdProveedor().getIdProveedor(),
                 nombreProveedor: facturaProducto.getIdFactura().getIdProveedor().getNombre(),
+                idComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getIdComprobantePago(),
                 numeroComprobantePago: facturaProducto.getIdFactura().getIdComprobante().getNumero(),
                 idProducto: facturaProducto.getIdProducto().getIdProducto(),
                 nombreProducto: facturaProducto.getIdProducto().getNombre(),
@@ -939,6 +1054,121 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-productos-por-factura', 'Hubo un error al cargar los productos de la factura.');
         }
+    }
+});
+
+ipcMain.on('actualizar-factura-y-productos', async (event, data) => {
+    const { nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData } = data;
+    const controllerFacturaProducto = new FacturaProductoController();
+
+    try {
+        const factura = new Factura();
+        factura.setIdFactura(facturaData.idFactura);
+        factura.setNumeroFactura(facturaData.numeroFactura);
+        factura.setFechaFactura(facturaData.fechaFactura);
+
+        factura.getIdProveedor().setIdProveedor(facturaData.idProveedor);
+        factura.getIdComprobante().setIdComprobantePago(facturaData.idComprobantePago);
+
+        factura.setImpuesto(facturaData.impuesto);
+        factura.setDescuento(facturaData.descuento);
+        factura.setDetallesAdicionales(facturaData.detallesAdicionales);
+
+        const nuevos = nuevosFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFactura(factura);
+
+            fp.getIdProducto().setIdProducto(data.idProducto);
+            fp.setCantidadAnterior(data.cantidadAnterior);
+            fp.setCantidadEntrando(data.cantidadEntrando);
+            fp.setPrecioNuevo(data.precioNuevo);
+            fp.getIdUsuario().setIdUsuario(data.idUsuario);
+
+            return fp;
+        });
+
+        // Actualizar FacturaProducto
+        const actualizar = actualizarFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFacturaProducto(data.idFacturaProducto);
+            fp.setIdFactura(factura);
+
+            fp.getIdProducto().setIdProducto(data.idProducto);
+            fp.setCantidadAnterior(data.cantidadAnterior);
+            fp.setCantidadEntrando(data.cantidadEntrando);
+            fp.setPrecioNuevo(data.precioNuevo);
+
+            return fp;
+        });
+
+        // Eliminar FacturaProducto
+        const eliminar = eliminarFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFacturaProducto(data.idFacturaProducto);
+            return fp;
+        });
+
+        // 3. Crear facturaProductoActual con el objeto factura
+        const facturaProductoActual = new FacturaProducto();
+        facturaProductoActual.setIdFactura(factura);
+
+        // 4. Llamar al método del controlador
+        const resultado = await controllerFacturaProducto.editarFacturaProducto(
+            facturaProductoActual,
+            nuevos,
+            actualizar,
+            eliminar
+        );
+
+        // 5. Enviar el resultado al renderer
+        event.reply('factura-actualizada', resultado);
+    } catch (error) {
+        console.error('Error en index.js:', error);
+        event.reply('factura-actualizada', {
+            success: false,
+            message: 'Error al procesar la factura: ' + error.message
+        });
+    }
+});
+
+ipcMain.on('crear-factura-y-productos', async (event, data) => {
+    const { nuevosFacturaProducto, facturaData } = data;
+    const controllerFacturaProducto = new FacturaProductoController();
+    try {
+        // 1. Crear el objeto Factura
+        const factura = new Factura();
+        factura.setIdFactura(facturaData.idFactura || 0); // 0 para nueva factura
+        factura.setNumeroFactura(facturaData.numeroFactura);
+        factura.setFechaFactura(facturaData.fechaFactura);
+        factura.getIdProveedor().setIdProveedor(facturaData.idProveedor);
+        factura.getIdComprobante().setIdComprobantePago(facturaData.idComprobantePago);
+        factura.setImpuesto(facturaData.impuesto);
+        factura.setDescuento(facturaData.descuento);
+        factura.setDetallesAdicionales(facturaData.detallesAdicionales);
+        factura.setEstado(true); // Nueva factura, asumimos activa
+
+        // 2. Crear array de FacturaProducto
+        const nuevos = nuevosFacturaProducto.map(data => {
+            const fp = new FacturaProducto();
+            fp.setIdFactura(factura);
+            fp.getIdProducto().setIdProducto(data.idProducto);
+            fp.setCantidadAnterior(data.cantidadAnterior);
+            fp.setCantidadEntrando(data.cantidadEntrando);
+            fp.setPrecioNuevo(data.precioNuevo);
+            fp.getIdUsuario().setIdUsuario(data.idUsuario);
+            fp.setEstado(true);
+            return fp;
+        });
+        const resultado = await controllerFacturaProducto.agregarFacturaProducto(factura, nuevos);
+
+        // 4. Enviar respuesta al renderer
+        event.reply('factura-creada', resultado);
+    } catch (error) {
+        console.error('Error en index.js al crear factura:', error);
+        event.reply('factura-creada', {
+            success: false,
+            message: 'Error al crear la factura: ' + error.message
+        });
     }
 });
 

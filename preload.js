@@ -10,6 +10,11 @@ contextBridge.exposeInMainWorld('api', {
     logout: () => ipcRenderer.send('logout'),
     responseLogout: (callback) => ipcRenderer.on('logout-response', (event, response) => callback(response)),
 
+    obtenerUsuarioLogueado: (callback) => {
+        ipcRenderer.send('obtener-usuario-logueado');
+        ipcRenderer.once('usuario-recuperado', (event, respuesta) => callback(respuesta));
+    },
+
     // Función para solicitar el HTML y recibir la respuesta
     loadHTML: (filePath) => ipcRenderer.send('leer-html', filePath),
     onHTMLLoaded: (callback) => ipcRenderer.once('html-cargado', (event, data) => callback(data)),
@@ -164,6 +169,21 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-productos', (event, productos) => callback(productos));
     },
 
+    // Método para enviar la información del nuevo usuario al proceso principal para su creación
+    crearProducto: (productoData) => ipcRenderer.send('crear-producto', productoData),
+    onRespuestaCrearProducto: (callback) => ipcRenderer.on('respuesta-crear-producto', (event, respuesta) => callback(respuesta)),
+
+    eliminarProducto: (id, estado) => ipcRenderer.send('eliminar-producto', id, estado),
+    onRespuestaEliminarProducto: (callback) => ipcRenderer.on('respuesta-eliminar-producto', (event, respuesta) => callback(respuesta)),
+
+
+    obtenerProductoPorId: (id) => ipcRenderer.send('obtener-producto-por-id', id),
+    onRespuestaObtenerProductoPorId: (callback) => ipcRenderer.on('respuesta-obtener-producto-por-id', (event, respuesta) => callback(respuesta)),
+
+    actualizarProducto: (productoData) => ipcRenderer.send('actualizar-producto', productoData),
+    onRespuestaActualizarProducto: (callback) => ipcRenderer.on('respuesta-actualizar-producto', (event, respuesta) => callback(respuesta)),
+
+
     /* --------------------------------                   ------------------------------------------
        -------------------------------- PUESTO DE TRABAJO ------------------------------------------
        --------------------------------                    ------------------------------------------ */
@@ -189,6 +209,19 @@ contextBridge.exposeInMainWorld('api', {
     obtenerFactura: (idFactura, callback) => {
         ipcRenderer.send('listar-productos-por-factura', { idFactura });
         ipcRenderer.once('cargar-productos-por-factura', (event, respuesta) => callback(respuesta));
+    },
+
+    actualizarFacturaYProductos: (nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData, callback) => {
+        ipcRenderer.send('actualizar-factura-y-productos', { nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto, facturaData });
+        ipcRenderer.once('factura-actualizada', (event, respuesta) => callback(respuesta));
+    },
+
+    crearFacturaYProductos: (nuevosFacturaProducto, facturaData, callback) => {
+        ipcRenderer.send('crear-factura-y-productos', {
+            nuevosFacturaProducto,
+            facturaData
+        });
+        ipcRenderer.once('factura-creada', (event, respuesta) => callback(respuesta));
     },
 
     printToPDF: () => ipcRenderer.invoke('print-to-pdf'),

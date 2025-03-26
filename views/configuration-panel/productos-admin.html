@@ -7,7 +7,7 @@
         </button>
     </div>
     <div class="search-bar">
-        <input id="search-bar" type="text" placeholder="Buscar productos..." onkeypress="filterTable(7)">
+        <input id="search-bar" type="text" placeholder="Buscar productos..." onkeydown="checkEmpty(event, 7)" oninput="checkEmpty(event, 7)">
     </div>
     <div class="filters">
         <select id="selectPageSize" onchange="filterTable(7)">
@@ -58,13 +58,20 @@
                 <input type="text" id="descripcion" name="descripcion" required>
 
                 <label for="cantidad">Cantidad:</label>
-                <input type="text" id="cantidad" name="cantidad" required>
+                <input type="number" id="cantidad" name="cantidad" min="0" value="0" required>
 
                 <label for="unidadMedicion">Unidad medición:</label>
-                <input type="text" id="unidadMedicion" name="unidadMedicion" required>
-
-                <label for="categoria">Puesto:</label>
-                <select id="categoria" name="categoria" required>
+                <select type="text" id="unidadMedicion" name="unidadMedicion" required>
+                    <option value="Unidad">Unidad</option>
+                    <option value="Kilogramo">Kilogramo</option>
+                    <option value="Gramo">Gramo</option>   
+                    <option value="Litro">Litro</option>
+                    <option value="Mililitro">Mililitro</option>
+                    <option value="Onza">Onza</option>
+                    <option value="Centímetro cúbico">Centímetro cúbico</option>
+                </select>
+                <label for="categorias">Categoría:</label>
+                <select id="categorias" name="categorias" required>
                     <!-- Opciones de categoria se llenarán aquí -->
                 </select>
                 <p id="errorMessage" style="color: red;"></p>

@@ -6,16 +6,16 @@ class FacturaProductoDB {
     #db;
 
     constructor() {
-        this.#table = 'SIGM_FACTURA_PRODUCTO';
+        this.#table = 'sigt_factura_producto';
         this.#db = new ConectarDB();
     }
 
     async obtenerProductosPorFactura(idFactura) {
         let connection;
-
+    
         try {
             connection = await this.#db.conectar();
-
+    
             const query = `
                 SELECT 
                     fp.ID_FACTURA_PRODUCTO AS idFacturaProducto,
@@ -39,8 +39,10 @@ class FacturaProductoDB {
                     
                     -- Información del proveedor
                     prov.DSC_NOMBRE AS nombreProveedor,
+                    prov.ID_PROVEEDOR AS idProveedor,
                     
-                    -- Información del comprobante de pago
+                    -- Información del comprobante de pago (puede ser NULL)
+                    cp.ID_COMPROBANTE_PAGO AS idComprobantePagoCp,
                     cp.NUM_COMPROBANTE_PAGO AS numeroComprobantePago,
                     
                     -- Información del producto
@@ -78,12 +80,12 @@ class FacturaProductoDB {
                     -- Información del puesto de trabajo
                     pt.DSC_NOMBRE AS nombrePuestoTrabajo
                 FROM 
-                    sigt_factura_producto fp
+                    ${this.#table} fp
                 INNER JOIN 
                     sigm_factura f ON fp.ID_FACTURA = f.ID_FACTURA
                 INNER JOIN 
                     sigm_proveedor prov ON f.ID_PROVEEDOR = prov.ID_PROVEEDOR
-                INNER JOIN 
+                LEFT JOIN 
                     sigm_comprobante_pago cp ON f.ID_COMPROBANTE_PAGO = cp.ID_COMPROBANTE_PAGO
                 INNER JOIN 
                     sigm_producto p ON fp.ID_PRODUCTO = p.ID_PRODUCTO
@@ -98,30 +100,40 @@ class FacturaProductoDB {
                 WHERE 
                     fp.ID_FACTURA = ${idFactura}
             `;
-
+    
             const [rows] = await connection.query(query);
-
+    
             const facturasProductos = rows.map(row => {
                 const facturaProducto = new FacturaProducto();
-
+    
                 // Llenar FacturaProducto
                 facturaProducto.setIdFacturaProducto(row.idFacturaProducto);
                 facturaProducto.setCantidadAnterior(row.cantidadAnterior);
                 facturaProducto.setCantidadEntrando(row.cantidadEntrando);
                 facturaProducto.setPrecioNuevo(row.precioNueva);
                 facturaProducto.setEstado(row.estadoFacturaProducto);
-
+    
                 // Llenar Factura (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdFactura().setIdFactura(row.idFactura);
+                facturaProducto.getIdFactura().getIdProveedor().setIdProveedor(row.idProveedor);
                 facturaProducto.getIdFactura().getIdProveedor().setNombre(row.nombreProveedor); // Nombre del proveedor
-                facturaProducto.getIdFactura().getIdComprobante().setNumero(row.numeroComprobantePago); // Número del comprobante
+                
+                // Manejar el caso de ID_COMPROBANTE_PAGO NULL
+                if (row.idComprobantePago === null) {
+                    facturaProducto.getIdFactura().getIdComprobante().setIdComprobantePago(null);
+                    facturaProducto.getIdFactura().getIdComprobante().setNumero(null);
+                } else {
+                    facturaProducto.getIdFactura().getIdComprobante().setIdComprobantePago(row.idComprobantePago);
+                    facturaProducto.getIdFactura().getIdComprobante().setNumero(row.numeroComprobantePago);
+                }
+    
                 facturaProducto.getIdFactura().setNumeroFactura(row.numeroFactura);
                 facturaProducto.getIdFactura().setFechaFactura(row.fechaFactura);
                 facturaProducto.getIdFactura().setDetallesAdicionales(row.detallesAdicionales);
                 facturaProducto.getIdFactura().setImpuesto(row.impuesto);
                 facturaProducto.getIdFactura().setDescuento(row.descuento);
                 facturaProducto.getIdFactura().setEstado(row.estadoFactura);
-
+    
                 // Llenar Producto (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdProducto().setIdProducto(row.idProducto);
                 facturaProducto.getIdProducto().setCategoria(row.idCategoriaProducto); // Solo ID
@@ -130,14 +142,14 @@ class FacturaProductoDB {
                 facturaProducto.getIdProducto().setCantidad(row.cantidadTotalProducto);
                 facturaProducto.getIdProducto().setUnidadMedicion(row.unidadMedicion);
                 facturaProducto.getIdProducto().setEstado(row.estadoProducto);
-
+    
                 // Llenar Usuario (usando el objeto existente dentro de FacturaProducto)
                 facturaProducto.getIdUsuario().setIdUsuario(row.idUsuario);
                 facturaProducto.getIdUsuario().setNombreUsuario(row.nombreUsuario);
                 facturaProducto.getIdUsuario().setRol(row.idRol); // Solo ID
                 facturaProducto.getIdUsuario().setPassword(row.password);
                 facturaProducto.getIdUsuario().setEstado(row.estadoUsuario);
-
+    
                 // Llenar Colaborador (usando el objeto existente dentro de Usuario)
                 facturaProducto.getIdUsuario().getIdColaborador().setIdColaborador(row.idColaborador);
                 facturaProducto.getIdUsuario().getIdColaborador().getIdDepartamento().setNombre(row.nombreDepartamento);
@@ -152,15 +164,347 @@ class FacturaProductoDB {
                 facturaProducto.getIdUsuario().getIdColaborador().setEstado(row.estadoColaborador);
                 facturaProducto.getIdUsuario().getIdColaborador().setCorreo(row.correo);
                 facturaProducto.getIdUsuario().getIdColaborador().setCedula(row.cedula);
-
+    
                 return facturaProducto;
             });
-
+    
             return facturasProductos;
-
+    
         } catch (error) {
             console.error('Error al obtener los productos de la factura:', error.message);
             throw new Error('Error al obtener los productos de la factura: ' + error.message);
+        } finally {
+            if (connection) {
+                await connection.end(); // Cerrar la conexión
+            }
+        }
+    }
+
+    async actualizarFacturaYProductos(facturaProductoActual, nuevosFacturaProducto, actualizarFacturaProducto, eliminarFacturaProducto) {
+        let connection;
+
+        try {
+            connection = await this.#db.conectar();
+
+            // Actualizar la factura en sigm_factura
+            const factura = facturaProductoActual.getIdFactura();
+            const updateFacturaQuery = `
+            UPDATE sigm_factura
+            SET 
+                ID_PROVEEDOR = ${factura.getIdProveedor().getIdProveedor()},
+                ID_COMPROBANTE_PAGO = ${factura.getIdComprobante().getIdComprobantePago()},
+                NUM_FACTURA = '${factura.getNumeroFactura()}',
+                FEC_FACTURA = '${factura.getFechaFactura()}',
+                DSC_DETALLE_FACTURA = '${factura.getDetallesAdicionales()}',
+                MONTO_IMPUESTO = ${factura.getImpuesto()},
+                MONTO_DESCUENTO = ${factura.getDescuento()}
+            WHERE ID_FACTURA = ${factura.getIdFactura()}
+        `;
+            const [updateFacturaResult] = await connection.query(updateFacturaQuery);
+
+            if (updateFacturaResult.affectedRows === 0) {
+                throw new Error('No se actualizó ninguna factura. Verifique el ID_FACTURA.');
+            }
+
+            // Insertar nuevos FacturaProducto si el array no está vacío
+            if (nuevosFacturaProducto.length > 0) {
+                for (const nuevo of nuevosFacturaProducto) {
+                    // Obtener la cantidad actual del producto desde sigm_producto
+                    const selectProductoQuery = `
+                    SELECT NUM_CANTIDAD 
+                    FROM sigm_producto 
+                    WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
+                `;
+                    const [productoResult] = await connection.query(selectProductoQuery);
+
+                    if (productoResult.length === 0) {
+                        throw new Error(`No se encontró el producto con ID ${nuevo.getIdProducto().getIdProducto()}`);
+                    }
+
+                    const cantidadActual = productoResult[0].NUM_CANTIDAD || 0;
+                    const nuevaCantidad = cantidadActual + nuevo.getCantidadEntrando();
+
+                    // Actualizar la cantidad en sigm_producto
+                    const updateProductoQuery = `
+                    UPDATE sigm_producto
+                    SET NUM_CANTIDAD = ${nuevaCantidad}
+                    WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
+                `;
+                    const [updateProductoResult] = await connection.query(updateProductoQuery);
+
+                    if (updateProductoResult.affectedRows === 0) {
+                        console.log('Esta mamando');
+                        throw new Error(`No se actualizó la cantidad del producto con ID ${nuevo.getIdProducto().getIdProducto()}`);
+                    }
+
+                    // Insertar el nuevo FacturaProducto en sigt_factura_producto
+                    const insertQuery = `
+                    INSERT INTO ${this.#table} (
+                        ID_PRODUCTO, 
+                        NUM_CANTIDAD_ANTERIOR, 
+                        NUM_CANTIDAD_ENTRANDO, 
+                        MONTO_PRECIO_NUEVA, 
+                        ID_USUARIO,
+                        ID_FACTURA
+                    ) VALUES (
+                        ${nuevo.getIdProducto().getIdProducto()},
+                        ${nuevo.getCantidadAnterior()},
+                        ${nuevo.getCantidadEntrando()},
+                        ${nuevo.getPrecioNuevo()},
+                        ${nuevo.getIdUsuario().getIdUsuario()},
+                        ${nuevo.getIdFactura().getIdFactura()}
+                    )
+                `;
+                    await connection.query(insertQuery);
+                }
+            }
+
+            // Actualizar FacturaProducto si el array no está vacío
+            if (actualizarFacturaProducto.length > 0) {
+                for (const actualizar of actualizarFacturaProducto) {
+                    // Obtener el valor actual de NUM_CANTIDAD_ENTRANDO desde sigt_factura_producto
+                    const selectFacturaProductoQuery = `
+                    SELECT NUM_CANTIDAD_ENTRANDO
+                    FROM ${this.#table}
+                    WHERE ID_FACTURA_PRODUCTO = ${actualizar.getIdFacturaProducto()}
+                `;
+                    const [facturaProductoResult] = await connection.query(selectFacturaProductoQuery);
+
+                    if (facturaProductoResult.length === 0) {
+                        console.warn(`No se encontró el FacturaProducto con ID ${actualizar.getIdFacturaProducto()}`);
+                        continue; // Saltar esta iteración si no existe el registro
+                    }
+
+                    const cantidadEntrandoAnterior = facturaProductoResult[0].NUM_CANTIDAD_ENTRANDO || 0;
+                    const cantidadEntrandoNueva = actualizar.getCantidadEntrando();
+
+                    // Si la cantidad entrante cambió, actualizar NUM_CANTIDAD en sigm_producto
+                    if (cantidadEntrandoAnterior !== cantidadEntrandoNueva) {
+                        const selectProductoQuery = `
+                        SELECT NUM_CANTIDAD 
+                        FROM sigm_producto 
+                        WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
+                    `;
+                        const [productoResult] = await connection.query(selectProductoQuery);
+
+                        if (productoResult.length === 0) {
+                            throw new Error(`No se encontró el producto con ID ${actualizar.getIdProducto().getIdProducto()}`);
+                        }
+
+                        const cantidadActualProducto = productoResult[0].NUM_CANTIDAD || 0;
+                        const nuevaCantidadProducto = cantidadActualProducto - cantidadEntrandoAnterior + cantidadEntrandoNueva;
+
+                        const updateProductoQuery = `
+                        UPDATE sigm_producto
+                        SET NUM_CANTIDAD = ${nuevaCantidadProducto}
+                        WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
+                    `;
+                        const [updateProductoResult] = await connection.query(updateProductoQuery);
+
+                        if (updateProductoResult.affectedRows === 0) {
+                            throw new Error(`No se actualizó la cantidad del producto con ID ${actualizar.getIdProducto().getIdProducto()}`);
+                        }
+                    }
+
+                    // Actualizar el FacturaProducto en sigt_factura_producto
+                    const updateQuery = `
+                    UPDATE ${this.#table}
+                    SET 
+                        ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()},
+                        NUM_CANTIDAD_ANTERIOR = ${actualizar.getCantidadAnterior()},
+                        NUM_CANTIDAD_ENTRANDO = ${actualizar.getCantidadEntrando()},
+                        MONTO_PRECIO_NUEVA = ${actualizar.getPrecioNuevo()}
+                    WHERE ID_FACTURA_PRODUCTO = ${actualizar.getIdFacturaProducto()}
+                `;
+                    const [updateResult] = await connection.query(updateQuery);
+                    if (updateResult.affectedRows === 0) {
+                        console.warn(`No se actualizó el FacturaProducto con ID ${actualizar.getIdFacturaProducto()}`);
+                    }
+                }
+            }
+
+            // Eliminar FacturaProducto si el array no está vacío
+            if (eliminarFacturaProducto.length > 0) {
+                for (const eliminar of eliminarFacturaProducto) {
+                    // Obtener el valor actual de NUM_CANTIDAD_ENTRANDO desde sigt_factura_producto
+                    const selectFacturaProductoQuery = `
+                    SELECT NUM_CANTIDAD_ENTRANDO, ID_PRODUCTO
+                    FROM ${this.#table}
+                    WHERE ID_FACTURA_PRODUCTO = ${eliminar.getIdFacturaProducto()}
+                `;
+                    const [facturaProductoResult] = await connection.query(selectFacturaProductoQuery);
+
+                    if (facturaProductoResult.length > 0) {
+                        const cantidadEntrandoEliminar = facturaProductoResult[0].NUM_CANTIDAD_ENTRANDO || 0;
+                        const idProducto = facturaProductoResult[0].ID_PRODUCTO;
+
+                        // Obtener la cantidad actual del producto desde sigm_producto
+                        const selectProductoQuery = `
+                        SELECT NUM_CANTIDAD 
+                        FROM sigm_producto 
+                        WHERE ID_PRODUCTO = ${idProducto}
+                    `;
+                        const [productoResult] = await connection.query(selectProductoQuery);
+
+                        if (productoResult.length === 0) {
+                            throw new Error(`No se encontró el producto con ID ${idProducto}`);
+                        }
+
+                        const cantidadActualProducto = productoResult[0].NUM_CANTIDAD || 0;
+                        const nuevaCantidadProducto = cantidadActualProducto - cantidadEntrandoEliminar;
+
+                        // Actualizar la cantidad en sigm_producto
+                        const updateProductoQuery = `
+                        UPDATE sigm_producto
+                        SET NUM_CANTIDAD = ${nuevaCantidadProducto}
+                        WHERE ID_PRODUCTO = ${idProducto}
+                    `;
+                        const [updateProductoResult] = await connection.query(updateProductoQuery);
+
+                        if (updateProductoResult.affectedRows === 0) {
+                            throw new Error(`No se actualizó la cantidad del producto con ID ${idProducto}`);
+                        }
+                    } else {
+                        console.warn(`No se encontró el FacturaProducto con ID ${eliminar.getIdFacturaProducto()} para ajustar la cantidad`);
+                    }
+
+                    // Eliminar el FacturaProducto de sigt_factura_producto
+                    const deleteQuery = `
+                    DELETE FROM ${this.#table}
+                    WHERE ID_FACTURA_PRODUCTO = ${eliminar.getIdFacturaProducto()}
+                `;
+                    const [deleteResult] = await connection.query(deleteQuery);
+                    if (deleteResult.affectedRows === 0) {
+                        console.warn(`No se eliminó el FacturaProducto con ID ${eliminar.getIdFacturaProducto()}`);
+                    }
+                }
+            }
+
+            // Retornar éxito
+            return {
+                success: true,
+                message: 'Factura y productos actualizados correctamente'
+            };
+
+        } catch (error) {
+            console.error('Error en actualizarFacturaYProductos:', error.message);
+            return {
+                success: false,
+                message: 'Error al procesar la factura y productos: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
+    async crearFacturaYProductos(factura, nuevosFacturaProducto) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+            await connection.beginTransaction(); // Iniciar transacción para garantizar consistencia
+
+            // 1. Insertar la factura en sigm_factura
+            const insertFacturaQuery = `
+                INSERT INTO sigm_factura (
+                    ID_PROVEEDOR, 
+                    ID_COMPROBANTE_PAGO, 
+                    NUM_FACTURA, 
+                    FEC_FACTURA, 
+                    DSC_DETALLE_FACTURA, 
+                    MONTO_IMPUESTO, 
+                    MONTO_DESCUENTO, 
+                    ESTADO
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+            const facturaValues = [
+                factura.getIdProveedor().getIdProveedor(),
+                factura.getIdComprobante().getIdComprobantePago(),
+                factura.getNumeroFactura(),
+                factura.getFechaFactura(),
+                factura.getDetallesAdicionales(),
+                factura.getImpuesto(),
+                factura.getDescuento(),
+                factura.getEstado() ? 1 : 0 // Convertir booleano a tinyint
+            ];
+
+            const [resultFactura] = await connection.query(insertFacturaQuery, facturaValues);
+            const idFactura = resultFactura.insertId; // Recuperar el ID generado
+
+            // 2. Insertar los productos en sigt_factura_producto y actualizar sigm_producto
+            const insertProductoQuery = `
+                INSERT INTO sigt_factura_producto (
+                    ID_FACTURA, 
+                    ID_PRODUCTO, 
+                    NUM_CANTIDAD_ANTERIOR, 
+                    NUM_CANTIDAD_ENTRANDO, 
+                    MONTO_PRECIO_NUEVA, 
+                    ID_USUARIO, 
+                    ESTADO
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            const updateProductoQuery = `
+                UPDATE sigm_producto 
+                SET NUM_CANTIDAD = ? 
+                WHERE ID_PRODUCTO = ?
+            `;
+
+            for (const fp of nuevosFacturaProducto) {
+                const idProducto = fp.getIdProducto().getIdProducto();
+
+                // Obtener la cantidad actual del producto
+                const [productoRows] = await connection.query(`
+                    SELECT NUM_CANTIDAD 
+                    FROM sigm_producto 
+                    WHERE ID_PRODUCTO = ?
+                `, [idProducto]);
+
+                if (productoRows.length === 0) {
+                    throw new Error(`Producto con ID ${idProducto} no encontrado`);
+                }
+
+                const cantidadActual = productoRows[0].NUM_CANTIDAD || 0;
+                const cantidadEntrando = fp.getCantidadEntrando();
+                const nuevaCantidad = cantidadActual + cantidadEntrando;
+
+                // Insertar en sigt_factura_producto
+                const productoValues = [
+                    idFactura,
+                    idProducto,
+                    fp.getCantidadAnterior(),
+                    cantidadEntrando,
+                    fp.getPrecioNuevo(),
+                    fp.getIdUsuario().getIdUsuario(),
+                    fp.getEstado() ? 1 : 0
+                ];
+                await connection.query(insertProductoQuery, productoValues);
+
+                // Actualizar NUM_CANTIDAD en sigm_producto
+                await connection.query(updateProductoQuery, [nuevaCantidad, idProducto]);
+            }
+
+            // 3. Confirmar la transacción
+            await connection.commit();
+
+            // 4. Retornar éxito
+            return {
+                success: true,
+                message: 'Factura creada correctamente',
+                idFactura: idFactura
+            };
+        } catch (error) {
+            if (connection) {
+                await connection.rollback(); // Revertir cambios en caso de error
+            }
+            console.error('Error al crear factura y productos:', error);
+            return {
+                success: false,
+                message: 'Error al crear la factura: ' + error.message
+            };
         } finally {
             if (connection) {
                 await connection.end(); // Cerrar la conexión
