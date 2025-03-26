@@ -15,6 +15,8 @@ const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const ColaboradorController = require('./controllers/ColaboradorController');
 const Colaborador = require('./domain/Colaborador');
+const SalidaController = require('./controllers/SalidaController');
+const SalidaProductoController = require('./controllers/SalidaProductoController');
 const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
 const ComprobantePagoController = require('./controllers/ComprobantePagoController');
@@ -1229,8 +1231,66 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
         dialog.showErrorBox('Error', 'No se pudo imprimir el PDF')
         return false
     }
+
 });
 
+/* --------------------------------           ------------------------------------------
+      --------------------------------  salida  y salida producto  ------------------------------------------
+      --------------------------------           ------------------------------------------ */
+
+ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const salidaController = new SalidaController();
+    try {
+        const resultado = await salidaController.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
+        event.reply('cargar-salidas', resultado);
+    } catch (error) {
+        console.error('Error al listar salidas:', error);
+        event.reply('error-cargar-salidas', { success: false, message: error.message });
+    }
+});
+
+
+
+ipcMain.on('listar-salidas', async (event, { 
+    pageSize, currentPage, estado, valorBusqueda, 
+    filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+    fechaInicio, fechaFin, filtroUsuario 
+}) => {
+    console.log("📢 Evento 'listar-salidas' recibido con los siguientes parámetros:", { 
+        pageSize, currentPage, estado, valorBusqueda, 
+        filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+        fechaInicio, fechaFin, filtroUsuario 
+    });
+
+    const salidaController = new SalidaController();
+    try {
+        const resultado = await salidaController.listarSalidas(
+            pageSize, currentPage, estado, valorBusqueda, 
+            filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+            fechaInicio, fechaFin, filtroUsuario
+        );
+
+        console.log("✅ Salidas obtenidas desde el controlador:", resultado);
+        event.reply('cargar-salidas', resultado);
+
+    } catch (error) {
+        console.error("❌ Error al listar salidas:", error);
+        event.reply('cargar-salidas', { salidas: [], error: error.message });
+    }
+});
+ipcMain.on('listar-productos-por-salida', async (event, { idSalida }) => {
+    console.log("Evento listar-productos-por-salida recibido con ID:", idSalida); // Depuración inicial
+
+    const salidaProductoController = new SalidaProductoController();
+    try {
+        const productos = await salidaProductoController.obtenerSalidaProductos(idSalida);
+        console.log("Productos obtenidos desde el controlador:", productos); // Verificar los datos obtenidos
+        event.reply('cargar-productos-por-salida', productos);
+    } catch (error) {
+        console.error("Error al listar productos de la salida:", error); // Mostrar el error en la consola
+        event.reply('cargar-productos-por-salida', []);
+    }
+});
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
     const comprobantePagoController = new ComprobantePagoController();
 

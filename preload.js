@@ -231,4 +231,33 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('listar-comprobantes-pago', { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado });
         ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
     },
+
+     /* --------------------------------           ------------------------------------------
+       --------------------------------  Salida Producto  ------------------------------------------
+       --------------------------------           ------------------------------------------ */
+       obtenerSalidas: (pageSize, currentPage, estado, valorBusqueda, filtroColaboradorSacando, filtroColaboradorRecibiendo, fechaInicio, fechaFin, filtroUsuario, callback) => {
+        console.log("📢 Enviando solicitud para listar salidas con filtros...");
+
+        ipcRenderer.send('listar-salidas', { 
+            pageSize, currentPage, estado, valorBusqueda, 
+            filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+            fechaInicio, fechaFin, filtroUsuario
+        });
+
+        ipcRenderer.once('cargar-salidas', (event, respuesta) => {
+            console.log("✅ Salidas recibidas en preload:", respuesta);
+            callback(respuesta);
+        });
+    },
+
+    // Función para listar productos por salida
+    obtenerProductosPorSalida: (idSalida, callback) => {
+        console.log("Enviando solicitud para obtener productos de la salida con ID:", idSalida); // Depuración inicial
+        ipcRenderer.send('listar-productos-por-salida', { idSalida });
+        ipcRenderer.once('cargar-productos-por-salida', (event, productos) => {
+            console.log("Productos recibidos en preload desde el backend:", productos); // Verificar los datos recibidos
+            callback(productos);
+        });
+    }
 });
+

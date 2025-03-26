@@ -469,7 +469,11 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 7:
         cargarProductosTabla(pagination.pageSize, page, pagination.estado, pagination.idCategoria, pagination.valorBusqueda);
         break;
+      case 8:
+        cargarSalidasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda, pagination.filtroColaboradorSacando, pagination.filtroColaboradorRecibiendo, pagination.fechaInicio, pagination.fechaFin, pagination.filtroUsuario);
+        break;
       default:
+
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
         break;
     }
@@ -554,6 +558,8 @@ function filterTable(moduloFiltrar) {
     case 7:
       cargarProductosTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), Number(document.getElementById("categoria-filtro").value), document.getElementById("search-bar").value);
       break;
+    case 8:
+      cargarSalidasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), document.getElementById("search-bar").value, Number(document.getElementById("colaboradorSacando").value), Number(document.getElementById("colaboradorRecibiendo").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, null);
   }
 }
 
@@ -2356,5 +2362,135 @@ function cargarComprobantesPago(idSelect, mensajeQuemado) {
       option.textContent = comprobante.numeroComprobantePago;
       comprobantePagoSelect.appendChild(option);
     });
+  });
+}
+
+function cargarColaboradores(idSelect, mensajeQuemado) {
+  window.api.obtenerColaboradores(null, null, 1, null, null, null, (respuesta) => {
+    const colaboradorSelect = document.getElementById(idSelect);
+    colaboradorSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    colaboradorSelect.appendChild(option);
+
+    respuesta.colaboradores.forEach((colaborador) => {
+      const option = document.createElement("option");
+      option.value = colaborador.idColaborador;
+      option.textContent = colaborador.nombreColaborador;
+      colaboradorSelect.appendChild(option);
+    });
+  });
+}
+
+/* SALIDA PRODUCTOOOO*/
+
+function cargarSalidasTabla(
+  pageSize = 10,
+  currentPage = 1,
+  estado = 1,
+  valorBusqueda = null,
+  filtroColaboradorSacando = null,
+  filtroColaboradorRecibiendo = null,
+  fechaInicio = null,
+  fechaFin = null,
+  filtroUsuario = null
+) {
+  cargarColaboradores("colaboradorSacando", "Filtrar por colaborador");
+  cargarColaboradores("colaboradorRecibiendo", "Filtrar por colaborador");
+ 
+  setTimeout(() => {
+    if(filtroColaboradorSacando ){
+      document.getElementById("colaboradorSacando").value = filtroColaboradorSacando;
+    }
+    if(filtroColaboradorRecibiendo ){
+      document.getElementById("colaboradorRecibiendo").value = filtroColaboradorRecibiendo;
+    }
+    window.api.obtenerSalidas(
+      pageSize, currentPage, estado, valorBusqueda,
+      filtroColaboradorSacando, filtroColaboradorRecibiendo,
+      fechaInicio, fechaFin, filtroUsuario,
+      (respuesta) => {
+        const tbody = document.querySelector("#salidas-table-body");
+        tbody.innerHTML = "";
+
+        if (!respuesta.salidas || respuesta.salidas.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5">No se encontraron resultados</td></tr>`;
+          return;
+        }
+
+        respuesta.salidas.forEach(salida => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                    <td>${salida.nombreColaboradorSacando || 'Sin colaborador'}</td>
+                    <td>${salida.nombreColaboradorRecibiendo || 'Sin colaborador'}</td>
+                    <td>${new Date(salida.fechaSalida).toLocaleDateString()}</td>
+                    <td>${salida.nombreUsuario || 'Desconocido'}</td>
+                    <td>
+                        <button class="tooltip" value="${salida.idSalida}" onclick="verDetallesSalida(this.value, '/factura-view/editar-factura.html', 2)">
+                            <span class="material-icons">edit</span>
+                            <span class="tooltiptext">Editar factura</span>
+                        </button>
+                    </td>
+                `;
+          tbody.appendChild(row);
+        });
+
+        actualizarPaginacion(respuesta, ".pagination", 8);
+      }
+    );
+
+  }, 100);
+}
+
+function cargarProductosSalida(idSalida) {
+  console.log("Iniciando carga de productos para la salida con ID:", idSalida); // Depuración inicial
+
+  window.api.obtenerProductosPorSalida(idSalida, (productos) => {
+    console.log("Productos recibidos desde el backend:", productos); // Verificar los datos recibidos
+
+    const tbody = document.querySelector("#productos-salida-table-body");
+    if (!tbody) {
+      console.error("El elemento #productos-salida-table-body no existe en el DOM."); // Depuración
+      return;
+    }
+
+    tbody.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+
+    if (!productos || productos.length === 0) {
+      console.warn("No se encontraron productos para la salida con ID:", idSalida); // Advertencia si no hay productos
+      const row = document.createElement("tr");
+      row.innerHTML = `
+              <td colspan="7" style="text-align: center; color: gray; font-style: italic;">
+                  No hay productos registrados para esta salida.
+              </td>
+          `;
+      tbody.appendChild(row);
+      return;
+    }
+
+    productos.forEach(producto => {
+      console.log("Procesando producto:", producto); // Depuración para cada producto
+      const row = document.createElement("tr");
+      row.innerHTML = `
+              <td>${producto.idSalidaProducto}</td>
+              <td>${producto.idProducto}</td>
+              <td>${producto.nombreProducto}</td>
+              <td>${producto.cantidadAnterior}</td>
+              <td>${producto.cantidadSaliendo}</td>
+              <td>${producto.cantidadNueva}</td>
+              <td>${producto.estado === 1 ? 'Activo' : 'Inactivo'}</td>
+          `;
+      tbody.appendChild(row);
+    });
+  });
+}
+
+function verDetallesSalida(idSalida) {
+  console.log("Cargando detalles para la salida con ID:", idSalida); // Depuración inicial
+
+  adjuntarHTML('/salida-producto/salida-producto.html', () => {
+    console.log("Vista salida-producto.html cargada correctamente."); // Confirmar que la vista se cargó
+    cargarProductosSalida(idSalida);
   });
 }

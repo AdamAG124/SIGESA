@@ -1,0 +1,47 @@
+<div class="content-header">
+    <h1 class="content-title">Administrar Salidas</h1>
+</div>
+<div class="search-bar">
+    <input id="search-bar" type="text" placeholder="Buscar salidas..." onkeypress="filterTable(8)">
+</div>
+<div class="filters">
+    <select id="selectPageSize" onchange="filterTable(8)">
+        <option value="5">5 por página</option>
+        <option value="10" selected>10 por página</option>
+        <option value="25">25 por página</option>
+        <option value="50">50 por página</option>
+        <option value="100">100 por página</option>
+    </select>
+    <select id="estadoFiltro" onchange="filterTable(8)">
+        <option value="2">Todos</option>
+        <option value="1" selected>Activas</option>
+        <option value="0">Inactivas</option>
+    </select>
+    <div class="date-range">
+        <input id="fechaInicialFiltro" type="date" placeholder="Fecha inicial" onchange="filterTable(8)">
+        <span>-</span>
+        <input id="fechaFinalFiltro" type="date" placeholder="Fecha final" onchange="filterTable(8)">
+    </div>
+    <select id="colaboradorSacando" name="colaboradorName"  onchange="filterTable(8)">
+        <option value="">Seleccione un colaborador</option>
+    
+    </select>
+    <select id="colaboradorRecibiendo" name="colaboradorName" onchange="filterTable(8)">
+        <option value="">Seleccione un colaborador</option>
+    
+    </select>
+</div>
+<table>
+    <thead>
+        <tr>
+           
+            <th>Colaborador Sacando</th>
+            <th>Colaborador Recibiendo</th>
+            <th>Fecha de Salida</th>
+            <th>Usuario que registró</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="salidas-table-body"></tbody>
+</table>
+<div class="pagination"></div>
