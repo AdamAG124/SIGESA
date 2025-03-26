@@ -1020,16 +1020,31 @@ ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valo
 });
 
 
-ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
-    console.log("Evento listar-salidas recibido con los siguientes parámetros:", { pageSize, currentPage, estado, valorBusqueda }); // Depuración inicial
+
+ipcMain.on('listar-salidas', async (event, { 
+    pageSize, currentPage, estado, valorBusqueda, 
+    filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+    fechaInicio, fechaFin, filtroUsuario 
+}) => {
+    console.log("📢 Evento 'listar-salidas' recibido con los siguientes parámetros:", { 
+        pageSize, currentPage, estado, valorBusqueda, 
+        filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+        fechaInicio, fechaFin, filtroUsuario 
+    });
 
     const salidaController = new SalidaController();
     try {
-        const resultado = await salidaController.listarSalidas(pageSize, currentPage, estado, valorBusqueda);
-        console.log("Salidas obtenidas desde el controlador:", resultado); // Verificar los datos obtenidos
+        const resultado = await salidaController.listarSalidas(
+            pageSize, currentPage, estado, valorBusqueda, 
+            filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+            fechaInicio, fechaFin, filtroUsuario
+        );
+
+        console.log("✅ Salidas obtenidas desde el controlador:", resultado);
         event.reply('cargar-salidas', resultado);
+
     } catch (error) {
-        console.error("Error al listar salidas:", error); // Mostrar el error en la consola
+        console.error("❌ Error al listar salidas:", error);
         event.reply('cargar-salidas', { salidas: [], error: error.message });
     }
 });
