@@ -1477,7 +1477,7 @@ async function obtenerNombrePorCedula() {
   }
 }
 // Función para formatear las fechas en yyyy-MM-dd
-function formatearFecha(fecha) {
+function formatearFecha(fecha) {                                     // Autor Adam
   if (!fecha) return 'N/A'; // Maneja el caso de fecha vacía o nula
   const date = new Date(fecha);
   const year = date.getFullYear();
@@ -1485,6 +1485,16 @@ function formatearFecha(fecha) {
   const day = ('0' + date.getDate()).slice(-2); // Añadir ceros iniciales
   return `${year}-${month}-${day}`;
 }
+
+function formatearFechaParaInput(fecha) {                             // Autor Jeycob
+  const dia = fecha.getDate().toString().padStart(2, '0');
+  const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+  const año = fecha.getFullYear();
+
+  // Devuelve el formato yyyy-mm-dd
+  return `${año}-${mes}-${dia}`;
+}
+
 /* --------------------------------                         ------------------------------------------
    -------------------------------- DEPARTAMENTO DE TRABAJO ------------------------------------------
    --------------------------------                          ------------------------------------------ */
@@ -1537,7 +1547,7 @@ function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valor
   selectPageSize.value = pageSize;
   setTimeout(() => {
     window.api.obtenerCategorias(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
-      console.log(estado);
+
       const tbody = document.getElementById("categoriesBody");
       tbody.innerHTML = ""; // Limpiar contenido previo
       respuesta.categorias.forEach((categoria) => {
@@ -1848,10 +1858,14 @@ function enviarEdicionPuesto() {
   });
 }
 
+/* --------------------------------                    ------------------------------------------
+   -------------------------------- ENTIDAD FINANCIERA ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
 function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
   const selectPageSize = document.getElementById('selectPageSize');
-
+  console.log(selectEstado);
+  console.log(selectPageSize);
   // Validar pageNumber
   if (typeof currentPage !== 'number' || currentPage <= 0) {
     currentPage = 1; // Establecer el valor predeterminado
@@ -1870,10 +1884,10 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
     if (respuesta.error) {
       const mensajeError = document.createElement("tr");
       mensajeError.innerHTML = `
-          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
-              Error: ${respuesta.error}
-          </td>
-      `;
+            <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+                Error: ${respuesta.error}
+            </td>
+        `;
       tbody.appendChild(mensajeError);
       return; // Terminar la función si hay un error
     }
@@ -1882,10 +1896,10 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
     if (!Array.isArray(respuesta.entidadesFinancieras)) {
       const mensajeError = document.createElement("tr");
       mensajeError.innerHTML = `
-          <td colspan="3" style="text-align: center; color: red; font-style: italic;">
-              Error: La respuesta no contiene una lista de entidades financieras válida.
-          </td>
-      `;
+            <td colspan="3" style="text-align: center; color: red; font-style: italic;">
+                Error: La respuesta no contiene una lista de entidades financieras válida.
+            </td>
+        `;
       tbody.appendChild(mensajeError);
       return; // Terminar la función si hay un error
     }
@@ -1894,10 +1908,10 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
     if (respuesta.entidadesFinancieras.length === 0) {
       const mensaje = document.createElement("tr");
       mensaje.innerHTML = `
-          <td colspan="3" style="text-align: center; color: gray; font-style: italic;">
-              No hay entidades financieras registradas
-          </td>
-      `;
+            <td colspan="3" style="text-align: center; color: gray; font-style: italic;">
+                No hay entidades financieras registradas
+            </td>
+        `;
       tbody.appendChild(mensaje);
       actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
       return;
@@ -1908,26 +1922,26 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
 
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${nombre}</td>
-          <td>${estadoTexto}</td>
-          <td class="action-icons">
-              <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="editarEntidadFinanciera(this.value, this)">
-                  <span class="material-icons">edit</span>
-                  <span class="tooltiptext">Editar Entidad Financiera</span>
-              </button>
-              <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="${entidadFinanciera.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando entidad financiera', '¿Está seguro que desea eliminar a esta entidad financiera?', 4)` : `actualizarEstado(this.value, 1, 'Reactivando entidad financiera', '¿Está seguro que desea reactivar a esta entidad financiera?', 4)`}">
-                  <span class="material-icons">${entidadFinanciera.estado === 1 ? 'delete' : 'restore'}</span>
-                  <span class="tooltiptext">${entidadFinanciera.estado === 1 ? 'Eliminar entidad financiera' : 'Reactivar entidad financiera'}</span>
-              </button>
-          </td>
-          <!-- Información adicional oculta -->
-          <!--
-          <td class="hidden-info" style="display:none;">${entidadFinanciera.telefono}</td>
-          <td class="hidden-info" style="display:none;">${entidadFinanciera.correo}</td>
-          <td class="hidden-info" style="display:none;">${entidadFinanciera.fechaInicioFinanciamiento}</td>
-          <td class="hidden-info" style="display:none;">${entidadFinanciera.direccion}</td>
-          -->
-        `;
+            <td>${nombre}</td>
+            <td>${estadoTexto}</td>
+            <td class="action-icons">
+                <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="editarEntidadFinanciera(this.value, this)">
+                    <span class="material-icons">edit</span>
+                    <span class="tooltiptext">Editar Entidad Financiera</span>
+                </button>
+                <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="${entidadFinanciera.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando entidad financiera', '¿Está seguro que desea eliminar a esta entidad financiera?', 4)` : `actualizarEstado(this.value, 1, 'Reactivando entidad financiera', '¿Está seguro que desea reactivar a esta entidad financiera?', 4)`}">
+                    <span class="material-icons">${entidadFinanciera.estado === 1 ? 'delete' : 'restore'}</span>
+                    <span class="tooltiptext">${entidadFinanciera.estado === 1 ? 'Eliminar entidad financiera' : 'Reactivar entidad financiera'}</span>
+                </button>
+            </td>
+            <!-- Información adicional oculta -->
+            
+            <td class="hidden-info" style="display:none;">${entidadFinanciera.telefono}</td>
+            <td class="hidden-info" style="display:none;">${entidadFinanciera.correo}</td>
+            <td class="hidden-info" style="display:none;">${entidadFinanciera.tipo}</td>
+            <td class="hidden-info" style="display:none;">${entidadFinanciera.fechaInicioFinanciamiento}</td>
+  
+          `;
         tbody.appendChild(row);
       });
     }
@@ -1941,6 +1955,7 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
     cerrarModal("editarEntidadFinancieraModal", "editarEntidadFinancieraForm");
   });
 }
+
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
@@ -2398,12 +2413,12 @@ function cargarSalidasTabla(
 ) {
   cargarColaboradores("colaboradorSacando", "Filtrar por colaborador");
   cargarColaboradores("colaboradorRecibiendo", "Filtrar por colaborador");
- 
+
   setTimeout(() => {
-    if(filtroColaboradorSacando ){
+    if (filtroColaboradorSacando) {
       document.getElementById("colaboradorSacando").value = filtroColaboradorSacando;
     }
-    if(filtroColaboradorRecibiendo ){
+    if (filtroColaboradorRecibiendo) {
       document.getElementById("colaboradorRecibiendo").value = filtroColaboradorRecibiendo;
     }
     window.api.obtenerSalidas(

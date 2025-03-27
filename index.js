@@ -801,7 +801,7 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
         currentPage = 1;
     }
 
-
+    console.log('log de estado desde index: 804' + estado);
     try {
         // Llamar al método listarProveedores con los parámetros recibidos
         const resultado = await controller.listarEntidadesFinancieras(pageSize, currentPage, estado, valorBusqueda);
@@ -810,7 +810,10 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
         const entidadesFinancierasSimplificadas = resultado.entidadesFinancieras.map(entidadFinanciera => ({
             idEntidadFinanciera: entidadFinanciera.getIdEntidadFinanciera(),
             nombre: entidadFinanciera.getNombre(),
+            telefono: entidadFinanciera.getTelefono(),
+            correo: entidadFinanciera.getCorreo(),
             tipo: entidadFinanciera.getTipo(),
+            fechaInicioFinanciamiento: entidadFinanciera.getFechaInicioFinanciamiento(),
             estado: entidadFinanciera.getEstado()
         }));
 
@@ -821,13 +824,14 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
         };
 
         // Enviar los datos de vuelta al frontend
-        mainWindow?.webContents.send('cargar-entidades-financieras', respuesta);
+        event.reply('cargar-entidades-financieras', respuesta);
 
     } catch (error) {
         console.error('Error al listar las entidades financieras:', error);
-        mainWindow?.webContents.send('error-cargar-entidades-financieras', `Hubo un error al cargar las entidades financieras: ${error.message}`);
+        event.reply('error-cargar-entidades-financieras', `Hubo un error al cargar las entidades financieras: ${error.message}`);
     }
 });
+
 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
@@ -934,7 +938,7 @@ ipcMain.on('actualizar-producto', async (event, productoData) => {
         const producto = new Producto();
         const categoria = new CategoriaProducto();
         categoria.setIdCategoria(productoData.categoria);
-        
+
         producto.setIdProducto(productoData.idProducto);
         producto.setNombre(productoData.nombre);
         producto.setDescripcion(productoData.descripcion);
@@ -1251,22 +1255,22 @@ ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valo
 
 
 
-ipcMain.on('listar-salidas', async (event, { 
-    pageSize, currentPage, estado, valorBusqueda, 
-    filtroColaboradorSacando, filtroColaboradorRecibiendo, 
-    fechaInicio, fechaFin, filtroUsuario 
+ipcMain.on('listar-salidas', async (event, {
+    pageSize, currentPage, estado, valorBusqueda,
+    filtroColaboradorSacando, filtroColaboradorRecibiendo,
+    fechaInicio, fechaFin, filtroUsuario
 }) => {
-    console.log("📢 Evento 'listar-salidas' recibido con los siguientes parámetros:", { 
-        pageSize, currentPage, estado, valorBusqueda, 
-        filtroColaboradorSacando, filtroColaboradorRecibiendo, 
-        fechaInicio, fechaFin, filtroUsuario 
+    console.log("📢 Evento 'listar-salidas' recibido con los siguientes parámetros:", {
+        pageSize, currentPage, estado, valorBusqueda,
+        filtroColaboradorSacando, filtroColaboradorRecibiendo,
+        fechaInicio, fechaFin, filtroUsuario
     });
 
     const salidaController = new SalidaController();
     try {
         const resultado = await salidaController.listarSalidas(
-            pageSize, currentPage, estado, valorBusqueda, 
-            filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+            pageSize, currentPage, estado, valorBusqueda,
+            filtroColaboradorSacando, filtroColaboradorRecibiendo,
             fechaInicio, fechaFin, filtroUsuario
         );
 
