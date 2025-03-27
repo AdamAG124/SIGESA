@@ -1278,17 +1278,25 @@ ipcMain.on('listar-salidas', async (event, {
         event.reply('cargar-salidas', { salidas: [], error: error.message });
     }
 });
-ipcMain.on('listar-productos-por-salida', async (event, { idSalida }) => {
-    console.log("Evento listar-productos-por-salida recibido con ID:", idSalida); // Depuración inicial
-
+ipcMain.on('obtener-productos-por-salida', async (event, idSalida) => {
     const salidaProductoController = new SalidaProductoController();
+
     try {
-        const productos = await salidaProductoController.obtenerSalidaProductos(idSalida);
-        console.log("Productos obtenidos desde el controlador:", productos); // Verificar los datos obtenidos
-        event.reply('cargar-productos-por-salida', productos);
+        // Llamar al método del controller para obtener los productos por salida
+        const productosPorSalida = await salidaProductoController.obtenerProductosPorSalida(idSalida);
+
+        // Enviar la respuesta al proceso de renderizado
+        event.reply('productos-por-salida-obtenidos', {
+            success: true,
+            data: productosPorSalida
+        });
     } catch (error) {
-        console.error("Error al listar productos de la salida:", error); // Mostrar el error en la consola
-        event.reply('cargar-productos-por-salida', []);
+        // Manejar errores y enviarlos al proceso de renderizado
+        console.error('Error en index.js al obtener productos por salida:', error.message);
+        event.reply('productos-por-salida-obtenidos', {
+            success: false,
+            message: 'Error al obtener los productos por salida: ' + error.message
+        });
     }
 });
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {

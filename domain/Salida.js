@@ -1,5 +1,5 @@
-const Colaborador = require('./Colaborador'); // Importa la clase Colaborador
-
+const Colaborador = require('./Colaborador');
+const Usuario = require('./Usuario');
 class Salida {
     // Atributos privados
     #idSalida;
@@ -15,7 +15,7 @@ class Salida {
         this.#colaboradorSacando = new Colaborador(); // Inicializado como objeto de Colaborador
         this.#colaboradorRecibiendo = new Colaborador(); // Inicializado como objeto de Colaborador
         this.#fechaSalida = new Date();               // Inicializado como la fecha actual
-        this.#idUsuario = 0;                          // Inicializado como 0
+        this.#idUsuario = new Usuario();                          // Inicializado como 0
         this.#estado = false;                         // Inicializado como false (tinyint(1))
     }
 

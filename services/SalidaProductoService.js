@@ -11,6 +11,10 @@ class SalidaProductoService {
         console.log("Productos obtenidos en el servicio:", productos); // Verificar los datos obtenidos
         return productos;
     }
+
+    async obtenerProductosPorSalida(idSalida) {
+        return await this.salidaProductoDB.obtenerProductosPorSalida(idSalida);
+    }
 }
 
 module.exports = SalidaProductoService;
