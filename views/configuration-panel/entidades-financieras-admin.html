@@ -7,18 +7,18 @@
         </button>
     </div>
     <div class="search-bar">
-        <input id="search-bar" type="text" placeholder="Buscar entidades financieras..." onkeydown="checkEmpty(event, 4)" oninput="checkEmpty(event, 4)">
-        <button onclick="filterTable(4)" class="search-btn">Buscar</button>
+        <input id="search-bar" type="text" placeholder="Buscar entidades financieras..." onkeydown="checkEmpty(event, 5)" oninput="checkEmpty(event, 5)">
+        <button onclick="filterTable(5)" class="search-btn">Buscar</button>
     </div>
     
     <div class="filters">
-        <select id="selectPageSize" onchange="filterTable(4)">
+        <select id="selectPageSize" onchange="filterTable(5)">
             <option value="5">5 por página</option>
             <option value="10">10 por página</option>
             <option value="25">25 por página</option>
             <option value="50">50 por página</option>
         </select>
-        <select id="estado-filtro" onchange="filterTable(4)">
+        <select id="estado-filtro" onchange="filterTable(5)">
             <option value="1">Activo</option>
             <option value="0">Inactivo</option>
         </select>

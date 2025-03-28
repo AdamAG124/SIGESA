@@ -1864,8 +1864,7 @@ function enviarEdicionPuesto() {
 function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
   const selectPageSize = document.getElementById('selectPageSize');
-  console.log(selectEstado);
-  console.log(selectPageSize);
+ 
   // Validar pageNumber
   if (typeof currentPage !== 'number' || currentPage <= 0) {
     currentPage = 1; // Establecer el valor predeterminado
@@ -1913,7 +1912,7 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
             </td>
         `;
       tbody.appendChild(mensaje);
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 5);
       return;
     } else {
       respuesta.entidadesFinancieras.forEach((entidadFinanciera) => {
@@ -1929,7 +1928,7 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
                     <span class="material-icons">edit</span>
                     <span class="tooltiptext">Editar Entidad Financiera</span>
                 </button>
-                <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="${entidadFinanciera.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando entidad financiera', '¿Está seguro que desea eliminar a esta entidad financiera?', 4)` : `actualizarEstado(this.value, 1, 'Reactivando entidad financiera', '¿Está seguro que desea reactivar a esta entidad financiera?', 4)`}">
+                <button class="tooltip" value="${entidadFinanciera.idEntidadFinanciera}" onclick="${entidadFinanciera.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando entidad financiera', '¿Está seguro que desea eliminar a esta entidad financiera?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando entidad financiera', '¿Está seguro que desea reactivar a esta entidad financiera?', 5)`}">
                     <span class="material-icons">${entidadFinanciera.estado === 1 ? 'delete' : 'restore'}</span>
                     <span class="tooltiptext">${entidadFinanciera.estado === 1 ? 'Eliminar entidad financiera' : 'Reactivar entidad financiera'}</span>
                 </button>
@@ -1947,7 +1946,7 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
     }
 
     if (respuesta.paginacion) {
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 4);
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 5);
     } else {
       console.warn('No se proporcionaron datos de paginación o respuesta está vacía.');
     }
