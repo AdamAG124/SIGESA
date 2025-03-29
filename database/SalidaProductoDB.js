@@ -40,6 +40,44 @@ class SalidaProductoDB {
             }
         }
     }
+    async registrarSalidaProducto(salidaProducto) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            const query = `
+                INSERT INTO sigt_salida_producto (
+                    ID_PRODUCTO,
+                    ID_SALIDA,
+                    NUM_CANTIDAD_ANTERIOR,
+                    NUM_CANTIDAD_SALIENDO,
+                    NUM_CANTIDAD_NUEVA,
+                    ESTADO
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            `;
+
+            const params = [
+                salidaProducto.getIdProducto(),
+                salidaProducto.getIdSalida(),
+                salidaProducto.getCantidadAnterior(),
+                salidaProducto.getCantidadSaliendo(),
+                salidaProducto.getCantidadNueva(),
+                salidaProducto.getEstado(),
+            ];
+
+            const [result] = await connection.query(query, params);
+            return result;
+        } catch (error) {
+            console.error('Error al registrar la salida del producto:', error);
+            throw new Error('Error al registrar la salida del producto.');
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
 }
 
 module.exports = SalidaProductoDB;

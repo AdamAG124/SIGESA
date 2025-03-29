@@ -11,6 +11,25 @@ class SalidaProductoController {
         console.log("Productos obtenidos en el controlador:", productos); // Verificar los datos obtenidos
         return productos;
     }
+    async registrarSalidaProducto(req, res) {
+        try {
+            const salidaProducto = req.body; // Suponiendo que los datos vienen en el cuerpo de la solicitud
+
+            // Registrar la salida del producto
+            const resultado = await this.salidaProductoService.registrarSalidaProducto(salidaProducto);
+
+            res.status(200).json({
+                success: true,
+                message: 'Salida de producto registrada exitosamente.',
+                data: resultado,
+            });
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                message: error.message,
+            });
+        }
+    }
 }
 
 module.exports = SalidaProductoController;
