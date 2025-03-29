@@ -13,7 +13,10 @@ class EntidadFinancieraDB {
         let connection;
         try {
             connection = await db.conectar();
-
+            console.log(pageSize);
+            console.log(currentPage);
+            console.log(estadoEntidadFinanciera);
+            console.log(valorBusqueda);
             // Calcular el OFFSET para la paginación
             const offset = (currentPage - 1) * pageSize;
 
@@ -22,7 +25,10 @@ class EntidadFinancieraDB {
                 SELECT
                     E.ID_ENTIDAD_FINANCIERA AS idEntidadFinanciera,
                     E.DSC_NOMBRE_ENTIDAD_FINANCIERA AS nombre,
+                    E.DSC_TELEFONO_ENTIDAD_FINANCIERA AS telefono,
+                    E.DSC_CORREO_ENTIDAD_FINANCIERA AS correo,
                     E.TIPO_ENTIDAD_FINANCIERA AS tipo,
+                    E.FEC_INICIO_FINANCIAMIENTO AS fechaInicioFinanciamiento,
                     E.ESTADO AS estado
                 FROM
                     ${this.#table} E
@@ -39,7 +45,7 @@ class EntidadFinancieraDB {
                 // Asegúrate de que el valor de búsqueda también esté limpio
                 const trimmedValorBusqueda = valorBusqueda.trim();
                 const likeCondition = ` LOWER(TRIM(E.DSC_NOMBRE_ENTIDAD_FINANCIERA)) LIKE LOWER('%${trimmedValorBusqueda}%') `;
-                
+
                 query += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
             }
 
@@ -56,11 +62,14 @@ class EntidadFinancieraDB {
                 const entidadFinanciera = new EntidadFinanciera();
                 entidadFinanciera.setIdEntidadFinanciera(entidadFinancieraDB.idEntidadFinanciera);
                 entidadFinanciera.setNombre(entidadFinancieraDB.nombre);
+                entidadFinanciera.setTelefono(entidadFinancieraDB.telefono);
+                entidadFinanciera.setCorreo(entidadFinancieraDB.correo);
                 entidadFinanciera.setTipo(entidadFinancieraDB.tipo);
+                entidadFinanciera.setFechaInicioFinanciamiento(entidadFinancieraDB.fechaInicioFinanciamiento);
                 entidadFinanciera.setEstado(entidadFinancieraDB.estado);
                 return entidadFinanciera;
             });
-
+            console.log(entidadesFinancieras);
             // Consulta para contar total de proveedores
             let countQuery = `SELECT COUNT(*) AS total FROM ${this.#table} E`;
             if (estadoEntidadFinanciera !== null) {
@@ -72,7 +81,7 @@ class EntidadFinancieraDB {
                 // Asegúrate de que el valor de búsqueda también esté limpio (sin espacios en blanco)
                 const trimmedValorBusqueda = valorBusqueda.trim();
                 const likeCondition = ` LOWER(TRIM(E.DSC_NOMBRE_ENTIDAD_FINANCIERA)) LIKE LOWER('%${trimmedValorBusqueda}%') `;
-                
+
                 countQuery += whereClauseAdded ? ` AND ${likeCondition}` : ` WHERE ${likeCondition}`;
             }
 
@@ -83,9 +92,7 @@ class EntidadFinancieraDB {
 
             // Calcular el número total de páginas
             const totalPages = pageSize ? Math.ceil(totalRecords / pageSize) : 1;
-            console.log(`Total pages ${totalPages}`);
-            console.log(`Total Records ${totalRecords}`);
-            console.log(`pageSize ${pageSize}`);
+
             // Retornar los proveedores y los datos de paginación
             return {
                 entidadesFinancieras,
@@ -113,8 +120,6 @@ class EntidadFinancieraDB {
             }
         }
     }
-
-
 }
 // Exportar la clase
 module.exports = EntidadFinancieraDB;

@@ -134,32 +134,15 @@ contextBridge.exposeInMainWorld('api', {
     eliminarProveedor: (proveedorId, estado) => ipcRenderer.send('eliminar-proveedor', proveedorId, estado),
     onRespuestaEliminarProveedor: (callback) => ipcRenderer.once('respuesta-eliminar-proveedor', (event, respuesta) => callback(respuesta)),
 
-    // --------------------------------------------------------------------------------
-    //                       ENTIDAD FINANCIERA
+    /* --------------------------------------------------------------------------------
+    // --------------------------- ENTIDAD FINANCIERA ---------------------------------
+    // --------------------------------------------------------------------------------*/
     obtenerEntidadesFinancieras: (pageSize, currentPage, estado, valorBusqueda, callback) => {
-        // Enviar la solicitud para listar proveedores
         ipcRenderer.send('listar-entidades-financieras', { pageSize, currentPage, estado, valorBusqueda });
-
-        // Definir el callback para manejar la respuesta
-        const entidadesFinancierasCallback = (event, entidadesFinancieras) => {
-            callback(entidadesFinancieras);
-            // Remover el listener una vez que se ha procesado la respuesta
-            ipcRenderer.removeListener('cargar-entidades-financieras', entidadesFinancierasCallback);
-        };
-
-        // Escuchar la respuesta
-        ipcRenderer.on('cargar-entidades-financieras', entidadesFinancierasCallback);
-
-        // Manejo de errores de la respuesta
-        const errorCallback = (event, errorMessage) => {
-            callback({ error: errorMessage });
-            // También puedes remover el listener de error si solo lo necesitas una vez
-            ipcRenderer.removeListener('error-cargar-entidades-financieras', errorCallback);
-        };
-
-        // Escuchar los errores
-        ipcRenderer.on('error-cargar-entidades-financieras', errorCallback);
+        ipcRenderer.once('cargar-entidades-financieras', (event, entidadesFinancieras) => callback(entidadesFinancieras));
     },
+
+
 
     /* --------------------------------           ------------------------------------------
        -------------------------------- PRODUCTOS ------------------------------------------
@@ -232,15 +215,15 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
     },
 
-     /* --------------------------------           ------------------------------------------
-       --------------------------------  Salida Producto  ------------------------------------------
-       --------------------------------           ------------------------------------------ */
-       obtenerSalidas: (pageSize, currentPage, estado, valorBusqueda, filtroColaboradorSacando, filtroColaboradorRecibiendo, fechaInicio, fechaFin, filtroUsuario, callback) => {
+    /* --------------------------------           ------------------------------------------
+      --------------------------------  Salida Producto  ------------------------------------------
+      --------------------------------           ------------------------------------------ */
+    obtenerSalidas: (pageSize, currentPage, estado, valorBusqueda, filtroColaboradorSacando, filtroColaboradorRecibiendo, fechaInicio, fechaFin, filtroUsuario, callback) => {
         console.log("📢 Enviando solicitud para listar salidas con filtros...");
 
-        ipcRenderer.send('listar-salidas', { 
-            pageSize, currentPage, estado, valorBusqueda, 
-            filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+        ipcRenderer.send('listar-salidas', {
+            pageSize, currentPage, estado, valorBusqueda,
+            filtroColaboradorSacando, filtroColaboradorRecibiendo,
             fechaInicio, fechaFin, filtroUsuario
         });
 
