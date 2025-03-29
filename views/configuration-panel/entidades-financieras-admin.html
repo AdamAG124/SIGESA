@@ -7,18 +7,18 @@
         </button>
     </div>
     <div class="search-bar">
-        <input id="search-bar" type="text" placeholder="Buscar entidades financieras..." onkeydown="checkEmpty(event, 4)" oninput="checkEmpty(event, 4)">
-        <button onclick="filterTable(4)" class="search-btn">Buscar</button>
+        <input id="search-bar" type="text" placeholder="Buscar entidades financieras..." onkeydown="checkEmpty(event, 5)" oninput="checkEmpty(event, 5)">
+        <button onclick="filterTable(5)" class="search-btn">Buscar</button>
     </div>
     
     <div class="filters">
-        <select id="selectPageSize" onchange="filterTable(4)">
+        <select id="selectPageSize" onchange="filterTable(5)">
             <option value="5">5 por página</option>
             <option value="10">10 por página</option>
             <option value="25">25 por página</option>
             <option value="50">50 por página</option>
         </select>
-        <select id="estado-filtro" onchange="filterTable(4)">
+        <select id="estado-filtro" onchange="filterTable(5)">
             <option value="1">Activo</option>
             <option value="0">Inactivo</option>
         </select>
@@ -40,18 +40,18 @@
         
     </div>
 
-    <div id="editarEntidadFinanceraModal" class="modal">
+    <div id="editarEntidadFinancieraModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="cerrarModal('editarEntidadFinancieraModal', 'editarEntidadFinancieraForm')">&times;</span>
             <h2 id="modalTitle"></h2>
             <form id="editarEntidadFinancieraForm" class="editar-entidad-financiera-form">
                 <input type="hidden" id="idEntidadFinanciera">
 
-                <label for="nombreEntidadFinanciera">Nombre:</label>
-                <input type="text" id="nombreEntidadFinanciera" name="nombreEntidadFinanciera">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre">
 
                 <label for="telefono">Teléfono:</label>
-                <input type="text" id="telefono" name="telefono">
+                <input type="text" id="telefono" name="telefono" min="8">
 
                 <label for="correo">Correo Electrónico:</label>
                 <input type="email" id="correo" name="correo">
@@ -60,7 +60,7 @@
                 <input type="text" id="tipo" name="tipo" required>
                 
                 <label for="fechaInicioFinanciamiento">Inicio Financiamiento:</label>
-                <input type="text" id="fechaInicioFinanciamiento" name="fechaInicioFinanciamiento">
+                <input type="date" id="fechaInicioFinanciamiento" name="fechaInicioFinanciamiento">
 
                 <p id="errorMessage" style="color: red;"></p>
 
@@ -69,4 +69,4 @@
         </div>
     </div>
 </div>
-</div>
+</div> 
