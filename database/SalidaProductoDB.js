@@ -28,6 +28,7 @@ class SalidaProductoDB {
                     s.ID_COLABORADOR_RECIBIENDO AS idColaboradorRecibiendo,
                     s.FEC_SALIDA AS fechaSalida,
                     s.ID_USUARIO AS idUsuarioSalida,
+                    s.DSC_DETALLE_SALIDA AS detalleSalida,
                     s.ESTADO AS estadoSalida,
                     
                     -- Información del producto
@@ -98,6 +99,7 @@ class SalidaProductoDB {
                 salidaProducto.setCantidadAnterior(row.cantidadAnterior);
                 salidaProducto.setCantidadSaliendo(row.cantidadSaliendo);
                 salidaProducto.setCantidadNueva(row.cantidadNueva);
+                salidaProducto.setDetallesSalida(row.detalleSalida);
                 salidaProducto.setEstado(row.estadoSalidaProducto);
 
                 // Llenar Salida (usando el objeto existente dentro de SalidaProducto)

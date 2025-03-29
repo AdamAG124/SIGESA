@@ -23,6 +23,7 @@ class SalidaProductoController {
                     idSalidaProducto: salidaProducto.getIdSalidaProducto(),
                     idSalida: salidaProducto.getIdSalida().getIdSalida(),
                     fechaSalida: salidaProducto.getIdSalida().getFechaSalida(),
+                    detalleSalida: salidaProducto.getIdSalida().getDetalleSalida(),
                     estadoSalida: salidaProducto.getIdSalida().getEstado(),
 
                     // Colaborador Sacando

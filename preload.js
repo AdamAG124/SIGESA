@@ -245,6 +245,6 @@ contextBridge.exposeInMainWorld('api', {
                 }
             });
         });
-    }
+    },
 });
 

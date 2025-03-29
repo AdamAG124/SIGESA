@@ -1,22 +1,22 @@
 const Colaborador = require('./Colaborador');
 const Usuario = require('./Usuario');
 class Salida {
-    // Atributos privados
     #idSalida;
-    #colaboradorSacando; // Inicializado como objeto de Colaborador
-    #colaboradorRecibiendo; // Inicializado como objeto de Colaborador
+    #colaboradorSacando;
+    #colaboradorRecibiendo;
     #fechaSalida;
     #idUsuario;
+    #detalleSalida;
     #estado;
 
-    // Constructor sin parámetros
     constructor() {
-        this.#idSalida = 0;                           // Inicializado como 0
-        this.#colaboradorSacando = new Colaborador(); // Inicializado como objeto de Colaborador
-        this.#colaboradorRecibiendo = new Colaborador(); // Inicializado como objeto de Colaborador
-        this.#fechaSalida = new Date();               // Inicializado como la fecha actual
-        this.#idUsuario = new Usuario();                          // Inicializado como 0
-        this.#estado = false;                         // Inicializado como false (tinyint(1))
+        this.#idSalida = 0;
+        this.#colaboradorSacando = new Colaborador();
+        this.#colaboradorRecibiendo = new Colaborador();
+        this.#fechaSalida = new Date();
+        this.#idUsuario = new Usuario();
+        this.#detalleSalida = "";
+        this.#estado = false
     }
 
     // Getters y Setters
@@ -58,6 +58,14 @@ class Salida {
 
     setIdUsuario(idUsuario) {
         this.#idUsuario = idUsuario;
+    }
+
+    getDetalleSalida() {
+        return this.#detalleSalida;
+    }
+
+    setDetalleSalida(detalleSalida) {
+        this.#detalleSalida = detalleSalida;
     }
 
     getEstado() {
