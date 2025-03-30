@@ -1,4 +1,7 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <style>
+
     .card {
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -163,9 +166,9 @@
 
 <form id="output-form">
     <!-- IDs ocultos -->
-    <input type="hidden" id="id-salida-producto" value="1001">
-    <input type="hidden" id="id-salida" value="501">
-    <input type="hidden" id="id-usuario" value="101">
+    <input type="hidden" id="id-salida-producto">
+    <input type="hidden" id="id-salida">
+    <input type="hidden" id="id-usuario">
 
     <!-- Información General -->
     <div class="card">
@@ -178,8 +181,7 @@
                     <div class="info-row">
                         <div class="info-label">Fecha de Salida:</div>
                         <div class="info-value">
-                            <input type="datetime-local" class="form-control" id="fecha-salida"
-                                value="2023-01-15T10:30:00">
+                            <input type="datetime-local" class="form-control" id="fecha-salida">
                         </div>
                     </div>
                     <div class="info-row">
@@ -234,14 +236,14 @@
                     <div class="info-row">
                         <div class="info-label">Departamento:</div>
                         <div class="info-value">
-                            <input type="text" class="form-control" id="departamento-sacando" value="Inventario">
+                            <input type="text" class="form-control" id="departamento-sacando">
                             <input type="hidden" id="id-departamento-sacando">
                         </div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">Puesto:</div>
                         <div class="info-value">
-                            <input type="text" class="form-control" id="puesto-sacando" value="Encargado de Bodega">
+                            <input type="text" class="form-control" id="puesto-sacando">
                             <input type="hidden" id="id-puesto-sacando">
                         </div>
                     </div>
@@ -319,7 +321,7 @@
                         </tr>
                     </thead>
                     <tbody id="products-body">
-                        
+
                     </tbody>
                 </table>
             </div>
@@ -335,8 +337,7 @@
             <div class="info-row">
                 <div class="info-label">Notas:</div>
                 <div class="info-value">
-                    <textarea class="form-control" id="notas"
-                        rows="3"></textarea>
+                    <textarea class="form-control" id="notas" rows="3"></textarea>
                 </div>
             </div>
         </div>
@@ -344,6 +345,3 @@
 </form>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>

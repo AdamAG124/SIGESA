@@ -1,4 +1,5 @@
 const ConectarDB = require('./ConectarDB');
+const SalidaProducto = require('../domain/SalidaProducto');
 
 class SalidaProductoDB {
     #db;
@@ -99,7 +100,6 @@ class SalidaProductoDB {
                 salidaProducto.setCantidadAnterior(row.cantidadAnterior);
                 salidaProducto.setCantidadSaliendo(row.cantidadSaliendo);
                 salidaProducto.setCantidadNueva(row.cantidadNueva);
-                salidaProducto.setDetallesSalida(row.detalleSalida);
                 salidaProducto.setEstado(row.estadoSalidaProducto);
 
                 // Llenar Salida (usando el objeto existente dentro de SalidaProducto)
@@ -126,8 +126,9 @@ class SalidaProductoDB {
                 salidaProducto.getIdSalida().getColaboradorRecibiendo().getIdPuesto().setNombre(row.nombrePuestoTrabajoRecibiendo);
 
                 salidaProducto.getIdSalida().setFechaSalida(row.fechaSalida);
-                salidaProducto.getIdSalida().setIdUsuario(row.idUsuarioSalida);
+                salidaProducto.getIdSalida().getIdUsuario().setIdUsuario(row.idUsuarioSalida);
                 salidaProducto.getIdSalida().getIdUsuario().setNombreUsuario(row.nombreUsuario);
+                salidaProducto.getIdSalida().setDetalleSalida(row.detalleSalida);
                 salidaProducto.getIdSalida().setEstado(row.estadoSalida);
 
                 // Llenar Producto (usando el objeto existente dentro de SalidaProducto)

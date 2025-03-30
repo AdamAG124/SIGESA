@@ -1288,8 +1288,6 @@ ipcMain.on('obtener-productos-por-salida', async (event, idSalida) => {
     try {
         // Llamar al método del controller para obtener los productos por salida
         const productosPorSalida = await salidaProductoController.obtenerProductosPorSalida(idSalida);
-
-        // Enviar la respuesta al proceso de renderizado
         event.reply('productos-por-salida-obtenidos', {
             success: true,
             data: productosPorSalida
