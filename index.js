@@ -1291,6 +1291,9 @@ ipcMain.on('listar-productos-por-salida', async (event, { idSalida }) => {
         event.reply('cargar-productos-por-salida', []);
     }
 });
+
+
+
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
     const comprobantePagoController = new ComprobantePagoController();
 
@@ -1333,5 +1336,33 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-comprobantes-pago', 'Hubo un error al cargar los comprobantes de pago.');
         }
+    }
+});
+ipcMain.on('crear-salida-con-productos', async (event, { salidaData, productos }) => {
+    const salidaController = new SalidaController();
+
+    try {
+        const salida = new Salida();
+        salida.setColaboradorSacando(salidaData.colaboradorSacando);
+        salida.setColaboradorRecibiendo(salidaData.colaboradorRecibiendo);
+        salida.setFechaSalida(salidaData.fechaSalida);
+        salida.setIdUsuario(salidaData.idUsuario);
+        salida.setEstado(salidaData.estado);
+
+        const productosSalida = productos.map(productoData => {
+            const producto = new SalidaProducto();
+            producto.setIdProducto(productoData.idProducto);
+            producto.setCantidadAnterior(productoData.cantidadAnterior);
+            producto.setCantidadSaliendo(productoData.cantidadSaliendo);
+            producto.setCantidadNueva(productoData.cantidadNueva);
+            producto.setEstado(productoData.estado);
+            return producto;
+        });
+
+        const resultado = await salidaController.crearSalidaConProductos(salida, productosSalida);
+        event.reply('respuesta-crear-salida-con-productos', resultado);
+    } catch (error) {
+        console.error("Error al crear salida con productos:", error);
+        event.reply('respuesta-crear-salida-con-productos', { success: false, message: error.message });
     }
 });

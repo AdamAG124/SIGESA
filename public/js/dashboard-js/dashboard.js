@@ -2494,3 +2494,30 @@ function verDetallesSalida(idSalida) {
     cargarProductosSalida(idSalida);
   });
 }
+
+function crearNuevaSalidaConProductos() {
+  const salidaData = {
+      colaboradorSacando: document.getElementById('colaboradorSacando').value,
+      colaboradorRecibiendo: document.getElementById('colaboradorRecibiendo').value,
+      fechaSalida: new Date().toISOString(),
+      idUsuario: 1, // ID del usuario actual
+      estado: 1 // Activo
+  };
+
+  const productos = Array.from(document.querySelectorAll('.producto-seleccionado')).map(row => ({
+      idProducto: row.dataset.idProducto,
+      cantidadAnterior: row.dataset.cantidadAnterior,
+      cantidadSaliendo: row.querySelector('.cantidad-saliendo').value,
+      cantidadNueva: row.dataset.cantidadNueva,
+      estado: 1 // Activo
+  }));
+
+  window.api.crearSalidaConProductos(salidaData, productos, (respuesta) => {
+      if (respuesta.success) {
+          alert('Salida y productos creados exitosamente.');
+          cargarSalidasTabla(); // Recargar la tabla de salidas
+      } else {
+          alert('Error al crear la salida: ' + respuesta.message);
+      }
+  });
+}
