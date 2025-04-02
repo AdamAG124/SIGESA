@@ -145,6 +145,9 @@ contextBridge.exposeInMainWorld('api', {
     crearEntidadFinanciera: (entidadFinancieraData) => ipcRenderer.send('crear-entidad-financiera', entidadFinancieraData),
     onRespuestaCrearEntidadFinanciera: (callback) => ipcRenderer.on('respuesta-crear-entidad-financiera', (event, respuesta) => callback(respuesta)),
 
+    editarEntidadFinanciera: (entidadFinancieraData) => ipcRenderer.send('editar-entidad-financiera', entidadFinancieraData),
+    onRespuestaActualizarEntidadFinanciera: (callback) => ipcRenderer.on('respuesta-actualizar-entidad-financiera', (event, respuesta) => callback(respuesta)),
+
 
 
 

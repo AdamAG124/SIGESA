@@ -854,6 +854,29 @@ ipcMain.on('crear-entidad-financiera', async (event, entidadFinancieraData) => {
     }
 });
 
+ipcMain.on('editar-entidad-financiera', async (event, entidadFinancieraData) => {
+    try {
+        // Crear un objeto Colaborador y setear los datos
+        const entidadFinanciera = new EntidadFinanciera();
+        entidadFinanciera.setIdEntidadFinanciera(entidadFinancieraData.idEntidadFinanciera);
+        entidadFinanciera.setNombre(entidadFinancieraData.nombre);
+        entidadFinanciera.setTelefono(entidadFinancieraData.telefono);
+        entidadFinanciera.setCorreo(entidadFinancieraData.correo);
+        entidadFinanciera.setTipo(entidadFinancieraData.tipo);
+        entidadFinanciera.setFechaInicioFinanciamiento(entidadFinancieraData.fechaInicioFinanciamiento);
+        entidadFinanciera.setEstado(1);
+
+        const entidadFinancieraController = new EntidadFinancieraController();
+        const resultado = await entidadFinancieraController.actualizarEntidadFinanciera(entidadFinanciera);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-actualizar-entidad-financiera', resultado); 
+    } catch (error) {
+        console.error('Error al editar la entidad financiera:', error);
+        event.reply('respuesta-editar-entidad-finaciera', { success: false, message: error.message });
+    }
+});
+
 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
