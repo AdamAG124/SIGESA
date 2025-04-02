@@ -13,10 +13,7 @@ class EntidadFinancieraDB {
         let connection;
         try {
             connection = await db.conectar();
-            console.log(pageSize);
-            console.log(currentPage);
-            console.log(estadoEntidadFinanciera);
-            console.log(valorBusqueda);
+
             // Calcular el OFFSET para la paginación
             const offset = (currentPage - 1) * pageSize;
 
@@ -69,7 +66,7 @@ class EntidadFinancieraDB {
                 entidadFinanciera.setEstado(entidadFinancieraDB.estado);
                 return entidadFinanciera;
             });
-            console.log(entidadesFinancieras);
+            
             // Consulta para contar total de proveedores
             let countQuery = `SELECT COUNT(*) AS total FROM ${this.#table} E`;
             if (estadoEntidadFinanciera !== null) {
@@ -120,6 +117,109 @@ class EntidadFinancieraDB {
             }
         }
     }
+
+    async insertarEntidadFinanciera(entidadFinanciera) {
+        const db = new ConectarDB();
+        let connection;
+    
+        try {
+            connection = await db.conectar();
+    
+            const nombre = entidadFinanciera.getNombre();
+    
+            // Verificar si el proveedor ya existe
+            const existingQuery = `
+                SELECT 
+                    DSC_NOMBRE_ENTIDAD_FINANCIERA
+                FROM ${this.#table} 
+                WHERE DSC_NOMBRE_ENTIDAD_FINANCIERA = ?
+            `;
+            const [existingRows] = await connection.query(existingQuery, [nombre]);
+    
+            // Comprobar si se encontró alguna coincidencia
+            if (existingRows.length > 0) {
+                const duplicateMessages = [];
+    
+                // Verificar cada campo para determinar qué dato se repite
+                if (existingRows.some(row => row.DSC_NOMBRE_ENTIDAD_FINANCIERA === nombre)) {
+                    duplicateMessages.push(`La entidad financiera ${nombre} ya existe.`);
+                }
+    
+                return {
+                    success: false,
+                    message: duplicateMessages.join(' ')
+                };
+            }
+    
+            // Obtener los valores de los campos de la entidad financiera
+            const telefono = entidadFinanciera.getTelefono();
+            const correo = entidadFinanciera.getCorreo();
+            const tipo = entidadFinanciera.getTipo();
+            const fechaInicioFinanciamiento = entidadFinanciera.getFechaInicioFinanciamiento();
+            const estado = entidadFinanciera.getEstado();
+    
+            // Reemplazar los campos vacíos o "N/A" por null antes de insertar en la base de datos
+            const telefonoFinal = telefono && telefono.trim() !== "N/A" ? telefono : null;
+            const correoFinal = correo && correo.trim() !== "N/A" ? correo : null;
+            const tipoFinal = tipo && tipo.trim() !== "N/A" ? tipo : null;
+    
+            // Validar que tipo no sea null
+            if (!tipoFinal) {
+                return {
+                    success: false,
+                    message: 'El tipo de entidad financiera es obligatorio.'
+                };
+            }
+    
+            // Para la fecha, si está vacía o es "N/A", la convertimos a null
+            const fechaInicioFinal = (fechaInicioFinanciamiento && fechaInicioFinanciamiento.trim() !== "N/A") ? fechaInicioFinanciamiento : null;
+    
+            // Crear la consulta SQL para insertar el nuevo proveedor
+            const insertQuery = `
+                INSERT INTO ${this.#table}
+                 (DSC_NOMBRE_ENTIDAD_FINANCIERA, DSC_TELEFONO_ENTIDAD_FINANCIERA, DSC_CORREO_ENTIDAD_FINANCIERA, TIPO_ENTIDAD_FINANCIERA, FEC_INICIO_FINANCIAMIENTO, ESTADO)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+    
+            // Crear los parámetros de la consulta usando los valores obtenidos
+            const params = [
+                nombre,
+                telefonoFinal,  // Puede ser null
+                correoFinal,    // Puede ser null
+                tipoFinal,      // No puede ser null
+                fechaInicioFinal, // Puede ser null
+                estado,
+            ];
+    
+            console.log("Consultando con parametros:", params);  // Verifica los parámetros
+    
+            // Ejecutar la consulta SQL para insertar el proveedor
+            const [result] = await connection.query(insertQuery, params);
+    
+            // Verificar si se ha insertado un registro
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Entidad Financiera insertada exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se pudo insertar la entidad financiera.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al insertar la entidad financiera: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Cerrar la conexión con la base de datos
+            }
+        }
+    }
+
 }
 // Exportar la clase
 module.exports = EntidadFinancieraDB;

@@ -801,7 +801,6 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
         currentPage = 1;
     }
 
-    console.log('log de estado desde index: 804' + estado);
     try {
         // Llamar al método listarProveedores con los parámetros recibidos
         const resultado = await controller.listarEntidadesFinancieras(pageSize, currentPage, estado, valorBusqueda);
@@ -829,6 +828,29 @@ ipcMain.on('listar-entidades-financieras', async (event, { pageSize, currentPage
     } catch (error) {
         console.error('Error al listar las entidades financieras:', error);
         event.reply('error-cargar-entidades-financieras', `Hubo un error al cargar las entidades financieras: ${error.message}`);
+    }
+});
+
+ipcMain.on('crear-entidad-financiera', async (event, entidadFinancieraData) => {
+    try {
+        // Crear un objeto Colaborador y setear los datos
+        const entidadFinanciera = new EntidadFinanciera();
+        entidadFinanciera.setIdEntidadFinanciera(entidadFinancieraData.idEntidadFinanciera);
+        entidadFinanciera.setNombre(entidadFinancieraData.nombre);
+        entidadFinanciera.setTelefono(entidadFinancieraData.telefono);
+        entidadFinanciera.setCorreo(entidadFinancieraData.correo);
+        entidadFinanciera.setTipo(entidadFinancieraData.tipo);
+        entidadFinanciera.setFechaInicioFinanciamiento(entidadFinancieraData.fechaInicioFinanciamiento);
+        entidadFinanciera.setEstado(1);
+
+        const entidadFinancieraController = new EntidadFinancieraController();
+        const resultado = await entidadFinancieraController.insertarEntidadFinanciera(entidadFinanciera);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-crear-entidad-financiera', resultado);
+    } catch (error) {
+        console.error('Error al crear la entidad financiera:', error);
+        event.reply('respuesta-crear-entidad-financiera', { success: false, message: error.message });
     }
 });
 
