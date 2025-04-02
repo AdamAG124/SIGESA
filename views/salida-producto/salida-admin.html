@@ -22,19 +22,17 @@
         <span>-</span>
         <input id="fechaFinalFiltro" type="date" placeholder="Fecha final" onchange="filterTable(8)">
     </div>
-    <select id="colaboradorSacando" name="colaboradorName"  onchange="filterTable(8)">
+    <select id="colaboradorSacando" name="colaboradorName" onchange="filterTable(8)">
         <option value="">Seleccione un colaborador</option>
-    
     </select>
     <select id="colaboradorRecibiendo" name="colaboradorName" onchange="filterTable(8)">
         <option value="">Seleccione un colaborador</option>
-    
     </select>
 </div>
+<button onclick="abrirFormularioNuevaSalida()">Registrar Nueva Salida</button>
 <table>
     <thead>
         <tr>
-           
             <th>Colaborador Sacando</th>
             <th>Colaborador Recibiendo</th>
             <th>Fecha de Salida</th>
@@ -45,3 +43,40 @@
     <tbody id="salidas-table-body"></tbody>
 </table>
 <div class="pagination"></div>
+
+<!-- Modal para registrar nueva salida -->
+<div id="modalNuevaSalida" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModalNuevaSalida()">&times;</span>
+        <h2>Registrar Nueva Salida</h2>
+        <form id="formNuevaSalida">
+            <label for="colaboradorSacandoModal">Colaborador que saca:</label>
+            <select id="colaboradorSacandoModal">
+                <option value="">Seleccione un colaborador</option>
+                <!-- Opciones dinámicas cargadas desde el backend -->
+            </select>
+
+            <label for="colaboradorRecibiendoModal">Colaborador que recibe:</label>
+            <select id="colaboradorRecibiendoModal">
+                <option value="">Seleccione un colaborador</option>
+                <!-- Opciones dinámicas cargadas desde el backend -->
+            </select>
+
+            <h3>Productos</h3>
+            <table id="productosTabla">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad Anterior</th>
+                        <th>Cantidad a Salir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filas dinámicas cargadas desde el backend -->
+                </tbody>
+            </table>
+
+            <button type="button" onclick="crearNuevaSalidaConProductos()">Registrar Salida</button>
+        </form>
+    </div>
+</div>
