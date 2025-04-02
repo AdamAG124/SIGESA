@@ -1864,7 +1864,7 @@ function enviarEdicionPuesto() {
 function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
   const selectPageSize = document.getElementById('selectPageSize');
- 
+
   // Validar pageNumber
   if (typeof currentPage !== 'number' || currentPage <= 0) {
     currentPage = 1; // Establecer el valor predeterminado
@@ -1954,6 +1954,126 @@ function cargarEntidadesFinancierasTabla(pageSize = 10, currentPage = 1, estado 
     cerrarModal("editarEntidadFinancieraModal", "editarEntidadFinancieraForm");
   });
 }
+
+function agregarEntidadFinanciera() {
+
+  // Cambiar el título del modal a "Crear Colaborador"
+  document.getElementById("modalTitle").innerText = "Crear Entidad Financiera";
+  document.getElementById("buttonModal").onclick = enviarCreacionEntidadFinanciera;
+  document.getElementById("editarEntidadFinancieraModal").style.display = "block";
+}
+
+function enviarCreacionEntidadFinanciera() {
+  // Asignar los elementos de los inputs
+  const nombreInput = document.getElementById("nombre");
+  const telefonoInput = document.getElementById("telefono");
+  const correoInput = document.getElementById("correo");
+  const tipoInput = document.getElementById("tipo");
+  const fechaInicioFinanciamientoInput = document.getElementById("fechaInicioFinanciamiento");
+
+  const camposVacios = [];
+
+  const inputs = [
+    { element: nombreInput, obligatorio: true },
+    { element: telefonoInput, obligatorio: false },
+    { element: correoInput, obligatorio: false },
+    { element: tipoInput, obligatorio: true },
+    { element: fechaInicioFinanciamientoInput, obligatorio: false },
+  ];
+
+  // Asignar "N/A" a los campos vacíos y verificar obligatoriedad
+  inputs.forEach(input => {
+    if (!input.element.value.trim()) {
+      if (input.obligatorio) {
+        input.element.style.border = "2px solid red";
+        camposVacios.push(input.element);
+      } else {
+        input.element.value = "N/A";
+        input.element.style.border = "";
+      }
+    } else {
+      input.element.style.border = "";
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos obligatorios.";
+    return;
+  } else {
+    // Validar teléfono directamente desde el valor del input
+    if (telefonoInput.value.trim() !== "N/A" && telefonoInput.value.trim().length < 8) {
+      telefonoInput.style.border = "2px solid red";
+      errorMessage.textContent = "El teléfono ingresado no es válido.";
+      return;
+    }
+
+    // Validar correo directamente desde el valor del input
+    if (correoInput.value.trim() !== "N/A" && !validateEmail(correoInput.value.trim())) {
+      correoInput.style.border = "2px solid red";
+      errorMessage.textContent = "El correo ingresado no es válido.";
+      return;
+    }
+
+    // Si todo es válido, limpiamos el mensaje de error
+    errorMessage.textContent = "";
+  }
+
+  // Obtener los valores de los inputs
+  const nombre = nombreInput.value.trim();
+  const telefono = telefonoInput.value.trim();
+  const correo = correoInput.value.trim();
+  const tipo = tipoInput.value.trim();
+  const fechaInicioFinanciamiento = fechaInicioFinanciamientoInput.value.trim();
+
+  // Crear el objeto entidadFinanciera con los valores
+  const entidadFinancieraData = {
+    nombre: nombre,
+    telefono: telefono !== "N/A" ? telefono : null,  // Si es "N/A", lo dejamos como null
+    correo: correo !== "N/A" ? correo : null,        // Si es "N/A", lo dejamos como null
+    tipo: tipo,                                      // El tipo nunca debe ser "N/A"
+    fechaInicioFinanciamiento: fechaInicioFinanciamiento !== "N/A" ? fechaInicioFinanciamiento : null, // Si es "N/A", lo dejamos como null
+  };
+
+  // Confirmación antes de crear la entidad financiera
+  Swal.fire({
+    title: "Creando Entidad Financiera",
+    text: "¿Está seguro que desea crear esta nueva entidad financiera?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearEntidadFinanciera(entidadFinancieraData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearEntidadFinanciera((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          filterTable(5); // Actualiza la tabla inmediatamente
+          cerrarModal("editarEntidadFinancieraModal", "editarEntidadFinancieraForm"); // Cierra el modal
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+
+function validateEmail(email) {
+  // Expresión regular para validar el correo electrónico
+  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  // Prueba si el correo cumple con la expresión regular
+  return regex.test(email);
+}
+
 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
