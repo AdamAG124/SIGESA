@@ -1296,11 +1296,9 @@ ipcMain.on('listar-salidas', async (event, {
             fechaInicio, fechaFin, filtroUsuario
         );
 
-        console.log("✅ Salidas obtenidas desde el controlador:", resultado);
         event.reply('cargar-salidas', resultado);
 
     } catch (error) {
-        console.error("❌ Error al listar salidas:", error);
         event.reply('cargar-salidas', { salidas: [], error: error.message });
     }
 });

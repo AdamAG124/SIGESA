@@ -223,7 +223,6 @@ contextBridge.exposeInMainWorld('api', {
       --------------------------------  Salida Producto  ------------------------------------------
       --------------------------------           ------------------------------------------ */
     obtenerSalidas: (pageSize, currentPage, estado, valorBusqueda, filtroColaboradorSacando, filtroColaboradorRecibiendo, fechaInicio, fechaFin, filtroUsuario, callback) => {
-        console.log("📢 Enviando solicitud para listar salidas con filtros...");
 
         ipcRenderer.send('listar-salidas', {
             pageSize, currentPage, estado, valorBusqueda,
@@ -232,7 +231,6 @@ contextBridge.exposeInMainWorld('api', {
         });
 
         ipcRenderer.once('cargar-salidas', (event, respuesta) => {
-            console.log("✅ Salidas recibidas en preload:", respuesta);
             callback(respuesta);
         });
     },
@@ -245,7 +243,7 @@ contextBridge.exposeInMainWorld('api', {
                 if (response.success) {
                     resolve(response.data);
                 } else {
-                    reject(new Error(response.message));
+                    reject(new Error(response.message || 'Error al obtener productos por salida'));
                 }
             });
         });

@@ -8,11 +8,9 @@ function verDetallesSalida(idSalida, ruta, option) {
 }
 
 function cargarEdicionSalida(idSalida) {
-    // Primero llenar los <select> de colaboradores
+    llenarSelectsColaboradores();
     setTimeout(function () {
-        llenarSelectsColaboradores();
 
-        // Luego obtener los datos de SalidaProducto
         window.api.obtenerProductosPorSalida(idSalida)
             .then((productosPorSalida) => {
                 console.log('Datos obtenidos:', productosPorSalida);
@@ -38,7 +36,7 @@ function cargarEdicionSalida(idSalida) {
                 const estadoBadge = document.querySelector('.status-badge');
                 estadoBadge.textContent = datosGenerales.estadoSalida ? 'Activo' : 'Inactivo';
                 estadoBadge.className = `status-badge ${datosGenerales.estadoSalida ? 'status-active' : 'status-inactive'}`;
-                document.querySelector('.readonly-value').textContent = datosGenerales.nombreUsuario;
+                document.getElementById('nombreUsuarioRegistro').textContent = datosGenerales.nombreUsuario;
 
                 // Preseleccionar y actualizar datos del colaborador sacando
                 const selectSacando = document.getElementById('colaborador-entregando');
@@ -70,18 +68,20 @@ function cargarEdicionSalida(idSalida) {
                     row.className = 'product-row';
                     row.innerHTML = `
                         <td>
-                            <select class="form-select product-select" id="product-select-${index}" onchange="updateProductDetails(this)">
-                                <option value="${producto.idProducto}" selected>
-                                    ${producto.nombreProducto}
-                                </option>
+                            <select class="form-select product-select" id="product-select-${index}" disabled>
+                                <option value="0">Seleccione un producto</option>
                             </select>
                         </td>
                         <td><input type="text" class="form-control product-unit" value="${producto.unidadMedicion}" readonly></td>
-                        <td><input type="number" class="form-control product-prev-qty" value="${producto.cantidadAnterior}" onchange="updateNewQuantity(this.closest('tr'))"></td>
+                        <td><input type="number" class="form-control product-prev-qty" value="${producto.cantidadAnterior}" onchange="updateNewQuantity(this.closest('tr'))" disabled></td>
                         <td><input type="number" class="form-control product-out-qty" value="${producto.cantidadSaliendo}" min="1" onchange="updateNewQuantity(this.closest('tr'))"></td>
                         <td><input type="number" class="form-control product-new-qty" value="${producto.cantidadNueva}" readonly></td>
-                        <td class="no-print"><i class="material-icons delete-product" onclick="deleteProduct(this)">delete</i></td>
+                        <td class="no-print"><i class="material-icons delete-product" onclick="marcarProductosFacturaEliminar(this, ${producto.idSalidaProducto}, 'output-form')">delete</i></td>
                     `;
+                    llenarProductosSelect(`product-select-${index}`, null);
+                    setTimeout(() => {
+                        document.getElementById(`product-select-${index}`).value = producto.idProducto;
+                    }, 100);
                     productsBody.appendChild(row);
                 });
 
@@ -111,22 +111,24 @@ function deleteProduct(icon) {
     icon.closest('tr').remove();
 }
 
-function addProduct() {
+function addProductSalida() {
     const productsBody = document.getElementById('products-body');
+    const idSelect = `product-select-${Date.now()}-${Math.floor(Math.random() * 1000)}` 
     const row = document.createElement('tr');
     row.className = 'product-row';
     row.innerHTML = `
         <td>
-            <select class="form-select product-select" onchange="updateProductDetails(this)">
+            <select class="form-select product-select" id=${idSelect} onchange="actualizarCantidadPrevia(this)">
                 <option value="0">Seleccione un producto</option>
             </select>
         </td>
         <td><input type="text" class="form-control product-unit" readonly></td>
-        <td><input type="number" class="form-control product-prev-qty" value="0" onchange="updateNewQuantity(this.closest('tr'))"></td>
+        <td><input type="number" class="form-control product-prev-qty" value="0" onchange="updateNewQuantity(this.closest('tr'))" disabled></td>
         <td><input type="number" class="form-control product-out-qty" value="0" min="1" onchange="updateNewQuantity(this.closest('tr'))"></td>
         <td><input type="number" class="form-control product-new-qty" value="0" readonly></td>
         <td class="no-print"><i class="material-icons delete-product" onclick="deleteProduct(this)">delete</i></td>
     `;
+    llenarProductosSelect(idSelect, 1);
     productsBody.appendChild(row);
 }
 
@@ -143,8 +145,7 @@ function goBack() {
 }
 
 function llenarSelectsColaboradores() {
-    window.api.obtenerColaboradores(null, null, 1, null, null, null, (colaboradores) => {
-        console.log('Colaboradores obtenidos:', colaboradores);
+    window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
 
         // Llenar el <select> del colaborador que entrega
         const selectSacando = document.getElementById('colaborador-entregando');
@@ -155,14 +156,15 @@ function llenarSelectsColaboradores() {
                             data-telefono="${col.numTelefono}" 
                             data-departamento="${col.nombreDepartamento}" 
                             data-puesto="${col.nombrePuesto}">
-                        ${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}
+                        ${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''} ${col.estado? '' : ' (Inactivo)'}
                     </option>
                 `).join('');
 
         // Llenar el <select> del colaborador que recibe
         const selectRecibiendo = document.getElementById('colaborador-recibiendo');
+        console.log('select de colaboradores: ', selectRecibiendo);
         selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
-            colaboradores.map(col => `
+            colaboradores.colaboradores.map(col => `
                     <option value="${col.idColaborador}" 
                             data-correo="${col.correo}" 
                             data-telefono="${col.numTelefono}" 
@@ -172,4 +174,32 @@ function llenarSelectsColaboradores() {
                     </option>
                 `).join('');
     });
+}
+
+function actualizarDatosColaborador(select) {
+    const selectedOption = select.options[select.selectedIndex]; // La opción seleccionada
+
+    // Determinar si es el colaborador que entrega o recibe según el ID del select
+    const esColaboradorSacando = select.id === 'colaborador-entregando';
+    const prefijo = esColaboradorSacando ? 'sacando' : 'recibiendo';
+
+    // Obtener los inputs correspondientes
+    const correoInput = document.getElementById(`correo-${prefijo}`);
+    const telefonoInput = document.getElementById(`telefono-${prefijo}`);
+    const departamentoInput = document.getElementById(`departamento-${prefijo}`);
+    const puestoInput = document.getElementById(`puesto-${prefijo}`);
+
+    // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
+    if (selectedOption.value === "0") {
+        correoInput.value = '';
+        telefonoInput.value = '';
+        departamentoInput.value = '';
+        puestoInput.value = '';
+    } else {
+        // Llenar los inputs con los datos de los atributos data-*
+        correoInput.value = selectedOption.dataset.correo || '';
+        telefonoInput.value = selectedOption.dataset.telefono || '';
+        departamentoInput.value = selectedOption.dataset.departamento || '';
+        puestoInput.value = selectedOption.dataset.puesto || '';
+    }
 }
