@@ -2521,3 +2521,66 @@ function crearNuevaSalidaConProductos() {
       }
   });
 }
+
+function cargarProductos(idSelect, mensajeQuemado) {
+  window.api.obtenerProductos(null, null, 1, null, null, (respuesta) => {
+      const productoSelect = document.getElementById(idSelect);
+      productoSelect.innerHTML = ""; // Limpiar las opciones existentes
+      const option = document.createElement("option");
+      option.value = "0";
+      option.textContent = mensajeQuemado;
+      option.selected = true;
+      productoSelect.appendChild(option);
+
+      if (respuesta && respuesta.productos) {
+          respuesta.productos.forEach((producto) => {
+              const option = document.createElement("option");
+              option.value = producto.idProducto;
+              option.textContent = producto.nombreProducto;
+              productoSelect.appendChild(option);
+          });
+      } else {
+          console.error("No se pudieron cargar los productos.");
+      }
+  });
+}
+function cargarVistaCrearSalida() {
+  cargarColaboradores('colaboradorSacandoModal', 'Seleccione un colaborador');
+  cargarColaboradores('colaboradorRecibiendoModal', 'Seleccione un colaborador');
+  cargarProductos('productosComboBox', 'Seleccione un producto');
+  function actualizarCamposProducto(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const cantidadAnterior = selectedOption.getAttribute('data-cantidad') || 0;
+    const unidadMedicion = selectedOption.getAttribute('data-unidad-medicion') || 'Unidad';
+
+    // Obtener la fila actual del producto
+    const row = select.closest('tr');
+    const cantidadAnteriorInput = row.querySelector('.cantidad-anterior');
+    const unidadMedicionInput = row.querySelector('.cantidad-salida');
+
+    // Actualizar los valores de los campos
+    cantidadAnteriorInput.value = cantidadAnterior;
+    unidadMedicionInput.placeholder = `En ${unidadMedicion}`;
+}
+  
+}
+function addProductToSalida() {
+  const productosTabla = document.getElementById('productosTabla').querySelector('tbody');
+  const row = document.createElement('tr');
+
+  row.innerHTML = `
+      <td>
+          <select class="form-control">
+              <option value="">Seleccione un producto</option>
+              <!-- Opciones dinámicas cargadas desde el backend -->
+          </select>
+      </td>
+      <td><input type="number" class="form-control" disabled></td>
+      <td><input type="number" class="form-control"></td>
+      <td class="no-print">
+          <button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">Eliminar</button>
+      </td>
+  `;
+
+  productosTabla.appendChild(row);
+}

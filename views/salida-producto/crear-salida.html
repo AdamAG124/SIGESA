@@ -1,0 +1,88 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 id="salida-title">Registrar Nueva Salida</h1>
+    <div class="btn-group no-print">
+        <button class="btn btn-secondary" onclick="crearNuevaSalidaConProductos()">
+            <i class="material-icons">save</i> Guardar
+        </button>
+        <button class="btn btn-outline-primary"
+            onclick="adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla)">
+            <i class="material-icons">arrow_back</i> Volver
+        </button>
+    </div>
+</div>
+
+<form id="salida-form">
+    <!-- Información General -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Información General</h5>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Colaborador que saca:</div>
+                        <div class="info-value">
+                            <select id="colaboradorSacandoModal" class="form-control">
+                                <option value="">Seleccione un colaborador</option>
+                                <!-- Opciones dinámicas cargadas desde el backend -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Colaborador que recibe:</div>
+                        <div class="info-value">
+                            <select id="colaboradorRecibiendoModal" class="form-control">
+                                <option value="">Seleccione un colaborador</option>
+                                <!-- Opciones dinámicas cargadas desde el backend -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Productos</h5>
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-outline-primary add-product-btn no-print" onclick="addProductToSalida()">
+                <i class="material-icons">add</i> Agregar Producto
+            </button>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="productosTabla">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad Anterior</th>
+                            <th>Cantidad a Salir</th>
+                            <th class="no-print">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <select id="productosComboBox" class="form-control" onchange="actualizarCamposProducto(this)">
+                                    <option value="">Seleccione un producto</option>
+                                    <!-- Opciones dinámicas cargadas desde el backend -->
+                                </select>
+                            </td>
+                            <td><input type="number" class="form-control cantidad-anterior" disabled></td>
+                            <td><input type="number" class="form-control cantidad-salida" min="0"></td>
+                            <td class="no-print">
+                                <button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">Eliminar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
