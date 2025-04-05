@@ -861,6 +861,7 @@ ipcMain.on('editar-entidad-financiera', async (event, entidadFinancieraData) => 
         entidadFinanciera.setIdEntidadFinanciera(entidadFinancieraData.idEntidadFinanciera);
         entidadFinanciera.setNombre(entidadFinancieraData.nombre);
         entidadFinanciera.setTelefono(entidadFinancieraData.telefono);
+        console.log("Correo desde index.js: " + entidadFinancieraData.correo);
         entidadFinanciera.setCorreo(entidadFinancieraData.correo);
         entidadFinanciera.setTipo(entidadFinancieraData.tipo);
         entidadFinanciera.setFechaInicioFinanciamiento(entidadFinancieraData.fechaInicioFinanciamiento);

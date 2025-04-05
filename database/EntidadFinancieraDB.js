@@ -236,6 +236,8 @@ class EntidadFinancieraDB {
             const fechaInicioFinanciamiento = entidadFinanciera.getFechaInicioFinanciamiento();
             const estado = entidadFinanciera.getEstado();
     
+
+            console.log("el correo es:", correo); // Verifica el valor del correo
             // Validar que los valores de los campos necesarios no estén vacíos o sean "N/A"
             if (!nombre) {
                 return {
