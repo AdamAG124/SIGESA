@@ -220,6 +220,101 @@ class EntidadFinancieraDB {
         }
     }
 
+    async actualizarEntidadFinanciera(entidadFinanciera) {
+        const db = new ConectarDB();
+        let connection;
+    
+        try {
+            connection = await db.conectar();
+    
+            // Obtener los valores directamente del objeto entidadFinanciera
+            const idEntidadFinanciera = entidadFinanciera.getIdEntidadFinanciera();                                                                                                                                                                                                                                                                                      
+            const nombre = entidadFinanciera.getNombre();
+            const telefono = entidadFinanciera.getTelefono();
+            const correo = entidadFinanciera.getCorreo();
+            const tipo = entidadFinanciera.getTipo();
+            const fechaInicioFinanciamiento = entidadFinanciera.getFechaInicioFinanciamiento();
+            const estado = entidadFinanciera.getEstado();
+    
+
+            console.log("el correo es:", correo); // Verifica el valor del correo
+            // Validar que los valores de los campos necesarios no estén vacíos o sean "N/A"
+            if (!nombre) {
+                return {
+                    success: false,
+                    message: 'El nombre de la entidad financiera es obligatorio.'
+                };
+            }
+    
+            // Crear la consulta SQL para actualizar los campos del proveedor
+            const query = `
+                UPDATE ${this.#table}
+                SET 
+                    DSC_NOMBRE_ENTIDAD_FINANCIERA = ?, 
+                    DSC_TELEFONO_ENTIDAD_FINANCIERA = ?, 
+                    DSC_CORREO_ENTIDAD_FINANCIERA = ?, 
+                    TIPO_ENTIDAD_FINANCIERA = ?, 
+                    FEC_INICIO_FINANCIAMIENTO = ?, 
+                    ESTADO = ? 
+                WHERE 
+                    ID_ENTIDAD_FINANCIERA = ?
+            `;
+    
+            // Parametros que se usarán en la consulta SQL
+            const params = [
+                nombre,
+                telefono === "N/A" ? null : telefono,  // Si el teléfono es "N/A", lo dejamos como null
+                correo === "N/A" ? null : correo,      // Si el correo es "N/A", lo dejamos como null
+                tipo,
+                fechaInicioFinanciamiento === "N/A" ? null : fechaInicioFinanciamiento,  // Si la fecha es "N/A", lo dejamos como null
+                estado,
+                idEntidadFinanciera
+            ];
+    
+            // Verificar si el nombre de la entidad financiera ya existe en la base de datos
+            const existingQuery = `
+                SELECT 
+                    DSC_NOMBRE_ENTIDAD_FINANCIERA 
+                FROM ${this.#table} 
+                WHERE
+                    DSC_NOMBRE_ENTIDAD_FINANCIERA = ? AND ID_ENTIDAD_FINANCIERA <> ?
+            `;
+            const [existingRows] = await connection.query(existingQuery, [nombre, idEntidadFinanciera]);
+    
+            // Si ya existe una entidad financiera con ese nombre, devolver un error
+            if (existingRows.length > 0) {
+                return {
+                    success: false,
+                    message: `La entidad financiera ya existe con el nombre: ${nombre}.`
+                };
+            }
+    
+            // Ejecutar la consulta SQL
+            const [result] = await connection.query(query, params);
+    
+            // Verificar si se ha actualizado algún registro
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Entidad financiera actualizada exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró la entidad financiera o no se realizaron cambios.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al actualizar la entidad financiera: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Cerrar la conexión con la base de datos
+            }
+        }
+    }
 }
 // Exportar la clase
 module.exports = EntidadFinancieraDB;
