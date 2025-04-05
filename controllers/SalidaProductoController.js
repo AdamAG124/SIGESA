@@ -72,6 +72,10 @@ class SalidaProductoController {
             throw new Error('Error al procesar los productos de la salida: ' + error.message);
         }
     }
+
+    async editarSalidaProducto(salidaProductoActual, nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto) {
+        return await this.salidaProductoService.editarSalidaProducto(salidaProductoActual, nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto);
+    }
 }
 
 module.exports = SalidaProductoController;

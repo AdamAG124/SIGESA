@@ -15,6 +15,10 @@ class SalidaProductoService {
     async obtenerProductosPorSalida(idSalida) {
         return await this.salidaProductoDB.obtenerProductosPorSalida(idSalida);
     }
+
+    async editarSalidaProducto(salidaProductoActual, nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto) {
+        return await this.salidaProductoDB.editarSalidaProductoBD(salidaProductoActual, nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto);
+    }
 }
 
 module.exports = SalidaProductoService;

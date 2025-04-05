@@ -203,3 +203,174 @@ function actualizarDatosColaborador(select) {
         puestoInput.value = selectedOption.dataset.puesto || '';
     }
 }
+
+function validarYRecolectarDatosSalidaProducto() {
+    // Limpiar mensajes de error previos y estilos
+    const existingErrors = document.querySelectorAll('.error-message');
+    existingErrors.forEach(error => error.remove());
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => input.style.border = '');
+
+    // Seleccionar todos los inputs y selects no deshabilitados dentro del formulario
+    const form = document.getElementById('output-form');
+    const inputs = form.querySelectorAll('input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+    let isValid = true;
+
+    // Arrays para cada tipo de SalidaProducto y datos de salida
+    const nuevosSalidaProducto = [];
+    const actualizarSalidaProducto = [];
+    const eliminarSalidaProducto = [];
+    let salidaData = null;
+
+    // Validar campos generales obligatorios
+    inputs.forEach(input => {
+        const value = input.value.trim();
+        const isSelect = input.tagName === 'SELECT';
+        const isNumber = input.type === 'number';
+        const isEmpty = value === '' || (isSelect && value === '0');
+
+        // Validar campos obligatorios
+        if (isEmpty && input.id !== 'notas' && input.id !== 'id-salida' && input.id !== 'id-salida-producto') {
+            if (input.id === 'fecha-salida' || input.id === 'colaborador-entregando' || input.id === 'colaborador-recibiendo') {
+                isValid = false;
+                input.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'Este campo es obligatorio';
+                input.parentElement.appendChild(errorMessage);
+            }
+        }
+    });
+
+    // Validar y recolectar datos de productos dinámicos
+    const productRows = document.querySelectorAll('#products-body .product-row');
+    productRows.forEach(row => {
+        const selectProducto = row.querySelector('.product-select');
+        const inputCantidadAnterior = row.querySelector('.product-prev-qty');
+        const inputCantidadSaliendo = row.querySelector('.product-out-qty'); // Cambiado a product-out-qty según tu estructura
+        const inputCantidadNueva = row.querySelector('.product-new-qty');
+
+        const idProducto = selectProducto.value;
+        const cantidadSaliendo = inputCantidadSaliendo.value.trim();
+        const cantidadSaliendoNum = Number(cantidadSaliendo);
+
+        // Validar campos no deshabilitados
+        if (!selectProducto.disabled) {
+            if (idProducto === '0') {
+                isValid = false;
+                selectProducto.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'Seleccione un producto';
+                selectProducto.parentElement.appendChild(errorMessage);
+            }
+        }
+
+        if (!inputCantidadSaliendo.disabled) {
+            if (cantidadSaliendo === '') {
+                isValid = false;
+                inputCantidadSaliendo.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'Ingrese la cantidad saliente';
+                inputCantidadSaliendo.parentElement.appendChild(errorMessage);
+            } else if (cantidadSaliendoNum <= 0) { // Cambiado a <= 0 ya que min="1" en el HTML
+                isValid = false;
+                inputCantidadSaliendo.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'La cantidad saliente debe ser mayor a 0';
+                inputCantidadSaliendo.parentElement.appendChild(errorMessage);
+            }
+        }
+
+        // Recolectar datos si es válido
+        if (idProducto !== '0' && cantidadSaliendo !== '' && cantidadSaliendoNum > 0) {
+            const productoData = {
+                idProducto: Number(idProducto),
+                cantidadAnterior: Number(inputCantidadAnterior.value),
+                cantidadSaliendo: cantidadSaliendoNum,
+                cantidadNueva: Number(inputCantidadNueva.value),
+                idUsuario: Number(document.getElementById('id-usuario').value)
+            };
+
+            if (!selectProducto.disabled) {
+                nuevosSalidaProducto.push(productoData);
+            } else {
+                const idSalidaProducto = row.querySelector('.delete-product')?.getAttribute('onclick')?.match(/\d+/)?.[0];
+                if (idSalidaProducto) {
+                    productoData.idSalidaProducto = Number(idSalidaProducto);
+                    actualizarSalidaProducto.push(productoData);
+                }
+            }
+        }
+    });
+
+    // Recolectar productos a eliminar
+    const productosEliminar = form.querySelectorAll('input[name="productosEliminar[]"]');
+    productosEliminar.forEach(input => {
+        eliminarSalidaProducto.push({
+            idSalidaProducto: Number(input.value)
+        });
+    });
+
+    // Si todo es válido, recolectar datos de la salida
+    if (isValid) {
+        const idSalida = document.getElementById('id-salida').value;
+        const fechaSalida = document.getElementById('fecha-salida').value;
+        const idColaboradorEntregando = document.getElementById('colaborador-entregando').value;
+        const idColaboradorRecibiendo = document.getElementById('colaborador-recibiendo').value;
+        const notas = document.getElementById('notas').value;
+
+        salidaData = {
+            idSalida: idSalida ? Number(idSalida) : null,
+            fechaSalida,
+            idColaboradorEntregando: Number(idColaboradorEntregando),
+            idColaboradorRecibiendo: Number(idColaboradorRecibiendo),
+            notas
+        };
+
+        nuevosSalidaProducto.forEach(producto => producto.idSalida = salidaData.idSalida);
+        actualizarSalidaProducto.forEach(producto => producto.idSalida = salidaData.idSalida);
+    }
+
+    if (isValid) {
+        Swal.fire({
+            title: "Creando Salida",
+            text: "¿Está seguro que desea actualizar esta salida?, algunos de los cambios no son reversibles!",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4a4af4",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.api.actualizarSalidaYProductos(
+                    nuevosSalidaProducto,
+                    actualizarSalidaProducto,
+                    eliminarSalidaProducto,
+                    salidaData,
+                    (respuesta) => {
+                        if (respuesta.success) {
+                            mostrarToastConfirmacion(respuesta.message);
+                            setTimeout(() => {
+                                cargarEdicionSalida(document.getElementById('id-salida').value);
+                            }, 2000);
+                        } else {
+                            mostrarToastError(respuesta.message);
+                        }
+                    }
+                );
+            }
+        });
+    }
+}

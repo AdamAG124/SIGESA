@@ -3,9 +3,11 @@ const SalidaProducto = require('../domain/SalidaProducto');
 
 class SalidaProductoDB {
     #db;
+    #table;
 
     constructor() {
         this.#db = new ConectarDB();
+        this.#table = 'sigt_salida_producto';
     }
 
     async obtenerProductosPorSalida(idSalida) {
@@ -67,7 +69,7 @@ class SalidaProductoDB {
                     -- Información del puesto de trabajo (recibiendo)
                     ptr.DSC_NOMBRE AS nombrePuestoTrabajoRecibiendo
                 FROM 
-                    sigt_salida_producto sp
+                    ${this.#table} sp
                 INNER JOIN 
                     sigt_salida s ON sp.ID_SALIDA = s.ID_SALIDA
                 INNER JOIN 
@@ -149,6 +151,225 @@ class SalidaProductoDB {
         } finally {
             if (connection) {
                 await connection.end(); // Cerrar la conexión
+            }
+        }
+    }
+
+    async editarSalidaProductoBD(salidaProductoActual, nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto) {
+        let connection;
+
+        try {
+            connection = await this.#db.conectar();
+
+            // Actualizar la salida en sigt_salida
+            const salida = salidaProductoActual.getIdSalida();
+            const updateSalidaQuery = `
+                UPDATE sigt_salida
+                SET 
+                    ID_COLABORADOR_SACANDO = ${salida.getColaboradorSacando().getIdColaborador()},
+                    ID_COLABORADOR_RECIBIENDO = ${salida.getColaboradorRecibiendo().getIdColaborador()},
+                    FEC_SALIDA = '${salida.getFechaSalida()}',
+                    DSC_DETALLE_SALIDA = '${salida.getDetalleSalida()}'
+                WHERE ID_SALIDA = ${salida.getIdSalida()}
+            `;
+            const [updateSalidaResult] = await connection.query(updateSalidaQuery);
+
+            if (updateSalidaResult.affectedRows === 0 && salida.getIdSalida() !== 0) {
+                throw new Error('No se actualizó ninguna salida. Verifique el ID_SALIDA.');
+            }
+
+            // Insertar nuevos SalidaProducto si el array no está vacío
+            if (nuevosSalidaProducto.length > 0) {
+                for (const nuevo of nuevosSalidaProducto) {
+                    const selectProductoQuery = `
+                        SELECT NUM_CANTIDAD 
+                        FROM sigm_producto 
+                        WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
+                    `;
+                    const [productoResult] = await connection.query(selectProductoQuery);
+
+                    if (productoResult.length === 0) {
+                        throw new Error(`No se encontró el producto con ID ${nuevo.getIdProducto().getIdProducto()}`);
+                    }
+
+                    const cantidadActual = productoResult[0].NUM_CANTIDAD || 0;
+                    const nuevaCantidad = cantidadActual - nuevo.getCantidadSaliendo();
+
+                    if (nuevaCantidad < 0) {
+                        throw new Error(`No hay suficiente stock para el producto con ID ${nuevo.getIdProducto().getIdProducto()}`);
+                    }
+
+                    const updateProductoQuery = `
+                        UPDATE sigm_producto
+                        SET NUM_CANTIDAD = ${nuevaCantidad}
+                        WHERE ID_PRODUCTO = ${nuevo.getIdProducto().getIdProducto()}
+                    `;
+                    const [updateProductoResult] = await connection.query(updateProductoQuery);
+
+                    if (updateProductoResult.affectedRows === 0) {
+                        throw new Error(`No se actualizó la cantidad del producto con ID ${nuevo.getIdProducto().getIdProducto()}`);
+                    }
+
+                    const insertQuery = `
+                        INSERT INTO ${this.#table} (
+                            ID_PRODUCTO, 
+                            ID_SALIDA, 
+                            NUM_CANTIDAD_ANTERIOR, 
+                            NUM_CANTIDAD_SALIENDO, 
+                            NUM_CANTIDAD_NUEVA
+                        ) VALUES (
+                            ${nuevo.getIdProducto().getIdProducto()},
+                            ${nuevo.getIdSalida().getIdSalida()},
+                            ${nuevo.getCantidadAnterior()},
+                            ${nuevo.getCantidadSaliendo()},
+                            ${nuevaCantidad}
+                        )
+                    `;
+                    await connection.query(insertQuery);
+                }
+            }
+
+            // Actualizar SalidaProducto si el array no está vacío
+            if (actualizarSalidaProducto.length > 0) {
+                for (const actualizar of actualizarSalidaProducto) {
+                    // Obtener el valor actual de NUM_CANTIDAD_SALIENDO desde sigt_salida_producto
+                    const selectSalidaProductoQuery = `
+                        SELECT NUM_CANTIDAD_SALIENDO
+                        FROM ${this.#table}
+                        WHERE ID_SALIDA_PRODUCTO = ${actualizar.getIdSalidaProducto()}
+                    `;
+                    const [salidaProductoResult] = await connection.query(selectSalidaProductoQuery);
+
+                    if (salidaProductoResult.length === 0) {
+                        console.warn(`No se encontró el SalidaProducto con ID ${actualizar.getIdSalidaProducto()}`);
+                        continue;
+                    }
+
+                    const cantidadSaliendoAnterior = salidaProductoResult[0].NUM_CANTIDAD_SALIENDO || 0;
+                    const cantidadSaliendoNueva = actualizar.getCantidadSaliendo();
+
+                    // Definir nuevaCantidadProducto en el ámbito del bucle
+                    let nuevaCantidadProducto;
+
+                    if (cantidadSaliendoAnterior !== cantidadSaliendoNueva) {
+                        const selectProductoQuery = `
+                            SELECT NUM_CANTIDAD 
+                            FROM sigm_producto 
+                            WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
+                        `;
+                        const [productoResult] = await connection.query(selectProductoQuery);
+
+                        if (productoResult.length === 0) {
+                            throw new Error(`No se encontró el producto con ID ${actualizar.getIdProducto().getIdProducto()}`);
+                        }
+
+                        const cantidadActualProducto = productoResult[0].NUM_CANTIDAD || 0;
+                        const diferencia = cantidadSaliendoNueva - cantidadSaliendoAnterior;
+                        nuevaCantidadProducto = cantidadActualProducto - diferencia;
+
+                        if (nuevaCantidadProducto < 0) {
+                            throw new Error(`No hay suficiente stock para el producto con ID ${actualizar.getIdProducto().getIdProducto()}`);
+                        }
+
+                        const updateProductoQuery = `
+                            UPDATE sigm_producto
+                            SET NUM_CANTIDAD = ${nuevaCantidadProducto}
+                            WHERE ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()}
+                        `;
+                        const [updateProductoResult] = await connection.query(updateProductoQuery);
+
+                        if (updateProductoResult.affectedRows === 0) {
+                            throw new Error(`No se actualizó la cantidad del producto con ID ${actualizar.getIdProducto().getIdProducto()}`);
+                        }
+                    } else {
+                        // Si no cambió la cantidad saliente, calculamos nuevaCantidadProducto basándonos en los datos actuales
+                        nuevaCantidadProducto = actualizar.getCantidadAnterior() - cantidadSaliendoNueva;
+                    }
+
+                    // Actualizar el SalidaProducto en sigt_salida_producto
+                    const updateQuery = `
+                        UPDATE ${this.#table}
+                        SET 
+                            ID_PRODUCTO = ${actualizar.getIdProducto().getIdProducto()},
+                            NUM_CANTIDAD_ANTERIOR = ${actualizar.getCantidadAnterior()},
+                            NUM_CANTIDAD_SALIENDO = ${actualizar.getCantidadSaliendo()},
+                            NUM_CANTIDAD_NUEVA = ${nuevaCantidadProducto}
+                        WHERE ID_SALIDA_PRODUCTO = ${actualizar.getIdSalidaProducto()}
+                    `;
+                    const [updateResult] = await connection.query(updateQuery);
+                    if (updateResult.affectedRows === 0) {
+                        console.warn(`No se actualizó el SalidaProducto con ID ${actualizar.getIdSalidaProducto()}`);
+                    }
+                }
+            }
+
+            // Eliminar SalidaProducto si el array no está vacío
+            if (eliminarSalidaProducto.length > 0) {
+                for (const eliminar of eliminarSalidaProducto) {
+                    const selectSalidaProductoQuery = `
+                        SELECT NUM_CANTIDAD_SALIENDO, ID_PRODUCTO
+                        FROM ${this.#table}
+                        WHERE ID_SALIDA_PRODUCTO = ${eliminar.getIdSalidaProducto()}
+                    `;
+                    const [salidaProductoResult] = await connection.query(selectSalidaProductoQuery);
+
+                    if (salidaProductoResult.length > 0) {
+                        const cantidadSaliendoEliminar = salidaProductoResult[0].NUM_CANTIDAD_SALIENDO || 0;
+                        const idProducto = salidaProductoResult[0].ID_PRODUCTO;
+
+                        const selectProductoQuery = `
+                            SELECT NUM_CANTIDAD 
+                            FROM sigm_producto 
+                            WHERE ID_PRODUCTO = ${idProducto}
+                        `;
+                        const [productoResult] = await connection.query(selectProductoQuery);
+
+                        if (productoResult.length === 0) {
+                            throw new Error(`No se encontró el producto con ID ${idProducto}`);
+                        }
+
+                        const cantidadActualProducto = productoResult[0].NUM_CANTIDAD || 0;
+                        const nuevaCantidadProducto = cantidadActualProducto + cantidadSaliendoEliminar;
+
+                        const updateProductoQuery = `
+                            UPDATE sigm_producto
+                            SET NUM_CANTIDAD = ${nuevaCantidadProducto}
+                            WHERE ID_PRODUCTO = ${idProducto}
+                        `;
+                        const [updateProductoResult] = await connection.query(updateProductoQuery);
+
+                        if (updateProductoResult.affectedRows === 0) {
+                            throw new Error(`No se actualizó la cantidad del producto con ID ${idProducto}`);
+                        }
+                    } else {
+                        console.warn(`No se encontró el SalidaProducto con ID ${eliminar.getIdSalidaProducto()} para ajustar la cantidad`);
+                    }
+
+                    const deleteQuery = `
+                        DELETE FROM ${this.#table}
+                        WHERE ID_SALIDA_PRODUCTO = ${eliminar.getIdSalidaProducto()}
+                    `;
+                    const [deleteResult] = await connection.query(deleteQuery);
+                    if (deleteResult.affectedRows === 0) {
+                        console.warn(`No se eliminó el SalidaProducto con ID ${eliminar.getIdSalidaProducto()}`);
+                    }
+                }
+            }
+
+            return {
+                success: true,
+                message: 'Salida y productos actualizados correctamente'
+            };
+
+        } catch (error) {
+            console.error('Error en editarSalidaProducto:', error.message);
+            return {
+                success: false,
+                message: 'Error al procesar la salida y productos: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
             }
         }
     }

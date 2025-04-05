@@ -248,5 +248,10 @@ contextBridge.exposeInMainWorld('api', {
             });
         });
     },
+
+    actualizarSalidaYProductos: (nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto, salidaData, callback) => {
+        ipcRenderer.send('actualizar-salida-y-productos', { nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto, salidaData });
+        ipcRenderer.once('salida-actualizada', (event, respuesta) => callback(respuesta));
+    },
 });
 
