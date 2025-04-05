@@ -25,12 +25,12 @@ function deleteProduct(icon) {
     row.remove();
 }
 
-function marcarProductosFacturaEliminar(icon, idFacturaProducto) {
+function marcarProductosFacturaEliminar(icon, idFacturaProducto, idForm) {
     const row = icon.closest('tr');
     row.style.border = "2px solid red";
     const column = icon.closest('td');
 
-    const formEditarFacturaProducto = document.getElementById('invoice-form');
+    const formEditarFacturaProducto = document.getElementById(idForm);
     const inputProductosEliminar = document.createElement('input');
     inputProductosEliminar.type = 'hidden';
     inputProductosEliminar.name = 'productosEliminar[]';
@@ -42,14 +42,14 @@ function marcarProductosFacturaEliminar(icon, idFacturaProducto) {
     const botonCancerlaEliminacion = document.createElement('i');
     botonCancerlaEliminacion.className = 'material-icons remove-product';
     botonCancerlaEliminacion.textContent = 'remove';
-    botonCancerlaEliminacion.addEventListener('click', () => { cancelarEliminacionProductosFactura(botonCancerlaEliminacion, idFacturaProducto) });
+    botonCancerlaEliminacion.addEventListener('click', () => { cancelarEliminacionProductosFactura(botonCancerlaEliminacion, idFacturaProducto, idForm) });
     botonCancerlaEliminacion.style.color = 'white';
     botonCancerlaEliminacion.style.backgroundColor = 'red';
     botonCancerlaEliminacion.style.cursor = 'pointer';
     column.appendChild(botonCancerlaEliminacion);
 }
 
-function cancelarEliminacionProductosFactura(icon, idFacturaProducto) {
+function cancelarEliminacionProductosFactura(icon, idFacturaProducto, idForm) {
     const row = icon.closest('tr');
     row.style.border = "";
     const column = icon.closest('td');
@@ -65,7 +65,7 @@ function cancelarEliminacionProductosFactura(icon, idFacturaProducto) {
     const botonEliminar = document.createElement('i');
     botonEliminar.className = 'material-icons delete-product';
     botonEliminar.textContent = 'delete';
-    botonEliminar.addEventListener('click', () => { marcarProductosFacturaEliminar(botonEliminar, idFacturaProducto) });
+    botonEliminar.addEventListener('click', () => { marcarProductosFacturaEliminar(botonEliminar, idFacturaProducto, idForm) });
     column.appendChild(botonEliminar);
 }
 
@@ -271,7 +271,7 @@ function cargarFacturaEditable(idFactura) {
                         <td><input type="number" class="form-control product-prev-qty" value="${producto.cantidadAnterior}"disabled></td>
                         <td><input type="number" class="form-control product-new-qty" value="${producto.cantidadEntrando}"></td>
                         <td><input type="number" class="form-control product-price" value="${producto.precioNueva.toFixed(2)}" step="0.01"></td>
-                        <td class="no-print"><i class="material-icons delete-product" onclick="marcarProductosFacturaEliminar(this, ${producto.idFacturaProducto})">delete</i></td>
+                        <td class="no-print"><i class="material-icons delete-product" onclick="marcarProductosFacturaEliminar(this, ${producto.idFacturaProducto}, 'invoice-form')">delete</i></td>
                     `;
                     productsBody.appendChild(row);
 
