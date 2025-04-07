@@ -1,0 +1,344 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        margin: 0;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background-color: #e6f7e6;
+        color: #28a745;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #dc3545;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .info-label {
+        font-weight: 500;
+        min-width: 150px;
+        padding-right: 10px;
+    }
+
+    .info-value {
+        flex-grow: 1;
+    }
+
+    .readonly-value {
+        padding: 6px 12px;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        color: #6c757d;
+    }
+
+    .table-responsive {
+        margin-bottom: 20px;
+    }
+
+    .table th {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--hover-color);
+        border-color: var(--hover-color);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .btn-secondary:hover {
+        background-color: #7a1bd2;
+        border-color: #7a1bd2;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(74, 74, 244, 0.25);
+    }
+
+    .product-row td {
+        vertical-align: middle;
+    }
+
+    .delete-product {
+        color: #dc3545;
+        cursor: pointer;
+    }
+
+    .add-product-btn {
+        margin-bottom: 15px;
+    }
+
+    .product-status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+
+    .status-active-dot {
+        background-color: #28a745;
+    }
+
+    .status-inactive-dot {
+        background-color: #dc3545;
+    }
+
+    @media print {
+        .no-print {
+            display: none;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+    }
+</style>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 id="output-title">Editar Salida de Productos</h1>
+    <div class="btn-group no-print">
+        <button class="btn btn-secondary" onclick="validarYRecolectarDatosSalidaProducto()">
+            <i class="material-icons">save</i> Guardar
+        </button>
+        <button class="btn btn-outline-primary" onclick="adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla)">
+            <i class="material-icons">arrow_back</i> Volver
+        </button>
+    </div>
+</div>
+
+<form id="output-form">
+    <!-- IDs ocultos -->
+    <input type="hidden" id="id-salida-producto">
+    <input type="hidden" id="id-salida">
+    <input type="hidden" id="id-usuario">
+
+    <!-- Información General -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Información General</h5>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Fecha de Salida:</div>
+                        <div class="info-value">
+                            <input type="datetime-local" class="form-control" id="fecha-salida">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Estado:</div>
+                        <div class="info-value">
+                            <div class="readonly-value">
+                                <span class="status-badge status-active"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Registrado por:</div>
+                        <div class="info-value">
+                            <div class="readonly-value" id="nombreUsuarioRegistro"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Colaborador que Saca -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Colaborador que Entrega</h5>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Nombre Completo:</div>
+                        <div class="info-value">
+                            <select id="colaborador-entregando" onchange="actualizarDatosColaborador(this)"></select>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Correo:</div>
+                        <div class="info-value">
+                            <input type="email" class="form-control" id="correo-sacando" disabled>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Teléfono:</div>
+                        <div class="info-value">
+                            <input type="text" class="form-control" id="telefono-sacando" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Departamento:</div>
+                        <div class="info-value">
+                            <input type="text" class="form-control" id="departamento-sacando" disabled>
+                            <input type="hidden" id="id-departamento-sacando">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Puesto:</div>
+                        <div class="info-value">
+                            <input type="text" class="form-control" id="puesto-sacando" disabled>
+                            <input type="hidden" id="id-puesto-sacando">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Colaborador que Recibe -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Colaborador que Recibe</h5>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Nombre Completo:</div>
+                        <div class="info-value">
+                            <select id="colaborador-recibiendo" onchange="actualizarDatosColaborador(this)"></select>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Correo:</div>
+                        <div class="info-value">
+                            <input type="email" class="form-control" id="correo-recibiendo" disabled>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Teléfono:</div>
+                        <div class="info-value">
+                            <input type="text" class="form-control" id="telefono-recibiendo" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-row">
+                        <div class="info-label">Departamento:</div>
+                        <div class="info-value">
+                            <input type="text" class="form-control" id="departamento-recibiendo" disabled>
+                            <input type="hidden" id="id-departamento-recibiendo">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Puesto:</div>
+                        <div class="info-value">
+                            <input type="text" class="form-control" id="puesto-recibiendo" disabled>
+                            <input type="hidden" id="id-puesto-recibiendo">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Productos</h5>
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-outline-primary add-product-btn no-print" onclick="addProductSalida()">
+                <i class="material-icons">add</i> Agregar Producto
+            </button>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="products-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th>Cant. Anterior</th>
+                            <th>Cant. Saliendo</th>
+                            <th>Cant. Nueva</th>
+                            <th class="no-print">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-body">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles Adicionales -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title"></h5>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <div class="info-label">Notas:</div>
+                <div class="info-value">
+                    <textarea class="form-control" id="notas" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

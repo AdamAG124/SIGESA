@@ -2700,7 +2700,7 @@ function cargarSalidasTabla(
                     <td>${new Date(salida.fechaSalida).toLocaleDateString()}</td>
                     <td>${salida.nombreUsuario || 'Desconocido'}</td>
                     <td>
-                        <button class="tooltip" value="${salida.idSalida}" onclick="verDetallesSalida(this.value, '/factura-view/editar-factura.html', 2)">
+                        <button class="tooltip" value="${salida.idSalida}" onclick="verDetallesSalida(this.value, '/salida-producto/editar-salida.html', 2)">
                             <span class="material-icons">edit</span>
                             <span class="tooltiptext">Editar factura</span>
                         </button>
