@@ -315,6 +315,54 @@ class EntidadFinancieraDB {
             }
         }
     }
+
+    async eliminarEntidadFinanciera(entidadFinanciera) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            const idEntidadFinanciera = entidadFinanciera.getIdEntidadFinanciera();
+            const estado = entidadFinanciera.getEstado();
+
+            // Construimos la consulta SQL dinámicamente
+            let query = `UPDATE ${this.#table} SET ESTADO = ? WHERE ID_ENTIDAD_FINANCIERA = ?`;
+            let params = [estado, idEntidadFinanciera];
+
+            // Ejecutar la consulta
+            const [result] = await connection.query(query, params);
+
+            if (result.affectedRows > 0) {
+                if (estado === 0) {
+                    return {
+                        success: true,
+                        message: 'Entidad Financiera eliminada exitosamente.'
+                    };
+                } else {
+                    return {
+                        success: true,
+                        message: 'Entidad Financiera reactivada exitosamente.'
+                    };
+                }
+
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró la entidad financiera o no se modificó su estado.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al modificar el estado del la entidad financiera: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end(); // Asegurarse de cerrar la conexión
+            }
+        }
+    }
 }
 // Exportar la clase
 module.exports = EntidadFinancieraDB;
