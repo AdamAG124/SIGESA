@@ -22,6 +22,8 @@ const FacturaProductoController = require('./controllers/FacturaProductoControll
 const ComprobantePagoController = require('./controllers/ComprobantePagoController');
 const Factura = require('./domain/Factura');
 const FacturaProducto = require('./domain/FacturaProducto');
+const Salida = require('./domain/Salida');
+const SalidaProducto = require('./domain/SalidaProducto');
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -854,6 +856,30 @@ ipcMain.on('crear-entidad-financiera', async (event, entidadFinancieraData) => {
     }
 });
 
+ipcMain.on('editar-entidad-financiera', async (event, entidadFinancieraData) => {
+    try {
+        // Crear un objeto Colaborador y setear los datos
+        const entidadFinanciera = new EntidadFinanciera();
+        entidadFinanciera.setIdEntidadFinanciera(entidadFinancieraData.idEntidadFinanciera);
+        entidadFinanciera.setNombre(entidadFinancieraData.nombre);
+        entidadFinanciera.setTelefono(entidadFinancieraData.telefono);
+        console.log("Correo desde index.js: " + entidadFinancieraData.correo);
+        entidadFinanciera.setCorreo(entidadFinancieraData.correo);
+        entidadFinanciera.setTipo(entidadFinancieraData.tipo);
+        entidadFinanciera.setFechaInicioFinanciamiento(entidadFinancieraData.fechaInicioFinanciamiento);
+        entidadFinanciera.setEstado(1);
+
+        const entidadFinancieraController = new EntidadFinancieraController();
+        const resultado = await entidadFinancieraController.actualizarEntidadFinanciera(entidadFinanciera);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-actualizar-entidad-financiera', resultado); 
+    } catch (error) {
+        console.error('Error al editar la entidad financiera:', error);
+        event.reply('respuesta-editar-entidad-finaciera', { success: false, message: error.message });
+    }
+});
+
 
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
@@ -1296,25 +1322,120 @@ ipcMain.on('listar-salidas', async (event, {
             fechaInicio, fechaFin, filtroUsuario
         );
 
-        console.log("✅ Salidas obtenidas desde el controlador:", resultado);
         event.reply('cargar-salidas', resultado);
 
     } catch (error) {
-        console.error("❌ Error al listar salidas:", error);
         event.reply('cargar-salidas', { salidas: [], error: error.message });
     }
 });
-ipcMain.on('listar-productos-por-salida', async (event, { idSalida }) => {
-    console.log("Evento listar-productos-por-salida recibido con ID:", idSalida); // Depuración inicial
-
+ipcMain.on('obtener-productos-por-salida', async (event, idSalida) => {
     const salidaProductoController = new SalidaProductoController();
+
     try {
-        const productos = await salidaProductoController.obtenerSalidaProductos(idSalida);
-        console.log("Productos obtenidos desde el controlador:", productos); // Verificar los datos obtenidos
-        event.reply('cargar-productos-por-salida', productos);
+        // Llamar al método del controller para obtener los productos por salida
+        const productosPorSalida = await salidaProductoController.obtenerProductosPorSalida(idSalida);
+        event.reply('productos-por-salida-obtenidos', {
+            success: true,
+            data: productosPorSalida
+        });
     } catch (error) {
-        console.error("Error al listar productos de la salida:", error); // Mostrar el error en la consola
-        event.reply('cargar-productos-por-salida', []);
+        // Manejar errores y enviarlos al proceso de renderizado
+        console.error('Error en index.js al obtener productos por salida:', error.message);
+        event.reply('productos-por-salida-obtenidos', {
+            success: false,
+            message: 'Error al obtener los productos por salida: ' + error.message
+        });
+    }
+});
+
+ipcMain.on('actualizar-salida-y-productos', async (event, data) => {
+    const { nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto, salidaData } = data;
+    const controllerSalidaProducto = new SalidaProductoController();
+
+    try {
+        // 1. Crear el objeto Salida con los datos recibidos
+        const salida = new Salida();
+        salida.setIdSalida(salidaData.idSalida || 0); // Si no hay idSalida, usa 0 (nueva salida)
+        salida.setFechaSalida(salidaData.fechaSalida);
+
+        const colaboradorSacando = new Colaborador();
+        colaboradorSacando.setIdColaborador(salidaData.idColaboradorEntregando);
+        salida.setColaboradorSacando(colaboradorSacando);
+
+        const colaboradorRecibiendo = new Colaborador();
+        colaboradorRecibiendo.setIdColaborador(salidaData.idColaboradorRecibiendo);
+        salida.setColaboradorRecibiendo(colaboradorRecibiendo);
+
+        salida.setDetalleSalida(salidaData.notas);
+
+        // No seteamos idUsuario en Salida porque no viene en salidaData directamente
+        // No modificamos estado, se deja como está por defecto o manejado en otro flujo
+
+        // 2. Mapear los nuevos SalidaProducto
+        const nuevos = nuevosSalidaProducto.map(data => {
+            const sp = new SalidaProducto();
+            sp.setIdSalida(salida);
+
+            const producto = new Producto();
+            producto.setIdProducto(data.idProducto);
+            sp.setIdProducto(producto);
+
+            sp.setCantidadAnterior(data.cantidadAnterior);
+            sp.setCantidadSaliendo(data.cantidadSaliendo);
+            // cantidadNueva no se envía explícitamente desde el formulario, se calcula en el backend si es necesario
+
+            // No seteamos idUsuario en SalidaProducto porque no es parte de la clase, pero viene en los datos
+            // No modificamos estado
+
+            return sp;
+        });
+
+        // 3. Mapear los SalidaProducto a actualizar
+        const actualizar = actualizarSalidaProducto.map(data => {
+            const sp = new SalidaProducto();
+            sp.setIdSalidaProducto(data.idSalidaProducto);
+            sp.setIdSalida(salida);
+
+            const producto = new Producto();
+            producto.setIdProducto(data.idProducto);
+            sp.setIdProducto(producto);
+
+            sp.setCantidadAnterior(data.cantidadAnterior);
+            sp.setCantidadSaliendo(data.cantidadSaliendo);
+            // cantidadNueva no se envía explícitamente desde el formulario, se calcula en el backend si es necesario
+
+            // No modificamos estado
+
+            return sp;
+        });
+
+        // 4. Mapear los SalidaProducto a eliminar
+        const eliminar = eliminarSalidaProducto.map(data => {
+            const sp = new SalidaProducto();
+            sp.setIdSalidaProducto(data.idSalidaProducto);
+            return sp;
+        });
+
+        // 5. Crear salidaProductoActual con el objeto salida
+        const salidaProductoActual = new SalidaProducto();
+        salidaProductoActual.setIdSalida(salida);
+
+        // 6. Llamar al método del controlador
+        const resultado = await controllerSalidaProducto.editarSalidaProducto(
+            salidaProductoActual,
+            nuevos,
+            actualizar,
+            eliminar
+        );
+
+        // 7. Enviar el resultado al renderer
+        event.reply('salida-actualizada', resultado);
+    } catch (error) {
+        console.error('Error en index.js:', error);
+        event.reply('salida-actualizada', {
+            success: false,
+            message: 'Error al procesar la salida: ' + error.message
+        });
     }
 });
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
