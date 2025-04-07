@@ -133,7 +133,6 @@ contextBridge.exposeInMainWorld('api', {
     onRespuestaActualizarProveedor: (callback) => ipcRenderer.on('respuesta-actualizar-proveedor', (event, respuesta) => callback(respuesta)),
     eliminarProveedor: (proveedorId, estado) => ipcRenderer.send('eliminar-proveedor', proveedorId, estado),
     onRespuestaEliminarProveedor: (callback) => ipcRenderer.once('respuesta-eliminar-proveedor', (event, respuesta) => callback(respuesta)),
-
     /* --------------------------------------------------------------------------------
     // --------------------------- ENTIDAD FINANCIERA ---------------------------------
     // --------------------------------------------------------------------------------*/
@@ -148,9 +147,8 @@ contextBridge.exposeInMainWorld('api', {
     editarEntidadFinanciera: (entidadFinancieraData) => ipcRenderer.send('editar-entidad-financiera', entidadFinancieraData),
     onRespuestaActualizarEntidadFinanciera: (callback) => ipcRenderer.on('respuesta-actualizar-entidad-financiera', (event, respuesta) => callback(respuesta)),
 
-
-
-
+    eliminarEntidadFinanciera: (entidadId, estado) => ipcRenderer.send('eliminar-entidad-financiera', entidadId, estado),
+    onRespuestaEliminarEntidadFinanciera: (callback) => ipcRenderer.once('respuesta-eliminar-entidad-financiera', (event, respuesta) => callback(respuesta)),
     /* --------------------------------           ------------------------------------------
        -------------------------------- PRODUCTOS ------------------------------------------
        --------------------------------           ------------------------------------------ */
