@@ -873,10 +873,27 @@ ipcMain.on('editar-entidad-financiera', async (event, entidadFinancieraData) => 
         const resultado = await entidadFinancieraController.actualizarEntidadFinanciera(entidadFinanciera);
 
         // Enviar respuesta al frontend
-        event.reply('respuesta-actualizar-entidad-financiera', resultado); 
+        event.reply('respuesta-actualizar-entidad-financiera', resultado);
     } catch (error) {
         console.error('Error al editar la entidad financiera:', error);
         event.reply('respuesta-editar-entidad-finaciera', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-entidad-financiera', async (event, entidadId, estado) => {
+    try {
+        const entidadFinanciera = new EntidadFinanciera();
+        entidadFinanciera.setIdEntidadFinanciera(entidadId);
+        entidadFinanciera.setEstado(estado);
+
+        const entidadFinancieraController = new EntidadFinancieraController();
+        const resultado = await entidadFinancieraController.eliminarEntidadFinanciera(entidadFinanciera);
+
+        // Enviar respuesta al frontend
+        event.reply('respuesta-eliminar-entidad-financiera', resultado);
+    } catch (error) {
+        console.error('Error al eliminar la entidad financiera:', error);
+        event.reply('respuesta-eliminar-entidad-financiera', { success: false, message: error.message });
     }
 });
 
