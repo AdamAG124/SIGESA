@@ -40,38 +40,82 @@ class SalidaProductoDB {
             }
         }
     }
-    async registrarSalidaProducto(salidaProducto) {
-        const db = new ConectarDB();
+    async crearSalidaProductoBD(nuevosSalidaProducto, salidaData) {
         let connection;
-
         try {
-            connection = await db.conectar();
-
-            const query = `
-                INSERT INTO sigt_salida_producto (
-                    ID_PRODUCTO,
-                    ID_SALIDA,
-                    NUM_CANTIDAD_ANTERIOR,
-                    NUM_CANTIDAD_SALIENDO,
-                    NUM_CANTIDAD_NUEVA,
-                    ESTADO
-                ) VALUES (?, ?, ?, ?, ?, ?)
+            connection = await this.db.conectar();
+    
+            // 1. Insertar nueva salida en sigt_salida
+            const insertSalidaQuery = `
+                INSERT INTO sigt_salida (
+                    ID_COLABORADOR_SACANDO, 
+                    ID_COLABORADOR_RECIBIENDO, 
+                    FEC_SALIDA, 
+                    DSC_DETALLE_SALIDA
+                ) VALUES (
+                    ${salidaData.idColaboradorEntregando},
+                    ${salidaData.idColaboradorRecibiendo},
+                    '${salidaData.fechaSalida}',
+                    '${salidaData.notas || ''}'
+                )
             `;
-
-            const params = [
-                salidaProducto.getIdProducto(),
-                salidaProducto.getIdSalida(),
-                salidaProducto.getCantidadAnterior(),
-                salidaProducto.getCantidadSaliendo(),
-                salidaProducto.getCantidadNueva(),
-                salidaProducto.getEstado(),
-            ];
-
-            const [result] = await connection.query(query, params);
-            return result;
+            const [insertSalidaResult] = await connection.query(insertSalidaQuery);
+            const idSalida = insertSalidaResult.insertId;
+    
+            // 2. Insertar nuevos SalidaProducto
+            for (const nuevo of nuevosSalidaProducto) {
+                const selectProductoQuery = `
+                    SELECT NUM_CANTIDAD 
+                    FROM sigm_producto 
+                    WHERE ID_PRODUCTO = ${nuevo.idProducto}
+                `;
+                const [productoResult] = await connection.query(selectProductoQuery);
+                if (productoResult.length === 0) {
+                    throw new Error(`No se encontró el producto con ID ${nuevo.idProducto}`);
+                }
+                const cantidadActual = productoResult[0].NUM_CANTIDAD || 0;
+                const nuevaCantidad = cantidadActual - nuevo.cantidadSaliendo;
+                if (nuevaCantidad < 0) {
+                    throw new Error(`No hay suficiente stock para el producto con ID ${nuevo.idProducto}`);
+                }
+    
+                // Actualizar stock del producto
+                const updateProductoQuery = `
+                    UPDATE sigm_producto
+                    SET NUM_CANTIDAD = ${nuevaCantidad}
+                    WHERE ID_PRODUCTO = ${nuevo.idProducto}
+                `;
+                await connection.query(updateProductoQuery);
+    
+                // Insertar SalidaProducto
+                const insertQuery = `
+                    INSERT INTO sigt_salida_producto (
+                        ID_PRODUCTO, 
+                        ID_SALIDA, 
+                        NUM_CANTIDAD_ANTERIOR, 
+                        NUM_CANTIDAD_SALIENDO, 
+                        NUM_CANTIDAD_NUEVA
+                    ) VALUES (
+                        ${nuevo.idProducto},
+                        ${idSalida},
+                        ${nuevo.cantidadAnterior},
+                        ${nuevo.cantidadSaliendo},
+                        ${nuevaCantidad}
+                    )
+                `;
+                await connection.query(insertQuery);
+            }
+    
+            return {
+                success: true,
+                message: 'Salida y productos creados correctamente'
+            };
         } catch (error) {
-            console.error('Error al registrar la salida del producto:', error);
-            throw new Error('Error al registrar la salida del producto.');
+            console.error('Error en crearSalidaProductoBD:', error.message);
+            return {
+                success: false,
+                message: 'Error al procesar la salida y productos: ' + error.message
+            };
         } finally {
             if (connection) {
                 await connection.end();

@@ -1338,31 +1338,18 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
         }
     }
 });
-ipcMain.on('crear-salida-con-productos', async (event, { salidaData, productos }) => {
-    const salidaController = new SalidaController();
+ipcMain.on('crear-salida-y-productos', async (event, data) => {
+    const { nuevosSalidaProducto, salidaData } = data;
+    const controllerSalidaProducto = new SalidaProductoController();
 
     try {
-        const salida = new Salida();
-        salida.setColaboradorSacando(salidaData.colaboradorSacando);
-        salida.setColaboradorRecibiendo(salidaData.colaboradorRecibiendo);
-        salida.setFechaSalida(salidaData.fechaSalida);
-        salida.setIdUsuario(salidaData.idUsuario);
-        salida.setEstado(salidaData.estado);
-
-        const productosSalida = productos.map(productoData => {
-            const producto = new SalidaProducto();
-            producto.setIdProducto(productoData.idProducto);
-            producto.setCantidadAnterior(productoData.cantidadAnterior);
-            producto.setCantidadSaliendo(productoData.cantidadSaliendo);
-            producto.setCantidadNueva(productoData.cantidadNueva);
-            producto.setEstado(productoData.estado);
-            return producto;
-        });
-
-        const resultado = await salidaController.crearSalidaConProductos(salida, productosSalida);
-        event.reply('respuesta-crear-salida-con-productos', resultado);
+        const resultado = await controllerSalidaProducto.crearSalidaProducto(nuevosSalidaProducto, salidaData);
+        event.reply('salida-creada', resultado);
     } catch (error) {
-        console.error("Error al crear salida con productos:", error);
-        event.reply('respuesta-crear-salida-con-productos', { success: false, message: error.message });
+        console.error('Error en index.js:', error);
+        event.reply('salida-creada', {
+            success: false,
+            message: 'Error al procesar la salida: ' + error.message
+        });
     }
 });

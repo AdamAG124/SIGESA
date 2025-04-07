@@ -2494,93 +2494,117 @@ function verDetallesSalida(idSalida) {
     cargarProductosSalida(idSalida);
   });
 }
+function cargarColaboradores() {
+  window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
+      const selectSacando = document.getElementById('colaborador-entregando');
+      const selectRecibiendo = document.getElementById('colaborador-recibiendo');
 
-function crearNuevaSalidaConProductos() {
-  const salidaData = {
-      colaboradorSacando: document.getElementById('colaboradorSacando').value,
-      colaboradorRecibiendo: document.getElementById('colaboradorRecibiendo').value,
-      fechaSalida: new Date().toISOString(),
-      idUsuario: 1, // ID del usuario actual
-      estado: 1 // Activo
-  };
+      // Limpiar selects
+      selectSacando.innerHTML = '<option value="">Seleccione un colaborador</option>';
+      selectRecibiendo.innerHTML = '<option value="">Seleccione un colaborador</option>';
 
-  const productos = Array.from(document.querySelectorAll('.producto-seleccionado')).map(row => ({
-      idProducto: row.dataset.idProducto,
-      cantidadAnterior: row.dataset.cantidadAnterior,
-      cantidadSaliendo: row.querySelector('.cantidad-saliendo').value,
-      cantidadNueva: row.dataset.cantidadNueva,
-      estado: 1 // Activo
-  }));
-
-  window.api.crearSalidaConProductos(salidaData, productos, (respuesta) => {
-      if (respuesta.success) {
-          alert('Salida y productos creados exitosamente.');
-          cargarSalidasTabla(); // Recargar la tabla de salidas
-      } else {
-          alert('Error al crear la salida: ' + respuesta.message);
-      }
+      // Agregar opciones
+      colaboradores.colaboradores.forEach(col => {
+          const option = document.createElement('option');
+          option.value = col.idColaborador;
+          option.textContent = `${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}`;
+          selectSacando.appendChild(option.cloneNode(true));
+          selectRecibiendo.appendChild(option);
+      });
   });
 }
-
-function cargarProductos(idSelect, mensajeQuemado) {
-  window.api.obtenerProductos(null, null, 1, null, null, (respuesta) => {
-      const productoSelect = document.getElementById(idSelect);
-      productoSelect.innerHTML = ""; // Limpiar las opciones existentes
-      const option = document.createElement("option");
-      option.value = "0";
-      option.textContent = mensajeQuemado;
-      option.selected = true;
-      productoSelect.appendChild(option);
-
-      if (respuesta && respuesta.productos) {
-          respuesta.productos.forEach((producto) => {
-              const option = document.createElement("option");
-              option.value = producto.idProducto;
-              option.textContent = producto.nombreProducto;
-              productoSelect.appendChild(option);
-          });
-      } else {
-          console.error("No se pudieron cargar los productos.");
-      }
-  });
-}
-function cargarVistaCrearSalida() {
-  cargarColaboradores('colaboradorSacandoModal', 'Seleccione un colaborador');
-  cargarColaboradores('colaboradorRecibiendoModal', 'Seleccione un colaborador');
-  cargarProductos('productosComboBox', 'Seleccione un producto');
-  function actualizarCamposProducto(select) {
-    const selectedOption = select.options[select.selectedIndex];
-    const cantidadAnterior = selectedOption.getAttribute('data-cantidad') || 0;
-    const unidadMedicion = selectedOption.getAttribute('data-unidad-medicion') || 'Unidad';
-
-    // Obtener la fila actual del producto
-    const row = select.closest('tr');
-    const cantidadAnteriorInput = row.querySelector('.cantidad-anterior');
-    const unidadMedicionInput = row.querySelector('.cantidad-salida');
-
-    // Actualizar los valores de los campos
-    cantidadAnteriorInput.value = cantidadAnterior;
-    unidadMedicionInput.placeholder = `En ${unidadMedicion}`;
-}
-  
-}
-function addProductToSalida() {
-  const productosTabla = document.getElementById('productosTabla').querySelector('tbody');
+function agregarProducto() {
+  const productsBody = document.getElementById('products-body');
   const row = document.createElement('tr');
-
+  row.className = 'product-row';
   row.innerHTML = `
       <td>
-          <select class="form-control">
+          <select class="form-select product-select" onchange="actualizarCamposProducto(this)" required>
               <option value="">Seleccione un producto</option>
-              <!-- Opciones dinámicas cargadas desde el backend -->
+              <!-- Opciones cargadas dinámicamente -->
           </select>
       </td>
-      <td><input type="number" class="form-control" disabled></td>
-      <td><input type="number" class="form-control"></td>
-      <td class="no-print">
-          <button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">Eliminar</button>
-      </td>
+      <td><input type="text" class="form-control product-unit" readonly></td>
+      <td><input type="number" class="form-control product-prev-qty" readonly></td>
+      <td><input type="number" class="form-control product-out-qty" min="1" required></td>
+      <td><input type="number" class="form-control product-new-qty" readonly></td>
+      <td class="no-print"><i class="material-icons delete-product" onclick="this.closest('tr').remove()">delete</i></td>
   `;
+  productsBody.appendChild(row);
 
-  productosTabla.appendChild(row);
+  // Cargar productos en el nuevo select
+  cargarProductos();
 }
+function cargarVistaCrearSalida() {
+  cargarColaboradores('colaborador-entregando', 'Seleccione un colaborador');
+  cargarColaboradores('colaborador-recibiendo', 'Seleccione un colaborador');
+  cargarProductos('productosComboBox', 'Seleccione un producto');
+}
+function validarYRecolectarDatosSalidaProducto(esCreacion = false) {
+  // Validar campos generales
+  const fechaSalida = document.getElementById('fecha-salida').value;
+  const idColaboradorEntregando = document.getElementById('colaborador-entregando').value;
+  const idColaboradorRecibiendo = document.getElementById('colaborador-recibiendo').value;
+
+  if (!fechaSalida || !idColaboradorEntregando || !idColaboradorRecibiendo) {
+      alert('Por favor, complete todos los campos obligatorios.');
+      return;
+  }
+
+  // Recolectar productos
+  const nuevosSalidaProducto = [];
+  const productRows = document.querySelectorAll('#products-body tr');
+
+  for (const row of productRows) {
+      const selectProducto = row.querySelector('.product-select');
+      const cantidadSaliendo = row.querySelector('.product-out-qty').value;
+
+      if (selectProducto.value && cantidadSaliendo > 0) {
+          nuevosSalidaProducto.push({
+              idProducto: Number(selectProducto.value),
+              cantidadAnterior: Number(row.querySelector('.product-prev-qty').value),
+              cantidadSaliendo: Number(cantidadSaliendo)
+          });
+      }
+  }
+
+  if (nuevosSalidaProducto.length === 0) {
+      alert('Por favor, agregue al menos un producto con una cantidad válida.');
+      return;
+  }
+
+  // Datos de la salida
+  const salidaData = {
+      fechaSalida,
+      idColaboradorEntregando: Number(idColaboradorEntregando),
+      idColaboradorRecibiendo: Number(idColaboradorRecibiendo),
+      notas: document.getElementById('notas').value
+  };
+
+  // Enviar datos al backend
+  Swal.fire({
+      title: 'Confirmar',
+      text: '¿Está seguro de registrar esta salida?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, continuar',
+      cancelButtonText: 'Cancelar'
+  }).then((result) => {
+      if (result.isConfirmed) {
+          window.api.crearSalidaYProductos(
+              nuevosSalidaProducto,
+              salidaData,
+              (respuesta) => {
+                  if (respuesta.success) {
+                      Swal.fire('Éxito', respuesta.message, 'success').then(() => {
+                          adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla);
+                      });
+                  } else {
+                      Swal.fire('Error', respuesta.message, 'error');
+                  }
+              }
+          );
+      }
+  });
+}
+

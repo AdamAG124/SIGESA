@@ -29,15 +29,8 @@ class SalidaProductoService {
 
         return true; // Validación exitosa
     }
-    async registrarSalidaProducto(salidaProducto) {
-        // Validar la cantidad antes de registrar la salida
-        await this.validarCantidadSaliendo(
-            salidaProducto.getIdProducto(),
-            salidaProducto.getCantidadSaliendo()
-        );
-
-        // Registrar la salida en la base de datos
-        return await this.salidaProductoDB.registrarSalidaProducto(salidaProducto);
+    async crearSalidaProducto(nuevosSalidaProducto, salidaData) {
+        return await this.salidaProductoDB.crearSalidaProductoBD(nuevosSalidaProducto, salidaData);
     }
 
 }

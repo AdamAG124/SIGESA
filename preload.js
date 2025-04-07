@@ -249,9 +249,9 @@ contextBridge.exposeInMainWorld('api', {
             callback(respuesta);
         });
     },
-    crearSalidaConProductos: (salidaData, productos, callback) => {
-        ipcRenderer.send('crear-salida-con-productos', { salidaData, productos });
-        ipcRenderer.once('respuesta-crear-salida-con-productos', (event, respuesta) => callback(respuesta));
+    crearSalidaYProductos: (nuevosSalidaProducto, salidaData, callback) => {
+        ipcRenderer.send('crear-salida-y-productos', { nuevosSalidaProducto, salidaData });
+        ipcRenderer.once('salida-creada', (event, respuesta) => callback(respuesta));
     },
 
 
