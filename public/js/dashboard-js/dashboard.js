@@ -2067,11 +2067,150 @@ function enviarCreacionEntidadFinanciera() {
 }
 
 function validateEmail(email) {
-  // Expresión regular para validar el correo electrónico
   const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-  // Prueba si el correo cumple con la expresión regular
   return regex.test(email);
+}
+
+async function editarEntidadFinanciera(id, boton) {
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombre = fila.children[0].textContent;
+  const telefono = (fila.children[3] && (fila.children[3].textContent.trim() !== "" && fila.children[3].textContent !== "null"))
+    ? fila.children[3].textContent.trim()
+    : "N/A";
+
+  const correo = (fila.children[4] && (fila.children[4].textContent.trim() !== "" && fila.children[4].textContent !== "null"))
+    ? fila.children[4].textContent.trim()
+    : "N/A";
+
+  const tipo = fila.children[5].textContent;
+  const fechaInicioFinanciamiento = (fila.children[6] && fila.children[6].textContent.trim()) ? fila.children[6].textContent.trim() : null;
+
+  // Si la fecha es válida, formatearla a 'dd-mm-yyyy', si es nula, dejarla vacía
+  let fechaFormateada = "";
+  if (fechaInicioFinanciamiento) {
+    fechaFormateada = formatearFechaParaInput(new Date(fechaInicioFinanciamiento));
+  }
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idEntidadFinanciera").value = id;
+  document.getElementById("nombre").value = nombre;
+  document.getElementById("telefono").value = telefono;
+  document.getElementById("correo").value = correo;
+  document.getElementById("tipo").value = tipo;
+  document.getElementById("fechaInicioFinanciamiento").value = fechaFormateada;  // Si es null, el campo quedará vacío
+
+  // Cambiar el título del modal a "Editar Entidad Financiera"
+  document.getElementById("modalTitle").innerText = "Editar Entidad Financiera";
+  document.getElementById("buttonModal").onclick = enviarEdicionEntidadFinanciera;
+
+  // Mostrar el modal
+  document.getElementById("editarEntidadFinancieraModal").style.display = "block";
+}
+
+function enviarEdicionEntidadFinanciera() {
+  // Obtener valores del formulario
+  const id = document.getElementById("idEntidadFinanciera").value.trim();
+  const nombreInput = document.getElementById("nombre");
+  const telefonoInput = document.getElementById("telefono");
+  const correoInput = document.getElementById("correo");
+  const tipoInput = document.getElementById("tipo");
+  const fechaInicioFinanciamientoInput = document.getElementById("fechaInicioFinanciamiento");
+
+
+  // Validar campos vacíos y espacios en blanco
+  // Asignar los elementos de los inputs y verificar obligatoriedad
+  const inputs = [
+    { element: nombreInput, obligatorio: true },
+    { element: telefonoInput, obligatorio: false },
+    { element: correoInput, obligatorio: false },
+    { element: tipoInput, obligatorio: true },
+    { element: fechaInicioFinanciamientoInput, obligatorio: false },
+  ];
+
+  const camposVacios = [];
+
+  // Manejo de bordes y mensajes de error
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Verificar los valores de los inputs y asignar "N/A" si es necesario
+  inputs.forEach(input => {
+    if (!input.element.value.trim()) {
+      if (input.obligatorio) {
+        input.element.style.border = "2px solid red";
+        camposVacios.push(input.element);
+      } else {
+        input.element.value = "N/A";
+        input.element.style.border = "";
+      }
+    } else {
+      input.element.style.border = "";
+    }
+  });
+
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos obligatorios.";
+    return;
+  } else {
+    // Validar teléfono directamente desde el valor del input
+    if (telefonoInput.value.trim() !== "N/A" && telefonoInput.value.trim().length < 8) {
+      telefonoInput.style.border = "2px solid red";
+      errorMessage.textContent = "El teléfono ingresado no es válido.";
+      return;
+    }
+
+    // Validar correo directamente desde el valor del input
+    if (correoInput.value.trim() !== "N/A" && !validateEmail(correoInput.value.trim())) {
+      correoInput.style.border = "2px solid red";
+      errorMessage.textContent = "El correo ingresado no es válido.";
+      return;
+    }
+
+    // Si todo es válido, limpiamos el mensaje de error
+    errorMessage.textContent = "";
+  }
+
+  const fechaInicioFinanciamiento = fechaInicioFinanciamientoInput.value.trim();
+  const fechaFinal = fechaInicioFinanciamiento === "N/A" || !fechaInicioFinanciamiento ? null : fechaInicioFinanciamiento;
+
+  // Crear objeto entidadFinanciera con los valores obtenidos
+  const entidadFinancieraData = {
+    idEntidadFinanciera: id,
+    nombre: nombreInput.value.trim(),
+    telefono: telefonoInput.value.trim() !== "N/A" ? telefonoInput.value.trim() : null, // Si es "N/A", se dejará como null
+    correo: correoInput.value.trim() !== "N/A" ? correoInput.value.trim() : null,       // Si es "N/A", se dejará como null
+    tipo: tipoInput.value.trim(),                                                       // El tipo nunca debe ser "N/A"
+    fechaInicioFinanciamiento: fechaFinal,                                              // Si es "N/A", se dejará como null
+  };
+
+  // Confirmar la edición
+  Swal.fire({
+    title: "Editando Entidad Financiera",
+    text: "¿Está seguro que desea editar esta entidad financiera?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.api.editarEntidadFinanciera(entidadFinancieraData);
+
+      // Manejar la respuesta de la edición
+      window.api.onRespuestaActualizarEntidadFinanciera((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          cerrarModal("editarEntidadFinancieraModal", "editarEntidadFinancieraForm");
+          filterTable(5);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
 }
 
 
