@@ -2377,10 +2377,31 @@ function cargarColaboradores(idSelect, mensajeQuemado) {
     respuesta.colaboradores.forEach((colaborador) => {
       const option = document.createElement("option");
       option.value = colaborador.idColaborador;
-      option.textContent = colaborador.nombreColaborador;
+      option.textContent = `${colaborador.nombreColaborador} ${colaborador.primerApellidoColaborador} ${colaborador.segundoApellidoColaborador || ''}`;
+      option.setAttribute("data-correo", colaborador.correo);
+      option.setAttribute("data-telefono", colaborador.numTelefono);
+      option.setAttribute("data-departamento", colaborador.nombreDepartamento);
+      option.setAttribute("data-puesto", colaborador.nombrePuesto);
       colaboradorSelect.appendChild(option);
     });
   });
+}
+function actualizarDatosColaborador(select) {
+  const selectedOption = select.options[select.selectedIndex];
+  console.log("📢 Colaborador seleccionado:", selectedOption);
+
+  const correo = selectedOption.getAttribute("data-correo") || "N/A";
+  const telefono = selectedOption.getAttribute("data-telefono") || "N/A";
+  const departamento = selectedOption.getAttribute("data-departamento") || "N/A";
+  const puesto = selectedOption.getAttribute("data-puesto") || "N/A";
+
+  console.log("✅ Datos del colaborador seleccionado:", { correo, telefono, departamento, puesto });
+
+  // Actualizar los campos en la vista
+  document.getElementById("correo-recibiendo").value = correo;
+  document.getElementById("telefono-recibiendo").value = telefono;
+  document.getElementById("departamento-recibiendo").value = departamento;
+  document.getElementById("puesto-recibiendo").value = puesto;
 }
 
 /* SALIDA PRODUCTOOOO*/
@@ -2443,6 +2464,32 @@ function cargarSalidasTabla(
   }, 100);
 }
 
+function cargarProductos(idSelect, mensajeQuemado) {
+  console.log("📢 Solicitando productos para el select:", idSelect);
+
+  window.api.obtenerProductos(null, null, 1, null, null, (respuesta) => {
+      console.log("✅ Productos recibidos en el frontend:", respuesta);
+
+      const productoSelect = document.getElementById(idSelect);
+      productoSelect.innerHTML = ""; // Limpiar las opciones existentes
+
+      const option = document.createElement("option");
+      option.value = "0";
+      option.textContent = mensajeQuemado;
+      productoSelect.appendChild(option);
+
+      respuesta.productos.forEach((producto) => {
+          console.log("➡️ Procesando producto:", producto);
+
+          const option = document.createElement("option");
+          option.value = producto.idProducto;
+          option.textContent = producto.nombreProducto;
+          option.setAttribute("data-unidad", producto.unidadMedicion);
+          option.setAttribute("data-cantidad", producto.cantidad);
+          productoSelect.appendChild(option);
+      });
+  });
+}
 function cargarProductosSalida(idSalida) {
   console.log("Iniciando carga de productos para la salida con ID:", idSalida); // Depuración inicial
 
@@ -2534,6 +2581,22 @@ function agregarProducto() {
 
   // Cargar productos en el nuevo select
   cargarProductos();
+}
+function actualizarCamposProducto(select) {
+  const selectedOption = select.options[select.selectedIndex];
+  console.log("📢 Producto seleccionado:", selectedOption);
+
+  const unidad = selectedOption.getAttribute("data-unidad") || "N/A";
+  const cantidadAnterior = selectedOption.getAttribute("data-cantidad") || 0;
+
+  // Obtener la fila actual del producto
+  const row = select.closest('tr');
+  const unidadInput = row.querySelector('.product-unit');
+  const cantidadAnteriorInput = row.querySelector('.product-prev-qty');
+
+  // Actualizar los valores de los campos
+  unidadInput.value = unidad;
+  cantidadAnteriorInput.value = cantidadAnterior;
 }
 function cargarVistaCrearSalida() {
   cargarColaboradores('colaborador-entregando', 'Seleccione un colaborador');
