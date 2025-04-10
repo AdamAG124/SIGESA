@@ -591,14 +591,7 @@ function editarUsuario(id, boton) {
     const option = roleSelectOrigen.options[i];
     opcionesArray.push(option.textContent); // Guardar el texto en el array
   }
-
-  // Cargar la lista de roles y preseleccionar el rol del usuario
-  /*roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
-  const defaultOption = document.createElement("option");
-  defaultOption.value = "";
-  defaultOption.textContent = "Selecciona un rol";
-  roleSelectDestino.appendChild(defaultOption);*/
-
+  roleSelectDestino.innerHTML = "";
   // Insertar las opciones del select de roles
   for (let i = 1; i < opcionesArray.length; i++) {
     const option = document.createElement("option");
@@ -881,20 +874,6 @@ function enviarCreacionUsuario(event) {
     confirmPasswordInput.style.border = "2px solid red";
     return; // Detener el envío del formulario si las contraseñas no coinciden
   }
-
-  /*window.api.obtenerUsuarios((usuarios) => {
-    for (const usuario of usuarios) {
-      if (usuario.idColaborador === Number(colaborador)) {
-        passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
-        passwordError.style.display = "block";
-        return; // Detener el envío del formulario si el colaborador ya tiene un usuario asociado
-      }
-      if (usuario.nombreUsuario === nombreUsuario) {
-        passwordError.innerText = "El nombre de usuario ya existe.";
-        passwordError.style.display = "block";
-        return; // Detener el envío del formulario si el nombre de usuario ya existe
-      }
-    }*/
 
   // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
   const jsonData = {
