@@ -133,34 +133,22 @@ contextBridge.exposeInMainWorld('api', {
     onRespuestaActualizarProveedor: (callback) => ipcRenderer.on('respuesta-actualizar-proveedor', (event, respuesta) => callback(respuesta)),
     eliminarProveedor: (proveedorId, estado) => ipcRenderer.send('eliminar-proveedor', proveedorId, estado),
     onRespuestaEliminarProveedor: (callback) => ipcRenderer.once('respuesta-eliminar-proveedor', (event, respuesta) => callback(respuesta)),
-
-    // --------------------------------------------------------------------------------
-    //                       ENTIDAD FINANCIERA
+    /* --------------------------------------------------------------------------------
+    // --------------------------- ENTIDAD FINANCIERA ---------------------------------
+    // --------------------------------------------------------------------------------*/
     obtenerEntidadesFinancieras: (pageSize, currentPage, estado, valorBusqueda, callback) => {
-        // Enviar la solicitud para listar proveedores
         ipcRenderer.send('listar-entidades-financieras', { pageSize, currentPage, estado, valorBusqueda });
-
-        // Definir el callback para manejar la respuesta
-        const entidadesFinancierasCallback = (event, entidadesFinancieras) => {
-            callback(entidadesFinancieras);
-            // Remover el listener una vez que se ha procesado la respuesta
-            ipcRenderer.removeListener('cargar-entidades-financieras', entidadesFinancierasCallback);
-        };
-
-        // Escuchar la respuesta
-        ipcRenderer.on('cargar-entidades-financieras', entidadesFinancierasCallback);
-
-        // Manejo de errores de la respuesta
-        const errorCallback = (event, errorMessage) => {
-            callback({ error: errorMessage });
-            // También puedes remover el listener de error si solo lo necesitas una vez
-            ipcRenderer.removeListener('error-cargar-entidades-financieras', errorCallback);
-        };
-
-        // Escuchar los errores
-        ipcRenderer.on('error-cargar-entidades-financieras', errorCallback);
+        ipcRenderer.once('cargar-entidades-financieras', (event, entidadesFinancieras) => callback(entidadesFinancieras));
     },
 
+    crearEntidadFinanciera: (entidadFinancieraData) => ipcRenderer.send('crear-entidad-financiera', entidadFinancieraData),
+    onRespuestaCrearEntidadFinanciera: (callback) => ipcRenderer.on('respuesta-crear-entidad-financiera', (event, respuesta) => callback(respuesta)),
+
+    editarEntidadFinanciera: (entidadFinancieraData) => ipcRenderer.send('editar-entidad-financiera', entidadFinancieraData),
+    onRespuestaActualizarEntidadFinanciera: (callback) => ipcRenderer.on('respuesta-actualizar-entidad-financiera', (event, respuesta) => callback(respuesta)),
+
+    eliminarEntidadFinanciera: (entidadId, estado) => ipcRenderer.send('eliminar-entidad-financiera', entidadId, estado),
+    onRespuestaEliminarEntidadFinanciera: (callback) => ipcRenderer.once('respuesta-eliminar-entidad-financiera', (event, respuesta) => callback(respuesta)),
     /* --------------------------------           ------------------------------------------
        -------------------------------- PRODUCTOS ------------------------------------------
        --------------------------------           ------------------------------------------ */
@@ -232,20 +220,18 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
     },
 
-     /* --------------------------------           ------------------------------------------
-       --------------------------------  Salida Producto  ------------------------------------------
-       --------------------------------           ------------------------------------------ */
-       obtenerSalidas: (pageSize, currentPage, estado, valorBusqueda, filtroColaboradorSacando, filtroColaboradorRecibiendo, fechaInicio, fechaFin, filtroUsuario, callback) => {
-        console.log("📢 Enviando solicitud para listar salidas con filtros...");
+    /* --------------------------------           ------------------------------------------
+      --------------------------------  Salida Producto  ------------------------------------------
+      --------------------------------           ------------------------------------------ */
+    obtenerSalidas: (pageSize, currentPage, estado, valorBusqueda, filtroColaboradorSacando, filtroColaboradorRecibiendo, fechaInicio, fechaFin, filtroUsuario, callback) => {
 
-        ipcRenderer.send('listar-salidas', { 
-            pageSize, currentPage, estado, valorBusqueda, 
-            filtroColaboradorSacando, filtroColaboradorRecibiendo, 
+        ipcRenderer.send('listar-salidas', {
+            pageSize, currentPage, estado, valorBusqueda,
+            filtroColaboradorSacando, filtroColaboradorRecibiendo,
             fechaInicio, fechaFin, filtroUsuario
         });
 
         ipcRenderer.once('cargar-salidas', (event, respuesta) => {
-            console.log("✅ Salidas recibidas en preload:", respuesta);
             callback(respuesta);
         });
     },
@@ -256,13 +242,22 @@ contextBridge.exposeInMainWorld('api', {
 
 
     // Función para listar productos por salida
-    obtenerProductosPorSalida: (idSalida, callback) => {
-        console.log("Enviando solicitud para obtener productos de la salida con ID:", idSalida); // Depuración inicial
-        ipcRenderer.send('listar-productos-por-salida', { idSalida });
-        ipcRenderer.once('cargar-productos-por-salida', (event, productos) => {
-            console.log("Productos recibidos en preload desde el backend:", productos); // Verificar los datos recibidos
-            callback(productos);
+    obtenerProductosPorSalida: (idSalida) => {
+        return new Promise((resolve, reject) => {
+            ipcRenderer.send('obtener-productos-por-salida', idSalida);
+            ipcRenderer.once('productos-por-salida-obtenidos', (event, response) => {
+                if (response.success) {
+                    resolve(response.data);
+                } else {
+                    reject(new Error(response.message || 'Error al obtener productos por salida'));
+                }
+            });
         });
-    }
+    },
+
+    actualizarSalidaYProductos: (nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto, salidaData, callback) => {
+        ipcRenderer.send('actualizar-salida-y-productos', { nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto, salidaData });
+        ipcRenderer.once('salida-actualizada', (event, respuesta) => callback(respuesta));
+    },
 });
 

@@ -1,26 +1,26 @@
 const EntidadFinancieraDB = require('../database/EntidadFinancieraDB');
 
-class EntidadFinancieraService{
+class EntidadFinancieraService {
 
     #entidadFinancieraDB;
 
-    constructor(){
+    constructor() {
         this.#entidadFinancieraDB = new EntidadFinancieraDB();
     }
 
-    async listarEntidadesFinancieras(pageSize, currentPage, estadoEntidadFinanciera, valorBusqueda){
+    async listarEntidadesFinancieras(pageSize, currentPage, estadoEntidadFinanciera, valorBusqueda) {
         return await this.#entidadFinancieraDB.listarEntidadesFinancieras(pageSize, currentPage, estadoEntidadFinanciera, valorBusqueda);
     }
 
-    async insertarEntidadFinanciera(entidadFinanciera){
+    async insertarEntidadFinanciera(entidadFinanciera) {
         return await this.#entidadFinancieraDB.insertarEntidadFinanciera(entidadFinanciera);
     }
 
-    async actualizarEntidadFinanciera(entidadFinanciera){
+    async actualizarEntidadFinanciera(entidadFinanciera) {
         return await this.#entidadFinancieraDB.actualizarEntidadFinanciera(entidadFinanciera);
     }
 
-    async eliminarEntidadFinanciera(entidadFinanciera){
+    async eliminarEntidadFinanciera(entidadFinanciera) {
         return await this.#entidadFinancieraDB.eliminarEntidadFinanciera(entidadFinanciera);
     }
 }
