@@ -20,9 +20,12 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "electron-store": "^10.0.0",
+    "exceljs": "^4.4.0",
     "install": "^0.13.0",
     "mysql2": "^3.11.3",
     "npm": "^10.8.3",
+    "pdfkit": "^0.16.0",
+    "pdfkit-table": "^0.1.99",
     "sweetalert2": "^11.14.1"
   }
 }
