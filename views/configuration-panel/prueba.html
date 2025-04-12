@@ -12,12 +12,14 @@
         #module-container {
             position: relative;
             width: 300px;
+            display: flex;
         }
 
         /* -------------------------------------- */
         /* ▼ SIMULACIÓN DE SELECT ▼ */
         /* -------------------------------------- */
         #selected-module {
+            width: 200px;
             padding: 8px 12px;
             background: #fff;
             cursor: pointer;
@@ -157,78 +159,281 @@
             margin-left: 10px;
             cursor: pointer;
         }
+
+        #add-module-btn {
+            margin-left: 4px;
+            font-size: 22px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #f0f0f0;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        #add-module-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* Popup */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: self-start;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .popup-content input {
+            width: 90%;
+            padding: 8px;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            padding-left: 5px;
+            gap: 4px;
+        }
+
+        .popup-buttons button {
+            padding: 6px 12px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .popup-buttons button#save-module {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .popup-buttons button#cancel-module {
+            background-color: #ccc;
+        }
     </style>
 </head>
 
 <body>
 
     <div id="module-container">
-        <div id="selected-module" onclick="toggleModuleList()">
-            Selecciona un módulo
-            <span class="dropdown-icon"></span>
+        <div id="select-wrapper">
+            <div id="selected-module" onclick="toggleModuleList()">
+                Selecciona un módulo
+                <span class="dropdown-icon"></span>
+            </div>
+            <div id="module-list"></div>
         </div>
-        <div id="module-list"></div>
+        <button id="add-module-btn" title="Agregar módulo">＋</button>
+    </div>
+
+
+    <!-- Modal popup para nuevo módulo -->
+    <div id="module-popup" class="popup-overlay">
+        <div class="popup-content">
+            <h3>Agregar</h3>
+            <input type="text" id="new-module-name" placeholder="Nombre del módulo" />
+            <div class="popup-buttons">
+                <button id="save-module">Guardar</button>
+                <button id="cancel-module">Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const modules = ['Usuarios', 'Productos', 'Ventas', 'Inventario', 'Reportes'];
-        const moduleList = document.getElementById('module-list');
-        const moduleContainer = document.getElementById('module-container');
-        const selectedModule = document.getElementById('selected-module');
+        function createModuleSelector({
+            containerId,
+            moduleId,
+            editable = true,
+            deletable = true,
+            creatable = true,
+            crudHandlers
+        }) {
+            const container = document.getElementById(containerId);
+            const moduleList = container.querySelector('.module-list');
+            const selectedModule = container.querySelector('.selected-module');
+            const addBtn = container.querySelector('.add-module-btn');
+            const popup = container.querySelector('.popup-overlay');
+            const inputNew = container.querySelector('.new-module-name');
+            const saveBtn = container.querySelector('.save-module');
+            const cancelBtn = container.querySelector('.cancel-module');
 
-        function toggleModuleList() {
-            moduleContainer.classList.toggle('open');
-        }
+            let modules = [];
 
-        function renderModules() {
-            moduleList.innerHTML = '';
-            modules.forEach((mod, i) => {
-                const item = document.createElement('div');
-                item.className = 'module-item';
+            async function fetchModules() {
+                modules = await crudHandlers.list(moduleId) || [];
+                renderModules();
+            }
+
+            function renderModules() {
+                moduleList.innerHTML = '';
+                modules.forEach((mod, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'module-item';
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = mod;
+                    input.readOnly = true;
+
+                    if (editable) {
+                        input.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            input.readOnly = false;
+                            input.focus();
+                            input.select();
+                        });
+
+                        input.addEventListener('keydown', async (e) => {
+                            if (e.key === 'Enter') {
+                                const newValue = input.value.trim();
+                                if (newValue && newValue !== modules[i]) {
+                                    await crudHandlers.update(moduleId, i, newValue);
+                                    await fetchModules();
+                                }
+                            } else if (e.key === 'Escape') {
+                                input.value = modules[i];
+                                input.readOnly = true;
+                            }
+                        });
+                    }
+
+                    input.addEventListener('dblclick', () => {
+                        selectedModule.firstChild.textContent = input.value;
+                        container.classList.remove('open');
+                    });
+
+                    item.appendChild(input);
+
+                    if (deletable) {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = '✕';
+                        deleteBtn.onclick = () => confirmDelete(i);
+                        item.appendChild(deleteBtn);
+                    }
+
+                    moduleList.appendChild(item);
+                });
+            }
+
+            function confirmDelete(index) {
+                const item = moduleList.children[index];
+                item.className = 'module-item deleting-module';
                 item.innerHTML = `
-          <input type="text" readonly value="${mod}" />
-          <button onclick="confirmDelete(${i})">✕</button>
-        `;
-                moduleList.appendChild(item);
-            });
+                  <input type="text" readonly value="${modules[index]}" />
+                  <div class="delete-buttons-container">
+                      <button class="confirm">Eliminar</button>
+                      <button class="cancel">Cancelar</button>
+                  </div>
+                `;
+
+                item.querySelector('.confirm').onclick = async () => {
+                    const deleted = modules[index];
+                    await crudHandlers.delete(moduleId, index);
+                    await fetchModules();
+                    showUndoToast(deleted, index);
+                };
+
+                item.querySelector('.cancel').onclick = () => renderModules();
+            }
+
+            function showUndoToast(deleted, index) {
+                const toast = document.createElement('div');
+                toast.className = 'undo-toast';
+                toast.innerHTML = `Módulo eliminado: <strong>${deleted}</strong> <button>Deshacer</button>`;
+                toast.querySelector('button').onclick = async () => {
+                    await crudHandlers.undoDelete?.(moduleId, deleted, index);
+                    await fetchModules();
+                    toast.remove();
+                };
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 10000);
+            }
+
+            if (creatable) {
+                addBtn.style.display = 'inline-block';
+
+                addBtn.addEventListener('click', () => {
+                    inputNew.value = '';
+                    popup.style.display = 'flex';
+                    inputNew.focus();
+                });
+
+                saveBtn.addEventListener('click', async () => {
+                    const newName = inputNew.value.trim();
+                    if (newName && !modules.includes(newName)) {
+                        await crudHandlers.create(moduleId, newName);
+                        await fetchModules();
+                        popup.style.display = 'none';
+                    } else {
+                        alert("Ingrese un nombre válido y único.");
+                    }
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    popup.style.display = 'none';
+                });
+            } else {
+                addBtn.style.display = 'none';
+            }
+
+            selectedModule.addEventListener('click', () => container.classList.toggle('open'));
+
+            fetchModules();
         }
 
-        function confirmDelete(index) {
-            const item = moduleList.children[index];
-            item.className = 'module-item deleting-module';
-            item.innerHTML = `
-        <input type="text" readonly value="${modules[index]}" />
-        <div class="delete-buttons-container">
-          <button class="confirm" onclick="deleteModule(${index})">Eliminar</button>
-          <button class="cancel" onclick="renderModules()">Cancelar</button>
-        </div>
-      `;
-        }
+        const crudHandlers = {
+            list: async (id) => {
+                switch (id) {
+                    case 1: return await getUsuarios();
+                    case 2: return await getProductos();
+                    default: return [];
+                }
+            },
+            create: async (id, name) => {
+                switch (id) {
+                    case 1: return await crearUsuario(name);
+                    case 2: return await crearProducto(name);
+                }
+            },
+            update: async (id, index, value) => {
+                switch (id) {
+                    case 1: return await editarUsuario(index, value);
+                    case 2: return await editarProducto(index, value);
+                }
+            },
+            delete: async (id, index) => {
+                switch (id) {
+                    case 1: return await eliminarUsuario(index);
+                    case 2: return await eliminarProducto(index);
+                }
+            },
+            undoDelete: async (id, item, index) => {
+                switch (id) {
+                    case 1: return await deshacerUsuario(item, index);
+                    case 2: return await deshacerProducto(item, index);
+                }
+            }
+        };
 
-        function deleteModule(index) {
-            const deleted = modules.splice(index, 1)[0];
-            renderModules();
-            showUndoToast(deleted, index);
-        }
-
-        function showUndoToast(module, index) {
-            const toast = document.createElement('div');
-            toast.className = 'undo-toast';
-            toast.innerHTML = `Módulo eliminado: <strong>${module}</strong> <button onclick="undoDelete('${module}', ${index})">Deshacer</button>`;
-            document.body.appendChild(toast);
-
-            setTimeout(() => toast.remove(), 10000);
-        }
-
-        function undoDelete(module, index) {
-            modules.splice(index, 0, module);
-            renderModules();
-            document.querySelector('.undo-toast')?.remove();
-        }
-
-        // Inicializamos la lista
-        renderModules();
     </script>
+
 
 </body>
 
