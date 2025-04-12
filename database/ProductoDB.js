@@ -1,20 +1,24 @@
 const ConectarDB = require('./ConectarDB');
 const Producto = require('../domain/Producto');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const ExcelJS = require('exceljs');
 
 class ProductoDB {
     #table;
+    #db;
 
     constructor() {
         this.#table = 'SIGM_PRODUCTO';
+        this.#db = new ConectarDB();
     }
 
     // Método para recuperar la lista de productos con sus categorías
     async listarProductos(pageSize = null, currentPage = null, estadoProducto = null, idCategoriaFiltro = null, valorBusqueda = null) {
-        const db = new ConectarDB();
         let connection;
         // console.log('estado: ' + estadoProducto, idCategoriaFiltro, valorBusqueda);
         try {
-            connection = await db.conectar();
+            connection = await this.#db.conectar();
 
             const offset = (currentPage - 1) * pageSize;
 
@@ -132,11 +136,10 @@ class ProductoDB {
     }
 
     async crearProducto(producto) {
-        const db = new ConectarDB();
         let connection;
 
         try {
-            connection = await db.conectar();
+            connection = await this.#db.conectar();
 
             // Obtener atributos del producto
             const nombre = producto.getNombre() || 'Acción requerida: ingrese un nombre';
@@ -188,11 +191,10 @@ class ProductoDB {
     }
 
     async eliminarProducto(producto) {
-        const db = new ConectarDB();
         let connection;
 
         try {
-            connection = await db.conectar(); 1
+            connection = await this.#db.conectar(); 1
 
             // Construimos la consulta SQL
             const query = `UPDATE ${this.#table} SET estado = ? WHERE ID_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)
@@ -234,11 +236,10 @@ class ProductoDB {
 
 
     async obtenerProductoPorId(idProducto) {
-        const db = new ConectarDB();
         let connection;
 
         try {
-            connection = await db.conectar();
+            connection = await this.#db.conectar();
 
             // Construir la consulta SQL
             const query = `
@@ -283,11 +284,10 @@ class ProductoDB {
     }
 
     async actualizarProducto(producto) {
-        const db = new ConectarDB();
         let connection;
 
         try {
-            connection = await db.conectar();
+            connection = await this.#db.conectar();
 
             // Obtén los atributos del objeto Producto
             const idProducto = producto.getIdProducto();
@@ -337,6 +337,99 @@ class ProductoDB {
             }
         }
     }
-}
 
+    async generarReportes(filtroEstado, filtroCategoria, formato) {
+        let connection;
+        try {
+            // Obtener la conexión
+            connection = await this.#db.conectar();
+
+            // Construir la consulta SQL con filtros dinámicos, excluyendo ID_PRODUCTO
+            let query = `
+                SELECT ID_CATEGORIA_PRODUCTO, DSC_NOMBRE, DSC_PRODUCTO, NUM_CANTIDAD, 
+                       DSC_UNIDAD_MEDICION, ESTADO 
+                FROM sigm_producto 
+                WHERE 1=1
+            `;
+            const params = [];
+
+            if (filtroEstado !== null) {
+                query += ' AND ESTADO = ?';
+                params.push(filtroEstado);
+            }
+            if (filtroCategoria !== null) {
+                query += ' AND ID_CATEGORIA_PRODUCTO = ?';
+                params.push(filtroCategoria);
+            }
+
+            // Ejecutar la consulta
+            const [rows] = await connection.query(query, params);
+
+            if (!rows || rows.length === 0) {
+                console.log('No se encontraron productos con los filtros especificados.');
+                return;
+            }
+
+            if (formato === 1) {
+                const pdfDoc = new PDFDocument();
+                pdfDoc.pipe(fs.createWriteStream('reporte_productos.pdf'));
+                pdfDoc.fontSize(20).text('Reporte de Productos', { align: 'center' });
+                pdfDoc.moveDown();
+
+                const pdfTable = {
+                    headers: ['Categoría', 'Nombre', 'Descripción', 'Cantidad', 'Unidad', 'Estado'],
+                    rows: rows.map(row => [
+                        row.ID_CATEGORIA_PRODUCTO || 'Sin categoría',
+                        row.DSC_NOMBRE || 'Sin nombre',
+                        row.DSC_PRODUCTO || 'Sin descripción',
+                        row.NUM_CANTIDAD !== null ? row.NUM_CANTIDAD : '0',
+                        row.DSC_UNIDAD_MEDICION,
+                        row.ESTADO ? 'Activo' : 'Inactivo'
+                    ])
+                };
+
+                pdfDoc.table(pdfTable, { width: 550, columnsSize: [70, 100, 150, 60, 50, 50] });
+                pdfDoc.end();
+                console.log('PDF generado: reporte_productos.pdf');
+
+            } else if (formato === 2) {
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('Productos');
+
+                worksheet.columns = [
+                    { header: 'Categoría', key: 'id_categoria', width: 15 },
+                    { header: 'Nombre', key: 'nombre', width: 30 },
+                    { header: 'Descripción', key: 'descripcion', width: 40 },
+                    { header: 'Cantidad', key: 'cantidad', width: 15 },
+                    { header: 'Unidad', key: 'unidad', width: 15 },
+                    { header: 'Estado', key: 'estado', width: 10 }
+                ];
+
+                worksheet.addRows(rows.map(row => ({
+                    id_categoria: row.ID_CATEGORIA_PRODUCTO || 'Sin categoría',
+                    nombre: row.DSC_NOMBRE || 'Sin nombre',
+                    descripcion: row.DSC_PRODUCTO || 'Sin descripción',
+                    cantidad: row.NUM_CANTIDAD !== null ? row.NUM_CANTIDAD : 0,
+                    unidad: row.DSC_UNIDAD_MEDICION,
+                    estado: row.ESTADO ? 'Activo' : 'Inactivo'
+                })));
+
+                worksheet.getRow(1).font = { bold: true };
+                worksheet.getRow(1).alignment = { horizontal: 'center' };
+
+                await workbook.xlsx.writeFile('reporte_productos.xlsx');
+                console.log('Excel generado: reporte_productos.xlsx');
+            } else {
+                console.log('Formato no válido. Usa 1 para PDF o 2 para Excel.');
+            }
+        } catch (error) {
+            console.error('Error al generar el reporte:', error.message);
+            throw error;
+        } finally {
+            if (connection) {
+                await connection.end(); // Cerrar la conexión
+            }
+        }
+    }
+}
 module.exports = ProductoDB;
