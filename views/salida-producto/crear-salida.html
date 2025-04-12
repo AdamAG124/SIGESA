@@ -101,6 +101,8 @@
     </div>
 </div>
 
+
+
 <form id="output-form">
     <!-- Información General -->
     <div class="card">
@@ -136,56 +138,53 @@
             </div>
         </div>
     </div>
-
-    <!-- Colaborador que Saca -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title">Colaborador que Entrega</h5>
-        </div>
-        <div class="card-body">
-            <div class="info-grid">
-                <div>
-                    <div class="info-row">
-                        <div class="info-label">Nombre Completo:</div>
-                        <div class="info-value">
-                            <select id="colaborador-entregando" onchange="actualizarDatosColaborador(this)" required>
-                                <option value="">Seleccione un colaborador</option>
-                                <!-- Opciones cargadas dinámicamente -->
-                            </select>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Correo:</div>
-                        <div class="info-value">
-                            <input type="email" class="form-control" id="correo-sacando" disabled>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Teléfono:</div>
-                        <div class="info-value">
-                            <input type="text" class="form-control" id="telefono-sacando" disabled>
-                        </div>
+ <!-- Colaborador que Saca -->
+ <div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Colaborador que Entrega</h5>
+    </div>
+    <div class="card-body">
+        <div class="info-grid">
+            <div>
+                <div class="info-row">
+                    <div class="info-label">Nombre Completo:</div>
+                    <div class="info-value">
+                        <select id="colaborador-entregando" onchange="actualizarDatosColaborador(this)"></select>
                     </div>
                 </div>
-                <div>
-                    <div class="info-row">
-                        <div class="info-label">Departamento:</div>
-                        <div class="info-value">
-                            <input type="text" class="form-control" id="departamento-sacando" disabled>
-                        </div>
+                <div class="info-row">
+                    <div class="info-label">Correo:</div>
+                    <div class="info-value">
+                        <input type="email" class="form-control" id="correo-sacando" disabled>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Puesto:</div>
-                        <div class="info-value">
-                            <input type="text" class="form-control" id="puesto-sacando" disabled>
-                        </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Teléfono:</div>
+                    <div class="info-value">
+                        <input type="text" class="form-control" id="telefono-sacando" disabled>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="info-row">
+                    <div class="info-label">Departamento:</div>
+                    <div class="info-value">
+                        <input type="text" class="form-control" id="departamento-sacando" disabled>
+                        <input type="hidden" id="id-departamento-sacando">
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Puesto:</div>
+                    <div class="info-value">
+                        <input type="text" class="form-control" id="puesto-sacando" disabled>
+                        <input type="hidden" id="id-puesto-sacando">
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Colaborador que Recibe -->
     <div class="card">
         <div class="card-header">
             <h5 class="card-title">Colaborador que Recibe</h5>
@@ -196,10 +195,7 @@
                     <div class="info-row">
                         <div class="info-label">Nombre Completo:</div>
                         <div class="info-value">
-                            <select id="colaborador-recibiendo" onchange="actualizarDatosColaborador(this)" required>
-                                <option value="">Seleccione un colaborador</option>
-                                <!-- Opciones cargadas dinámicamente -->
-                            </select>
+                            <select id="colaborador-recibiendo" onchange="actualizarDatosColaborador(this)"></select>
                         </div>
                     </div>
                     <div class="info-row">
@@ -220,12 +216,14 @@
                         <div class="info-label">Departamento:</div>
                         <div class="info-value">
                             <input type="text" class="form-control" id="departamento-recibiendo" disabled>
+                            <input type="hidden" id="id-departamento-recibiendo">
                         </div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">Puesto:</div>
                         <div class="info-value">
                             <input type="text" class="form-control" id="puesto-recibiendo" disabled>
+                            <input type="hidden" id="id-puesto-recibiendo">
                         </div>
                     </div>
                 </div>
@@ -239,7 +237,7 @@
             <h5 class="card-title">Productos</h5>
         </div>
         <div class="card-body">
-            <button type="button" class="btn btn-outline-primary add-product-btn no-print" onclick="agregarProducto()">
+            <button type="button" class="btn btn-outline-primary add-product-btn no-print" onclick="addProductSalida()">
                 <i class="material-icons">add</i> Agregar Producto
             </button>
             <div class="table-responsive">
@@ -255,6 +253,7 @@
                         </tr>
                     </thead>
                     <tbody id="products-body">
+                        <!-- Filas dinámicas cargadas desde el frontend -->
                     </tbody>
                 </table>
             </div>
@@ -276,5 +275,3 @@
         </div>
     </div>
 </form>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
