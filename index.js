@@ -1032,7 +1032,7 @@ ipcMain.on('generar-reporte-productos', async (event, filtroEstado, filtroCatego
         // Opcional: Notificar al cliente que el reporte se generó exitosamente
         event.reply('reporte-generado', {
             success: true,
-            message: `Reporte generado en formato ${formato === 1 ? 'PDF' : 'Excel'}`
+            message: `Reporte generado en formato ${formato === 1 ? 'PDF' : 'Excel'} en el escritorio.`
         });
     } catch (error) {
         console.error('Error al generar el reporte:', error.message);

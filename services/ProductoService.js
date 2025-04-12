@@ -37,6 +37,9 @@ class ProductoService {
     }
 
     async generarReportes(filtroEstado, filtroCategoria, formato){
+        if(filtroCategoria === 0){
+            filtroCategoria = null;
+        }
         this.#productoDB.generarReportes(filtroEstado, filtroCategoria, formato)
     }
 }

@@ -3,6 +3,8 @@ const Producto = require('../domain/Producto');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
+const path = require('path');
+const os = require('os');
 
 class ProductoDB {
     #table;
@@ -16,7 +18,6 @@ class ProductoDB {
     // Método para recuperar la lista de productos con sus categorías
     async listarProductos(pageSize = null, currentPage = null, estadoProducto = null, idCategoriaFiltro = null, valorBusqueda = null) {
         let connection;
-        // console.log('estado: ' + estadoProducto, idCategoriaFiltro, valorBusqueda);
         try {
             connection = await this.#db.conectar();
 
@@ -232,7 +233,7 @@ class ProductoDB {
             }
         }
 
- }
+    }
 
 
     async obtenerProductoPorId(idProducto) {
@@ -344,21 +345,27 @@ class ProductoDB {
             // Obtener la conexión
             connection = await this.#db.conectar();
 
-            // Construir la consulta SQL con filtros dinámicos, excluyendo ID_PRODUCTO
+            // Construir la consulta SQL con INNER JOIN, excluyendo ID_PRODUCTO
             let query = `
-                SELECT ID_CATEGORIA_PRODUCTO, DSC_NOMBRE, DSC_PRODUCTO, NUM_CANTIDAD, 
-                       DSC_UNIDAD_MEDICION, ESTADO 
-                FROM sigm_producto 
+                SELECT 
+                    C.DSC_NOMBRE AS nombreCategoria,
+                    P.DSC_NOMBRE,
+                    P.DSC_PRODUCTO,
+                    P.NUM_CANTIDAD,
+                    P.DSC_UNIDAD_MEDICION,
+                    P.ESTADO
+                FROM sigm_producto P
+                INNER JOIN sigm_categoria_producto C ON P.ID_CATEGORIA_PRODUCTO = C.ID_CATEGORIA_PRODUCTO
                 WHERE 1=1
             `;
             const params = [];
 
             if (filtroEstado !== null) {
-                query += ' AND ESTADO = ?';
+                query += ' AND P.ESTADO = ?';
                 params.push(filtroEstado);
             }
             if (filtroCategoria !== null) {
-                query += ' AND ID_CATEGORIA_PRODUCTO = ?';
+                query += ' AND P.ID_CATEGORIA_PRODUCTO = ?';
                 params.push(filtroCategoria);
             }
 
@@ -370,34 +377,145 @@ class ProductoDB {
                 return;
             }
 
-            if (formato === 1) {
-                const pdfDoc = new PDFDocument();
-                pdfDoc.pipe(fs.createWriteStream('reporte_productos.pdf'));
-                pdfDoc.fontSize(20).text('Reporte de Productos', { align: 'center' });
-                pdfDoc.moveDown();
+            // Obtener la fecha actual en formato DD-MM-YYYY
+            const today = new Date();
+            const formattedDate = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
 
-                const pdfTable = {
-                    headers: ['Categoría', 'Nombre', 'Descripción', 'Cantidad', 'Unidad', 'Estado'],
-                    rows: rows.map(row => [
-                        row.ID_CATEGORIA_PRODUCTO || 'Sin categoría',
-                        row.DSC_NOMBRE || 'Sin nombre',
-                        row.DSC_PRODUCTO || 'Sin descripción',
-                        row.NUM_CANTIDAD !== null ? row.NUM_CANTIDAD : '0',
-                        row.DSC_UNIDAD_MEDICION,
-                        row.ESTADO ? 'Activo' : 'Inactivo'
-                    ])
+            // Obtener la ruta del escritorio
+            const desktopDir = path.join(os.homedir(), 'Desktop');
+
+            if (formato === 1) {
+                const pdfDoc = new PDFDocument({ font: 'Helvetica', margin: 10 });
+
+                // Guardar el PDF en el escritorio
+                const pdfPath = path.join(desktopDir, `reporte_productos_${formattedDate}.pdf`);
+                pdfDoc.pipe(fs.createWriteStream(pdfPath));
+
+                // Escribir título
+                pdfDoc.fontSize(20).text('Reporte de Productos', { align: 'center' });
+                pdfDoc.moveDown(1.5);
+
+                // Configuración de la tabla
+                const startX = 10;
+                const columnWidths = [80, 120, 200, 70, 60, 60];
+                const headers = ['Categoría', 'Nombre', 'Descripción', 'Cantidad', 'Unidad', 'Estado'];
+                const baseRowHeight = 30;
+                const pageHeight = pdfDoc.page.height - pdfDoc.page.margins.bottom;
+                const tableWidth = columnWidths.reduce((a, b) => a + b, 0);
+
+                // Función para estimar la altura de una celda (sin dryRun)
+                const getCellHeight = (text, width) => {
+                    if (typeof width !== 'number' || isNaN(width) || width <= 0) {
+                        console.error('Ancho inválido:', width);
+                        return baseRowHeight;
+                    }
+
+                    const safeText = typeof text === 'string' ? text : String(text || '');
+                    const charsPerLine = Math.floor(width / 5);
+                    const lines = Math.ceil(safeText.length / charsPerLine) || 1;
+                    return Math.max(baseRowHeight, lines * 10 + 10);
                 };
 
-                pdfDoc.table(pdfTable, { width: 550, columnsSize: [70, 100, 150, 60, 50, 50] });
-                pdfDoc.end();
-                console.log('PDF generado: reporte_productos.pdf');
+                // Función para dibujar encabezados
+                const drawHeaders = (startX, startY) => {
+                    pdfDoc.fontSize(10).font('Helvetica-Bold');
+                    pdfDoc
+                        .rect(startX, startY - 5, tableWidth, baseRowHeight)
+                        .fillOpacity(0.1)
+                        .fill('#D3D3D3')
+                        .stroke();
 
+                    let x = startX;
+                    headers.forEach((header, i) => {
+                        pdfDoc
+                            .fillOpacity(1)
+                            .fillColor('black')
+                            .text(header, x + 2, startY + (baseRowHeight - 10) / 2, { width: columnWidths[i] - 4, align: 'left' });
+                        x += columnWidths[i];
+                    });
+
+                    x = startX;
+                    for (let i = 0; i <= headers.length; i++) {
+                        pdfDoc
+                            .moveTo(x, startY - 5)
+                            .lineTo(x, startY + baseRowHeight - 5)
+                            .stroke();
+                        x += columnWidths[i] || 0;
+                    }
+                };
+
+                // Función para dibujar una fila
+                const drawRow = (row, startX, startY) => {
+                    const rowData = [
+                        row.nombreCategoria || 'Sin categoría',
+                        row.DSC_NOMBRE || 'Sin nombre',
+                        row.DSC_PRODUCTO || 'Sin descripción',
+                        row.NUM_CANTIDAD !== null && row.NUM_CANTIDAD !== undefined ? row.NUM_CANTIDAD.toString().replace(/[^0-9]/g, '') : '0',
+                        row.DSC_UNIDAD_MEDICION || 'N/A',
+                        row.ESTADO ? 'Activo' : 'Inactivo'
+                    ];
+
+                    let rowHeight = baseRowHeight;
+                    rowData.forEach((cell, i) => {
+                        if (i >= columnWidths.length) {
+                            return;
+                        }
+                        const cellHeight = getCellHeight(cell, columnWidths[i]);
+                        rowHeight = Math.max(rowHeight, cellHeight);
+                    });
+
+                    let x = startX;
+                    pdfDoc.fontSize(10).font('Helvetica');
+                    rowData.forEach((cell, i) => {
+                        if (i >= columnWidths.length) return;
+                        pdfDoc.text(cell, x + 2, startY + (rowHeight - 10) / 2, { width: columnWidths[i] - 4, align: 'left', height: rowHeight - 10, ellipsis: false });
+                        x += columnWidths[i];
+                    });
+
+                    x = startX;
+                    for (let i = 0; i <= rowData.length; i++) {
+                        pdfDoc
+                            .moveTo(x, startY - 5)
+                            .lineTo(x, startY + rowHeight - 5)
+                            .stroke();
+                        x += i < columnWidths.length ? columnWidths[i] : 0;
+                    }
+                    pdfDoc
+                        .moveTo(startX, startY - 5)
+                        .lineTo(startX + tableWidth, startY - 5)
+                        .moveTo(startX, startY + rowHeight - 5)
+                        .lineTo(startX + tableWidth, startY + rowHeight - 5)
+                        .stroke();
+
+                    return rowHeight;
+                };
+
+                // Dibujar tabla
+                let y = pdfDoc.y;
+                drawHeaders(startX, y);
+                y += baseRowHeight;
+
+                rows.forEach((row, rowIndex) => {
+                    const rowHeight = drawRow(row, startX, y);
+
+                    if (y + rowHeight > pageHeight) {
+                        pdfDoc.addPage();
+                        y = pdfDoc.page.margins.top;
+                        drawHeaders(startX, y);
+                        y += baseRowHeight;
+                    }
+
+                    const actualRowHeight = drawRow(row, startX, y);
+                    y += actualRowHeight;
+                });
+
+                pdfDoc.end();
             } else if (formato === 2) {
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet('Productos');
 
                 worksheet.columns = [
-                    { header: 'Categoría', key: 'id_categoria', width: 15 },
+                    { header: 'Categoría', key: 'nombre_categoria', width: 15 },
                     { header: 'Nombre', key: 'nombre', width: 30 },
                     { header: 'Descripción', key: 'descripcion', width: 40 },
                     { header: 'Cantidad', key: 'cantidad', width: 15 },
@@ -405,20 +523,21 @@ class ProductoDB {
                     { header: 'Estado', key: 'estado', width: 10 }
                 ];
 
-                worksheet.addRows(rows.map(row => ({
-                    id_categoria: row.ID_CATEGORIA_PRODUCTO || 'Sin categoría',
-                    nombre: row.DSC_NOMBRE || 'Sin nombre',
-                    descripcion: row.DSC_PRODUCTO || 'Sin descripción',
-                    cantidad: row.NUM_CANTIDAD !== null ? row.NUM_CANTIDAD : 0,
-                    unidad: row.DSC_UNIDAD_MEDICION,
-                    estado: row.ESTADO ? 'Activo' : 'Inactivo'
-                })));
-
                 worksheet.getRow(1).font = { bold: true };
                 worksheet.getRow(1).alignment = { horizontal: 'center' };
 
-                await workbook.xlsx.writeFile('reporte_productos.xlsx');
-                console.log('Excel generado: reporte_productos.xlsx');
+                worksheet.addRows(rows.map(row => ({
+                    nombre_categoria: row.nombreCategoria || 'Sin categoría',
+                    nombre: row.DSC_NOMBRE || 'Sin nombre',
+                    descripcion: row.DSC_PRODUCTO || 'Sin descripción',
+                    cantidad: row.NUM_CANTIDAD !== null && row.NUM_CANTIDAD !== undefined ? row.NUM_CANTIDAD : 0,
+                    unidad: row.DSC_UNIDAD_MEDICION || 'N/A',
+                    estado: row.ESTADO ? 'Activo' : 'Inactivo'
+                })));
+
+                // Guardar el Excel en el escritorio
+                const excelPath = path.join(desktopDir, `reporte_productos_${formattedDate}.xlsx`);
+                await workbook.xlsx.writeFile(excelPath);
             } else {
                 console.log('Formato no válido. Usa 1 para PDF o 2 para Excel.');
             }
@@ -427,7 +546,7 @@ class ProductoDB {
             throw error;
         } finally {
             if (connection) {
-                await connection.end(); // Cerrar la conexión
+                await connection.end();
             }
         }
     }
