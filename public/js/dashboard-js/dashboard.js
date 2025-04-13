@@ -2295,7 +2295,7 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 
         cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
       });
-    }, 500  );
+    }, 100);
   });
 }
 
