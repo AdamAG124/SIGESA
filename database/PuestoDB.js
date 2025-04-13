@@ -2,16 +2,16 @@ const ConectarDB = require('./ConectarDB'); // Módulo de conexión a la base de
 const Puesto = require('../domain/PuestoTrabajo'); // Modelo de dominio de PuestoTrabajo
 
 class PuestoTrabajoDB {
-
+    #db;
     #table;
 
     constructor() {
-        this.#table = 'sigm_puesto_trabajo'; // Nombre de la tabla en la base de datos
+        this.#table = 'sigm_puesto_trabajo';
+        this.#db = new ConectarDB();
     }
 
     // Método para listar los puestos de trabajo con paginación, filtros, y búsqueda
     async listarPuestos(pageSize, currentPage, estado, valorBusqueda) {
-        const db = new ConectarDB();
         let connection;
 
         try {
