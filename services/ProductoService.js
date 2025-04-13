@@ -35,13 +35,6 @@ class ProductoService {
     async actualizarProducto(producto) {
         return await this.#productoDB.actualizarProducto(producto);
     }
-
-    async generarReportes(filtroEstado, filtroCategoria, formato){
-        if(filtroCategoria === 0){
-            filtroCategoria = null;
-        }
-        this.#productoDB.generarReportes(filtroEstado, filtroCategoria, formato)
-    }
 }
 
 // Exportar la clase

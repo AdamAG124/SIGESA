@@ -28,10 +28,6 @@ class ProductoController {
     async actualizarProducto(producto) {
         return await this.#productoService.actualizarProducto(producto);
     }
-
-    async generarReportes(filtroEstado, filtroCategoria, formato){
-        this.#productoService.generarReportes(filtroEstado, filtroCategoria, formato);
-    }
 }
 
 module.exports = ProductoController;
