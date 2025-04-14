@@ -22,6 +22,7 @@ class ProductoDB {
             const baseQuery = `
                 FROM ${this.#table} P
                 INNER JOIN SIGM_CATEGORIA_PRODUCTO C ON P.ID_CATEGORIA_PRODUCTO = C.ID_CATEGORIA_PRODUCTO
+                INNER JOIN SIGM_UNIDAD_MEDICION U ON P.ID_UNIDAD_MEDICION = U.ID_UNIDAD_MEDICION
             `;
 
             // Inicializar condiciones del filtro
@@ -66,9 +67,10 @@ class ProductoDB {
                 SELECT 
                     P.ID_PRODUCTO AS idProducto, P.ID_CATEGORIA_PRODUCTO AS idCategoria,
                     P.DSC_NOMBRE AS nombreProducto, P.DSC_PRODUCTO AS descripcionProducto,
-                    P.NUM_CANTIDAD AS cantidad, P.DSC_UNIDAD_MEDICION AS unidadMedicion,
+                    P.NUM_CANTIDAD AS cantidad, P.ID_UNIDAD_MEDICION AS idUnidadMedicion,
                     P.ESTADO AS estadoProducto, C.DSC_NOMBRE AS nombreCategoria, 
-                    C.DSC_DESCRIPCION AS descripcionCategoria, C.ESTADO AS estadoCategoria
+                    C.DSC_DESCRIPCION AS descripcionCategoria, C.ESTADO AS estadoCategoria,
+                    U.DSC_NOMBRE AS nombreUnidadMedicion, U.ESTADO AS estadoUnidadMedicion
                 ${baseQuery}
                 ${whereClause}
                 ${limitOffsetClause}
@@ -84,7 +86,6 @@ class ProductoDB {
                 producto.setNombre(productoDB.nombreProducto);
                 producto.setDescripcion(productoDB.descripcionProducto);
                 producto.setCantidad(productoDB.cantidad);
-                producto.setUnidadMedicion(productoDB.unidadMedicion);
                 producto.setEstado(productoDB.estadoProducto);
 
                 // Setters para la categoría del producto
@@ -92,6 +93,11 @@ class ProductoDB {
                 producto.getCategoria().setNombre(productoDB.nombreCategoria);
                 producto.getCategoria().setDescripcion(productoDB.descripcionCategoria);
                 producto.getCategoria().setEstado(productoDB.estadoCategoria);
+
+                // Setters para la unidad de medición
+                producto.getUnidadMedicion().setIdUnidadMedicion(productoDB.idUnidadMedicion);
+                producto.getUnidadMedicion().setNombre(productoDB.nombreUnidadMedicion);
+                producto.getUnidadMedicion().setEstado(productoDB.estadoUnidadMedicion);
 
                 return producto;
             });
@@ -142,8 +148,7 @@ class ProductoDB {
             const nombre = producto.getNombre() || 'Acción requerida: ingrese un nombre';
             const descripcion = producto.getDescripcion();
             const cantidad = producto.getCantidad() || 0;
-            const unidadMedicion = producto.getUnidadMedicion() || 'Acción requerida: ingrese una unidad';
-            // Si producto.getCategoria() no es null ni undefined, entonces se invoca el método getIdCategoria() y se asigna su valor a categoria.
+            const unidadMedicion = producto.getUnidadMedicion()?.getIdUnidadMedicion();
             const categoria = producto.getCategoria()?.getIdCategoria();
             const estado = producto.getEstado() ?? 1; // 1 (Activo)
 
@@ -165,7 +170,7 @@ class ProductoDB {
             // Insertar el producto
             const query = `
                 INSERT INTO ${this.#table} 
-                (DSC_NOMBRE, DSC_PRODUCTO, NUM_CANTIDAD, DSC_UNIDAD_MEDICION, ID_CATEGORIA_PRODUCTO, ESTADO) 
+                (DSC_NOMBRE, DSC_PRODUCTO, NUM_CANTIDAD, ID_UNIDAD_MEDICION, ID_CATEGORIA_PRODUCTO, ESTADO) 
                 VALUES (?, ?, ?, ?, ?, ?)
             `;
             const params = [nombre, descripcion, cantidad, unidadMedicion, categoria, estado];
@@ -245,10 +250,11 @@ class ProductoDB {
                 SELECT
                     P.ID_PRODUCTO AS idProducto, P.DSC_NOMBRE AS nombreProducto,
                     P.DSC_PRODUCTO AS descripcionProducto, P.NUM_CANTIDAD AS cantidad,
-                    P.DSC_UNIDAD_MEDICION AS unidadMedicion, P.ESTADO AS estadoProducto,
+                    P.ID_UNIDAD_MEDICION AS idUnidadMedicion, P.ESTADO AS estadoProducto,
                     C.ID_CATEGORIA_PRODUCTO AS idCategoria
                 FROM ${this.#table} P
                 INNER JOIN SIGM_CATEGORIA_PRODUCTO C ON P.ID_CATEGORIA_PRODUCTO = C.ID_CATEGORIA_PRODUCTO
+                INNER JOIN SIGM_UNIDAD_MEDICION U ON P.ID_UNIDAD_MEDICION = U.ID_UNIDAD_MEDICION
                 WHERE P.ID_PRODUCTO = ?
             `;
 
@@ -261,11 +267,11 @@ class ProductoDB {
                 producto.setNombre(productoDB.nombreProducto);
                 producto.setDescripcion(productoDB.descripcionProducto);
                 producto.setCantidad(productoDB.cantidad);
-                producto.setUnidadMedicion(productoDB.unidadMedicion);
                 producto.setEstado(productoDB.estadoProducto);
 
                 // Setters para la categoría del producto
                 producto.getCategoria().setIdCategoria(productoDB.idCategoria);
+                producto.getUnidadMedicion().setIdUnidadMedicion(productoDB.idUnidadMedicion);
 
                 return producto;
             } else {
@@ -294,7 +300,7 @@ class ProductoDB {
             const nombre = producto.getNombre();
             const descripcion = producto.getDescripcion();
             const cantidad = producto.getCantidad();
-            const unidadMedicion = producto.getUnidadMedicion();
+            const idUnidadMedicion = producto.getUnidadMedicion().getIdUnidadMedicion();
             const idCategoria = producto.getCategoria().getIdCategoria();
             const estado = producto.getEstado();
 
@@ -304,12 +310,12 @@ class ProductoDB {
                     SET DSC_NOMBRE = ?,
                     DSC_PRODUCTO = ?, 
                     NUM_CANTIDAD = ?, 
-                    DSC_UNIDAD_MEDICION = ?, 
+                    ID_UNIDAD_MEDICION = ?, 
                     ID_CATEGORIA_PRODUCTO = ?,
                     ESTADO = ?
                 WHERE ID_PRODUCTO = ?`;
 
-            let params = [nombre, descripcion, cantidad, unidadMedicion, idCategoria, idProducto, estado];
+            let params = [nombre, descripcion, cantidad, idUnidadMedicion, idCategoria, idProducto, estado];
 
             // Ejecutar la consulta
             const [result] = await connection.query(query, params);

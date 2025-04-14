@@ -3,7 +3,7 @@
 /* -------------------------------------- */
 #module-container {
     position: relative;
-    width: 300px;
+    width: 100%;
     display: flex;
 }
 
@@ -11,7 +11,7 @@
 /* ▼ SIMULACIÓN DE SELECT ▼ */
 /* -------------------------------------- */
 #selected-module {
-    width: 200px;
+    width: 300px;
     padding: 8px 12px;
     background: #fff;
     cursor: pointer;

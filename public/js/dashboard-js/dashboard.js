@@ -2270,7 +2270,7 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
         row.innerHTML = `
           <td>${producto.nombreProducto}</td>
           <td>${producto.cantidad}</td>
-          <td>${producto.unidadMedicion}</td>
+          <td>${producto.nombreUnidadMedicion}</td>
           <td>${estado}</td>
           <td class="action-icons">
               <button class="tooltip" value="${producto.idProducto}" onclick="editarProducto(this.value, this)">
@@ -2300,6 +2300,59 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 }
 
 function agregarProducto() {
+
+  unidadMedicionSelector = new ModuleSelector({
+    containerId: "module-container",
+    moduleId: "unidad-medicion",
+    handlers: {
+      list: (moduleId, callback) => {
+        window.api.obtenerUnidadesMedicion((unidades) => {
+          console.log("Unidades recibidas:", unidades);
+
+          // Asegurarse de que estén mapeadas correctamente
+          const mappedUnidades = unidades.map(u => ({
+            id: u.id || u.idUnidadMedicion,
+            nombre: u.nombre
+          }));
+
+          console.log("Unidades mapeadas:", mappedUnidades);
+          callback(mappedUnidades);
+        });
+      },
+
+      // Los demás métodos siguen igual:
+      create: (moduleId, newName, callback) => {
+        window.api.crearUnidadMedicion(newName, (response) => {
+          if (response.success) callback(response);
+          else console.error("Error al crear unidad de medición", response.message);
+        });
+      },
+
+      update: (moduleId, id, newName, callback) => {
+        window.api.actualizarUnidadMedicion(id, newName, (response) => {
+          if (response.success) callback(response);
+          else console.error("Error al actualizar unidad de medición", response.message);
+        });
+      },
+
+      delete: (moduleId, id, callback) => {
+        window.api.eliminarUnidadMedicion(id, (response) => {
+          if (response.success) callback(response);
+          else console.error("Error al eliminar unidad de medición", response.message);
+        });
+      },
+
+      undoDelete: (moduleId, name, index, callback) => {
+        window.api.revertirUnidadMedicion(name, index, (response) => {
+          if (response.success) callback(response);
+          else console.error("Error al restaurar unidad de medición", response.message);
+        });
+      }
+    }
+  });
+
+
+
   const categoriaSelect = document.getElementById("categorias");
 
   // Crear un array para almacenar los textos de las opciones del select
@@ -2317,7 +2370,7 @@ function enviarCreacionProducto() {
   const nombre = document.getElementById("nombre").value;
   const descripcion = document.getElementById("descripcion").value || "N/A";
   const cantidad = document.getElementById("cantidad").value;
-  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const unidadMedicion = unidadMedicionSelector.getSelectedId();
   const categoria = document.getElementById("categorias").value;
 
   // Array para almacenar los campos vacíos
@@ -2325,7 +2378,7 @@ function enviarCreacionProducto() {
 
   const inputs = [
     { value: nombre, element: document.getElementById("nombre") },
-    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: unidadMedicion, element: document.getElementById("selected-module") },
     { value: categoria, element: document.getElementById("categorias") },
 
     // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
@@ -2407,8 +2460,8 @@ async function editarProducto(id, boton) {
       document.getElementById("nombre").value = producto.nombre;
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
-      document.getElementById("unidadMedicion").value = producto.unidadMedicion;
-      console.log(producto.idCategoria);
+      unidadMedicionSelector.setSelectedById(producto.idUnidadMedicion);
+
       // Usar setTimeout para esperar un poco y luego asignar el valor al select
       setTimeout(() => {
         selectCategoria.value = producto.idCategoria; // Asignamos el valor después de un pequeño retraso
@@ -2431,7 +2484,7 @@ function enviarEdicionProducto() {
   const nombre = document.getElementById("nombre").value;
   const descripcion = document.getElementById("descripcion").value || "N/A";
   const cantidad = document.getElementById("cantidad").value;
-  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const unidadMedicion = unidadMedicionSelector.getSelectedId();
   const categoria = document.getElementById("categorias").value;
 
   // Array para almacenar los campos vacíos
@@ -2439,7 +2492,7 @@ function enviarEdicionProducto() {
 
   const inputs = [
     { value: nombre, element: document.getElementById("nombre") },
-    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: unidadMedicion, element: document.getElementById("selected-module") },
     { value: categoria, element: document.getElementById("categorias") },
 
     // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
@@ -2504,6 +2557,11 @@ function enviarEdicionProducto() {
       });
     }
   });
+}
+
+function toggleModuleList() {
+  const container = document.getElementById("module-container");
+  container.classList.toggle("open");
 }
 
 /* --------------------------------          ------------------------------------------

@@ -7,17 +7,17 @@ class ModuleSelector {
     this.creatable = creatable;
     this.handlers = handlers;
     this.modules = [];
+    this.selected = null; // ← Guardar el objeto seleccionado
 
-    // Selectores dentro del contenedor
-    this.moduleList = this.container.querySelector('.module-list');
-    this.selectedModule = this.container.querySelector('.selected-module');
-    this.addBtn = this.container.querySelector('.add-module-btn');
-    this.popup = this.container.querySelector('.popup-overlay');
-    this.inputNew = this.container.querySelector('.new-module-name');
-    this.saveBtn = this.container.querySelector('.save-module');
-    this.cancelBtn = this.container.querySelector('.cancel-module');
+    // Selectores del DOM
+    this.moduleList = this.container.querySelector('#module-list');
+    this.selectedModule = this.container.querySelector('#selected-module');
+    this.addBtn = this.container.querySelector('#add-module-btn');
+    this.popup = document.getElementById('module-popup');
+    this.inputNew = document.getElementById('new-module-name');
+    this.saveBtn = document.getElementById('save-module');
+    this.cancelBtn = document.getElementById('cancel-module');
 
-    // Iniciar selector
     this.init();
   }
 
@@ -35,23 +35,32 @@ class ModuleSelector {
       this.addBtn.style.display = 'none';
     }
 
-    await this.fetchModules();
+    // Fetch modules
+    this.fetchModules();
   }
 
-  async fetchModules() {
-    this.modules = await this.handlers.list(this.moduleId) || [];
-    this.renderModules();
+  // Modificación de fetchModules para trabajar con callbacks
+  fetchModules() {
+    this.handlers.list(this.moduleId, (unidades) => {  // Callback en lugar de `await`
+      if (unidades) {
+        this.modules = unidades;  // Aquí se recibe el array de unidades de medición
+        this.renderModules();
+      } else {
+        console.error("No se pudieron cargar las unidades de medición.");
+      }
+    });
   }
 
   renderModules() {
     this.moduleList.innerHTML = '';
+
     this.modules.forEach((mod, i) => {
       const item = document.createElement('div');
       item.className = 'module-item';
 
       const input = document.createElement('input');
       input.type = 'text';
-      input.value = mod;
+      input.value = mod.nombre;
       input.readOnly = true;
 
       if (this.editable) {
@@ -65,19 +74,20 @@ class ModuleSelector {
         input.addEventListener('keydown', async (e) => {
           if (e.key === 'Enter') {
             const newValue = input.value.trim();
-            if (newValue && newValue !== this.modules[i]) {
-              await this.handlers.update(this.moduleId, i, newValue);
+            if (newValue && newValue !== mod.nombre) {
+              await this.handlers.update(this.moduleId, mod.id, newValue);
               await this.fetchModules();
             }
           } else if (e.key === 'Escape') {
-            input.value = this.modules[i];
+            input.value = mod.nombre;
             input.readOnly = true;
           }
         });
       }
 
       input.addEventListener('dblclick', () => {
-        this.selectedModule.firstChild.textContent = input.value;
+        this.selectedModule.textContent = mod.nombre;
+        this.selected = mod; // ← Guardar objeto completo
         this.container.classList.remove('open');
       });
 
@@ -86,7 +96,7 @@ class ModuleSelector {
       if (this.deletable) {
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = '✕';
-        deleteBtn.onclick = () => this.confirmDelete(i);
+        deleteBtn.onclick = () => this.confirmDelete(mod.id);
         item.appendChild(deleteBtn);
       }
 
@@ -94,11 +104,14 @@ class ModuleSelector {
     });
   }
 
-  confirmDelete(index) {
+  confirmDelete(id) {
+    const index = this.modules.findIndex(m => m.id === id);
+    const mod = this.modules[index];
+
     const item = this.moduleList.children[index];
     item.className = 'module-item deleting-module';
     item.innerHTML = `
-        <input type="text" readonly value="${this.modules[index]}" />
+        <input type="text" readonly value="${mod.nombre}" />
         <div class="delete-buttons-container">
             <button class="confirm">Eliminar</button>
             <button class="cancel">Cancelar</button>
@@ -106,21 +119,20 @@ class ModuleSelector {
       `;
 
     item.querySelector('.confirm').onclick = async () => {
-      const deleted = this.modules[index];
-      await this.handlers.delete(this.moduleId, index);
+      await this.handlers.delete(this.moduleId, id);
       await this.fetchModules();
-      this.showUndoToast(deleted, index);
+      this.showUndoToast(mod, index);
     };
 
     item.querySelector('.cancel').onclick = () => this.renderModules();
   }
 
-  showUndoToast(deleted, index) {
+  showUndoToast(mod, index) {
     const toast = document.createElement('div');
     toast.className = 'undo-toast';
-    toast.innerHTML = `Módulo eliminado: <strong>${deleted}</strong> <button>Deshacer</button>`;
+    toast.innerHTML = `Unidad eliminada: <strong>${mod.nombre}</strong> <button>Deshacer</button>`;
     toast.querySelector('button').onclick = async () => {
-      await this.handlers.undoDelete?.(this.moduleId, deleted, index);
+      await this.handlers.undoDelete?.(this.moduleId, mod, index);
       await this.fetchModules();
       toast.remove();
     };
@@ -136,12 +148,29 @@ class ModuleSelector {
 
   async saveNewModule() {
     const newName = this.inputNew.value.trim();
-    if (newName && !this.modules.includes(newName)) {
+    if (newName && !this.modules.some(m => m.nombre === newName)) {
       await this.handlers.create(this.moduleId, newName);
       await this.fetchModules();
       this.popup.style.display = 'none';
     } else {
       alert("Ingrese un nombre válido y único.");
+    }
+  }
+
+  // ← Puedes exponer un método para obtener el ID seleccionado
+  getSelectedId() {
+    return this.selected?.id || null;
+  }
+
+  getSelectedNombre() {
+    return this.selected?.nombre || null;
+  }
+
+  setSelectedById(id) {
+    const mod = this.modules.find(m => m.id === id);
+    if (mod) {
+      this.selectedModule.textContent = mod.nombre;
+      this.selected = mod;
     }
   }
 }

@@ -49,9 +49,11 @@ class UnidadMedicionDB {
             throw error;
         } finally {
             if (connection) {
-                connection.release(); // Liberar la conexión
+                await connection.end();
             }
         }
     }
 
 }
+
+module.exports = UnidadMedicionDB;

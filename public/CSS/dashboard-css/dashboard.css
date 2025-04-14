@@ -8,7 +8,6 @@
 
 * {
     margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 
@@ -303,6 +302,7 @@ select {
     transition: border-color 0.3s;
     /* Transición suave al cambiar de borde */
     margin-bottom: 10px;
+    border-radius: 5px;
 }
 
 select:focus {
