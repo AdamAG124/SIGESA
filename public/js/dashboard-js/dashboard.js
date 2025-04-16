@@ -2307,16 +2307,8 @@ function agregarProducto() {
     handlers: {
       list: (moduleId, callback) => {
         window.api.obtenerUnidadesMedicion((unidades) => {
-          console.log("Unidades recibidas:", unidades);
 
-          // Asegurarse de que estén mapeadas correctamente
-          const mappedUnidades = unidades.map(u => ({
-            id: u.id || u.idUnidadMedicion,
-            nombre: u.nombre
-          }));
-
-          console.log("Unidades mapeadas:", mappedUnidades);
-          callback(mappedUnidades);
+          callback(unidades);
         });
       },
 
@@ -2350,8 +2342,6 @@ function agregarProducto() {
       }
     }
   });
-
-
 
   const categoriaSelect = document.getElementById("categorias");
 
@@ -2560,7 +2550,7 @@ function enviarEdicionProducto() {
 }
 
 function toggleModuleList() {
-  const container = document.getElementById("module-container");
+  const container = document.getElementById("module-list");
   container.classList.toggle("open");
 }
 

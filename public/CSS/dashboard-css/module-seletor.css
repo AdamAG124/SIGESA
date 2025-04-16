@@ -30,10 +30,18 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+.dropdown-icon {
+    display: inline-block;
+    width: 1em; 
+    vertical-align: middle;
+}
+
 .dropdown-icon::after {
     content: '▼';
+    display: inline-block;
     font-size: 12px;
     color: #555;
+    margin-left: 6px;
     transition: transform 0.3s ease;
 }
 
@@ -177,7 +185,7 @@
     background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
     justify-content: center;
-    align-items: self-start;
+    align-items: center;
 }
 
 .popup-content {
@@ -200,7 +208,7 @@
 
 .popup-buttons {
     display: flex;
-    padding-left: 5px;
+    padding-left: 13px;
     gap: 4px;
 }
 

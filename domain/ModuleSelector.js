@@ -28,18 +28,16 @@ class ModuleSelector {
 
     if (this.creatable) {
       this.addBtn.style.display = 'inline-block';
-      this.addBtn.addEventListener('click', () => this.showPopup());
-      this.saveBtn.addEventListener('click', () => this.saveNewModule());
+      this.addBtn.addEventListener('click', (e) => { e.preventDefault(); this.showPopup() });
+      this.saveBtn.addEventListener('click', (e) => { e.preventDefault(); this.saveNewModule() });
       this.cancelBtn.addEventListener('click', () => this.popup.style.display = 'none');
     } else {
       this.addBtn.style.display = 'none';
     }
 
-    // Fetch modules
     this.fetchModules();
   }
 
-  // Modificación de fetchModules para trabajar con callbacks
   fetchModules() {
     this.handlers.list(this.moduleId, (unidades) => {  // Callback en lugar de `await`
       if (unidades) {
@@ -144,20 +142,35 @@ class ModuleSelector {
     this.inputNew.value = '';
     this.popup.style.display = 'flex';
     this.inputNew.focus();
+
+    const errorMsg = document.getElementById('module-error');
+
+    const handleClickOutside = (e) => {
+      if (e.target === this.popup) {
+        errorMsg.style.display = 'none';
+        this.popup.removeEventListener('click', handleClickOutside);
+      }
+    };
+
+    this.popup.addEventListener('click', handleClickOutside);
   }
 
   async saveNewModule() {
     const newName = this.inputNew.value.trim();
+    const errorMsg = document.getElementById('module-error');
+
     if (newName && !this.modules.some(m => m.nombre === newName)) {
       await this.handlers.create(this.moduleId, newName);
       await this.fetchModules();
       this.popup.style.display = 'none';
+      errorMsg.style.display = 'none';
     } else {
-      alert("Ingrese un nombre válido y único.");
+      errorMsg.textContent = "Ingrese un nombre válido y único.";
+      errorMsg.style.display = 'block';
+      this.inputNew.focus();
     }
   }
 
-  // ← Puedes exponer un método para obtener el ID seleccionado
   getSelectedId() {
     return this.selected?.id || null;
   }

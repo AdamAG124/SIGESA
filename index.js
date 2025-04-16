@@ -1530,3 +1530,21 @@ ipcMain.on('listar-unidades-medicion', async (event, { }) => {
     }
 });
 
+ipcMain.on('crear-unidad-medicion', async (event, unidadMedicionData) => {
+
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const unidadMedicion = new UnidadMedicion();
+        unidadMedicion.setNombre(unidadMedicionData.nombre);
+        unidadMedicion.setEstado(unidadMedicionData.estado);
+
+        const resultado = await unidadMedicionController.insertarUnidadMedicion(unidadMedicion);
+
+        event.reply('respuesta-crear-unidad-medicion', resultado);
+    } catch (error) {
+        console.error('Error al crear la unidad de medición:', error);
+        event.reply('respuesta-crear-unidad-medicion', { success: false, message: error.message });
+    }
+}
+);

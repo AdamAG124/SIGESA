@@ -77,6 +77,11 @@
                 <div id="module-popup" class="popup-overlay">
                     <div class="popup-content">
                         <h3>Agregar</h3>
+
+                        <!-- Aquí va el nuevo div de error -->
+                        <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
+                        </div>
+
                         <input type="text" id="new-module-name" placeholder="Nombre del módulo" />
                         <div class="popup-buttons">
                             <button id="save-module">Guardar</button>
@@ -84,6 +89,7 @@
                         </div>
                     </div>
                 </div>
+
                 <label for="categorias">Categoría:</label>
                 <select id="categorias" name="categorias" required>
                     <!-- Opciones de categoria se llenarán aquí -->
