@@ -2640,21 +2640,31 @@ function cargarColaboradores(idSelect, mensajeQuemado) {
   });
 }
 function actualizarDatosColaborador(select) {
-  const selectedOption = select.options[select.selectedIndex];
-  console.log("📢 Colaborador seleccionado:", selectedOption);
+  const selectedOption = select.options[select.selectedIndex]; // La opción seleccionada
 
-  const correo = selectedOption.getAttribute("data-correo") || "N/A";
-  const telefono = selectedOption.getAttribute("data-telefono") || "N/A";
-  const departamento = selectedOption.getAttribute("data-departamento") || "N/A";
-  const puesto = selectedOption.getAttribute("data-puesto") || "N/A";
+  // Determinar si es el colaborador que entrega o recibe según el ID del select
+  const esColaboradorSacando = select.id === 'colaborador-entregando';
+  const prefijo = esColaboradorSacando ? 'sacando' : 'recibiendo';
 
-  console.log("✅ Datos del colaborador seleccionado:", { correo, telefono, departamento, puesto });
+  // Obtener los inputs correspondientes
+  const correoInput = document.getElementById(`correo-${prefijo}`);
+  const telefonoInput = document.getElementById(`telefono-${prefijo}`);
+  const departamentoInput = document.getElementById(`departamento-${prefijo}`);
+  const puestoInput = document.getElementById(`puesto-${prefijo}`);
 
-  // Actualizar los campos en la vista
-  document.getElementById("correo-recibiendo").value = correo;
-  document.getElementById("telefono-recibiendo").value = telefono;
-  document.getElementById("departamento-recibiendo").value = departamento;
-  document.getElementById("puesto-recibiendo").value = puesto;
+  // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
+  if (selectedOption.value === "0") {
+      correoInput.value = '';
+      telefonoInput.value = '';
+      departamentoInput.value = '';
+      puestoInput.value = '';
+  } else {
+      // Llenar los inputs con los datos de los atributos data-*
+      correoInput.value = selectedOption.dataset.correo || '';
+      telefonoInput.value = selectedOption.dataset.telefono || '';
+      departamentoInput.value = selectedOption.dataset.departamento || '';
+      puestoInput.value = selectedOption.dataset.puesto || '';
+  }
 }
 
 /* SALIDA PRODUCTOOOO*/
