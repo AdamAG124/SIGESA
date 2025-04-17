@@ -2295,7 +2295,7 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 
         cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
       });
-    }, 500  );
+    }, 500);
   });
 }
 
@@ -2654,16 +2654,16 @@ function actualizarDatosColaborador(select) {
 
   // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
   if (selectedOption.value === "0") {
-      correoInput.value = '';
-      telefonoInput.value = '';
-      departamentoInput.value = '';
-      puestoInput.value = '';
+    correoInput.value = '';
+    telefonoInput.value = '';
+    departamentoInput.value = '';
+    puestoInput.value = '';
   } else {
-      // Llenar los inputs con los datos de los atributos data-*
-      correoInput.value = selectedOption.dataset.correo || '';
-      telefonoInput.value = selectedOption.dataset.telefono || '';
-      departamentoInput.value = selectedOption.dataset.departamento || '';
-      puestoInput.value = selectedOption.dataset.puesto || '';
+    // Llenar los inputs con los datos de los atributos data-*
+    correoInput.value = selectedOption.dataset.correo || '';
+    telefonoInput.value = selectedOption.dataset.telefono || '';
+    departamentoInput.value = selectedOption.dataset.departamento || '';
+    puestoInput.value = selectedOption.dataset.puesto || '';
   }
 }
 
@@ -2731,26 +2731,26 @@ function cargarProductos(idSelect, mensajeQuemado) {
   console.log("📢 Solicitando productos para el select:", idSelect);
 
   window.api.obtenerProductos(null, null, 1, null, null, (respuesta) => {
-      console.log("✅ Productos recibidos en el frontend:", respuesta);
+    console.log("✅ Productos recibidos en el frontend:", respuesta);
 
-      const productoSelect = document.getElementById(idSelect);
-      productoSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const productoSelect = document.getElementById(idSelect);
+    productoSelect.innerHTML = ""; // Limpiar las opciones existentes
+
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    productoSelect.appendChild(option);
+
+    respuesta.productos.forEach((producto) => {
+      console.log("➡️ Procesando producto:", producto);
 
       const option = document.createElement("option");
-      option.value = "0";
-      option.textContent = mensajeQuemado;
+      option.value = producto.idProducto;
+      option.textContent = producto.nombreProducto;
+      option.setAttribute("data-unidad", producto.unidadMedicion);
+      option.setAttribute("data-cantidad", producto.cantidad);
       productoSelect.appendChild(option);
-
-      respuesta.productos.forEach((producto) => {
-          console.log("➡️ Procesando producto:", producto);
-
-          const option = document.createElement("option");
-          option.value = producto.idProducto;
-          option.textContent = producto.nombreProducto;
-          option.setAttribute("data-unidad", producto.unidadMedicion);
-          option.setAttribute("data-cantidad", producto.cantidad);
-          productoSelect.appendChild(option);
-      });
+    });
   });
 }
 function cargarProductosSalida(idSalida) {
@@ -2806,21 +2806,21 @@ function verDetallesSalida(idSalida) {
 }
 function cargarColaboradores() {
   window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
-      const selectSacando = document.getElementById('colaborador-entregando');
-      const selectRecibiendo = document.getElementById('colaborador-recibiendo');
+    const selectSacando = document.getElementById('colaborador-entregando');
+    const selectRecibiendo = document.getElementById('colaborador-recibiendo');
 
-      // Limpiar selects
-      selectSacando.innerHTML = '<option value="">Seleccione un colaborador</option>';
-      selectRecibiendo.innerHTML = '<option value="">Seleccione un colaborador</option>';
+    // Limpiar selects
+    selectSacando.innerHTML = '<option value="">Seleccione un colaborador</option>';
+    selectRecibiendo.innerHTML = '<option value="">Seleccione un colaborador</option>';
 
-      // Agregar opciones
-      colaboradores.colaboradores.forEach(col => {
-          const option = document.createElement('option');
-          option.value = col.idColaborador;
-          option.textContent = `${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}`;
-          selectSacando.appendChild(option.cloneNode(true));
-          selectRecibiendo.appendChild(option);
-      });
+    // Agregar opciones
+    colaboradores.colaboradores.forEach(col => {
+      const option = document.createElement('option');
+      option.value = col.idColaborador;
+      option.textContent = `${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}`;
+      selectSacando.appendChild(option.cloneNode(true));
+      selectRecibiendo.appendChild(option);
+    });
   });
 }
 function agregarProducto() {
@@ -2865,6 +2865,11 @@ function cargarVistaCrearSalida() {
   cargarColaboradores('colaborador-entregando', 'Seleccione un colaborador');
   cargarColaboradores('colaborador-recibiendo', 'Seleccione un colaborador');
   cargarProductos('productosComboBox', 'Seleccione un producto');
+  window.api.obtenerUsuarioLogueado((respuesta) => {
+    const usuario = respuesta.usuario;
+    console.log(usuario);
+    document.getElementById('nombreUsuarioRegistro').textContent = usuario.nombreUsuario;
+  });
 }
 function validarYRecolectarDatosSalidaProducto(esCreacion = false) {
   // Validar campos generales
@@ -2873,8 +2878,8 @@ function validarYRecolectarDatosSalidaProducto(esCreacion = false) {
   const idColaboradorRecibiendo = document.getElementById('colaborador-recibiendo').value;
 
   if (!fechaSalida || !idColaboradorEntregando || !idColaboradorRecibiendo) {
-      alert('Por favor, complete todos los campos obligatorios.');
-      return;
+    alert('Por favor, complete todos los campos obligatorios.');
+    return;
   }
 
   // Recolectar productos
@@ -2882,55 +2887,55 @@ function validarYRecolectarDatosSalidaProducto(esCreacion = false) {
   const productRows = document.querySelectorAll('#products-body tr');
 
   for (const row of productRows) {
-      const selectProducto = row.querySelector('.product-select');
-      const cantidadSaliendo = row.querySelector('.product-out-qty').value;
+    const selectProducto = row.querySelector('.product-select');
+    const cantidadSaliendo = row.querySelector('.product-out-qty').value;
 
-      if (selectProducto.value && cantidadSaliendo > 0) {
-          nuevosSalidaProducto.push({
-              idProducto: Number(selectProducto.value),
-              cantidadAnterior: Number(row.querySelector('.product-prev-qty').value),
-              cantidadSaliendo: Number(cantidadSaliendo)
-          });
-      }
+    if (selectProducto.value && cantidadSaliendo > 0) {
+      nuevosSalidaProducto.push({
+        idProducto: Number(selectProducto.value),
+        cantidadAnterior: Number(row.querySelector('.product-prev-qty').value),
+        cantidadSaliendo: Number(cantidadSaliendo)
+      });
+    }
   }
 
   if (nuevosSalidaProducto.length === 0) {
-      alert('Por favor, agregue al menos un producto con una cantidad válida.');
-      return;
+    alert('Por favor, agregue al menos un producto con una cantidad válida.');
+    return;
   }
 
   // Datos de la salida
   const salidaData = {
-      fechaSalida,
-      idColaboradorEntregando: Number(idColaboradorEntregando),
-      idColaboradorRecibiendo: Number(idColaboradorRecibiendo),
-      notas: document.getElementById('notas').value
+    fechaSalida,
+    idColaboradorEntregando: Number(idColaboradorEntregando),
+    idColaboradorRecibiendo: Number(idColaboradorRecibiendo),
+    notas: document.getElementById('notas').value
   };
 
   // Enviar datos al backend
   Swal.fire({
-      title: 'Confirmar',
-      text: '¿Está seguro de registrar esta salida?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, continuar',
-      cancelButtonText: 'Cancelar'
+    title: 'Confirmar',
+    text: '¿Está seguro de registrar esta salida?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, continuar',
+    cancelButtonText: 'Cancelar'
   }).then((result) => {
-      if (result.isConfirmed) {
-          window.api.crearSalidaYProductos(
-              nuevosSalidaProducto,
-              salidaData,
-              (respuesta) => {
-                  if (respuesta.success) {
-                      Swal.fire('Éxito', respuesta.message, 'success').then(() => {
-                          adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla);
-                      });
-                  } else {
-                      Swal.fire('Error', respuesta.message, 'error');
-                  }
-              }
-          );
-      }
+    if (result.isConfirmed) {
+      window.api.crearSalidaYProductos(
+        nuevosSalidaProducto,
+        salidaData,
+        (respuesta) => {
+          if (respuesta.success) {
+            Swal.fire('Éxito', respuesta.message, 'success').then(() => {
+              adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla);
+            });
+          } else {
+            Swal.fire('Error', respuesta.message, 'error');
+          }
+        }
+      );
+    }
   });
 }
 
