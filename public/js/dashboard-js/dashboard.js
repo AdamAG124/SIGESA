@@ -2726,6 +2726,66 @@ function cargarSalidasTabla(
 
   }, 100);
 }
+function llenarSelectsColaboradores() {
+  window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
+      // Llenar el <select> del colaborador que entrega
+      const selectSacando = document.getElementById('colaborador-entregando');
+      selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+          colaboradores.colaboradores.map(col => `
+              <option value="${col.idColaborador}" 
+                      data-correo="${col.correo}" 
+                      data-telefono="${col.numTelefono}" 
+                      data-departamento="${col.nombreDepartamento}" 
+                      data-puesto="${col.nombrePuesto}">
+                  ${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}
+              </option>
+          `).join('');
+
+      // Llenar el <select> del colaborador que recibe
+      const selectRecibiendo = document.getElementById('colaborador-recibiendo');
+      selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+          colaboradores.colaboradores.map(col => `
+              <option value="${col.idColaborador}" 
+                      data-correo="${col.correo}" 
+                      data-telefono="${col.numTelefono}" 
+                      data-departamento="${col.nombreDepartamento}" 
+                      data-puesto="${col.nombrePuesto}">
+                  ${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}
+              </option>
+          `).join('');
+
+      // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
+      selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
+      selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
+  });
+}
+function actualizarDatosColaborador(select) {
+  const selectedOption = select.options[select.selectedIndex]; // La opción seleccionada
+
+  // Determinar si es el colaborador que entrega o recibe según el ID del select
+  const esColaboradorSacando = select.id === 'colaborador-entregando';
+  const prefijo = esColaboradorSacando ? 'sacando' : 'recibiendo';
+
+  // Obtener los inputs correspondientes
+  const correoInput = document.getElementById(`correo-${prefijo}`);
+  const telefonoInput = document.getElementById(`telefono-${prefijo}`);
+  const departamentoInput = document.getElementById(`departamento-${prefijo}`);
+  const puestoInput = document.getElementById(`puesto-${prefijo}`);
+
+  // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
+  if (selectedOption.value === "0") {
+      correoInput.value = '';
+      telefonoInput.value = '';
+      departamentoInput.value = '';
+      puestoInput.value = '';
+  } else {
+      // Llenar los inputs con los datos de los atributos data-*
+      correoInput.value = selectedOption.dataset.correo || '';
+      telefonoInput.value = selectedOption.dataset.telefono || '';
+      departamentoInput.value = selectedOption.dataset.departamento || '';
+      puestoInput.value = selectedOption.dataset.puesto || '';
+  }
+}
 
 function cargarProductos(idSelect, mensajeQuemado) {
   console.log("📢 Solicitando productos para el select:", idSelect);
