@@ -270,5 +270,16 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('actualizar-salida-y-productos', { nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto, salidaData });
         ipcRenderer.once('salida-actualizada', (event, respuesta) => callback(respuesta));
     },
+
+    /* --------------------------------                   ------------------------------------------
+       --------------------------------  UNIDAD MEDICIÓN  ------------------------------------------
+       --------------------------------                   ------------------------------------------ */
+    obtenerUnidadesMedicion: (callback) => {
+        ipcRenderer.send('listar-unidades-medicion', {});
+        ipcRenderer.once('cargar-unidades-medicion', (event, respuesta) => callback(respuesta));
+    },
+
+
+
 });
 
