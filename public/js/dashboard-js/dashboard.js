@@ -2637,6 +2637,7 @@ function cargarColaboradores(idSelect, mensajeQuemado) {
       option.setAttribute("data-puesto", colaborador.nombrePuesto);
       colaboradorSelect.appendChild(option);
     });
+    console.log("Respuesta de colaboradores:", respuesta);
   });
 }
 function actualizarDatosColaborador(select) {
@@ -2941,7 +2942,8 @@ function validarYRecolectarDatosSalidaProducto(esCreacion = false) {
     alert('Por favor, complete todos los campos obligatorios.');
     return;
   }
-
+  console.log("Guardando datos...");
+      
   // Recolectar productos
   const nuevosSalidaProducto = [];
   const productRows = document.querySelectorAll('#products-body tr');
