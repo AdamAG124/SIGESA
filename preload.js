@@ -171,7 +171,18 @@ contextBridge.exposeInMainWorld('api', {
     actualizarProducto: (productoData) => ipcRenderer.send('actualizar-producto', productoData),
     onRespuestaActualizarProducto: (callback) => ipcRenderer.on('respuesta-actualizar-producto', (event, respuesta) => callback(respuesta)),
 
-
+    generarReporte: (filtroEstado, filtroCategoria, formato) => {
+        return new Promise((resolve, reject) => {
+            ipcRenderer.send('generar-reporte-productos', filtroEstado, filtroCategoria, formato);
+            ipcRenderer.once('reporte-generado', (event, response) => {
+                if (response.success) {
+                    resolve(response.message);
+                } else {
+                    reject(new Error(response.message));
+                }
+            });
+        });
+    },
     /* --------------------------------                   ------------------------------------------
        -------------------------------- PUESTO DE TRABAJO ------------------------------------------
        --------------------------------                    ------------------------------------------ */

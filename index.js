@@ -423,7 +423,7 @@ ipcMain.on('crear-producto', async (event, productoData) => {
         producto.setCedula(productoData.cedula);
 
         // Llamar al método insertarproducto en elproductoController
-        constproductoController = newproductoController();
+        const productoController = newproductoController();
         const resultado = awaitproductoController.insertarproducto(producto);
 
         // Enviar respuesta al frontend
@@ -1025,6 +1025,28 @@ ipcMain.on('actualizar-producto', async (event, productoData) => {
         console.error('Error al actualizar el producto:', error);
 
         event.reply('respuesta-actualizar-producto', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('generar-reporte-productos', async (event, filtroEstado, filtroCategoria, formato) => {
+    const productoController = new ProductoController();
+    try {
+        // Llamar al método generarReportes del ProductoController
+        await productoController.generarReportes(filtroEstado, filtroCategoria, formato);
+
+        // Opcional: Notificar al cliente que el reporte se generó exitosamente
+        event.reply('reporte-generado', {
+            success: true,
+            message: `Reporte generado en formato ${formato === 1 ? 'PDF' : 'Excel'} en el escritorio.`
+        });
+    } catch (error) {
+        console.error('Error al generar el reporte:', error.message);
+
+        // Opcional: Notificar al cliente si hay un error
+        event.reply('reporte-generado', {
+            success: false,
+            message: 'Error al generar el reporte: ' + error.message
+        });
     }
 });
 /* --------------------------------                    ------------------------------------------

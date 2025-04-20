@@ -26,6 +26,14 @@
             <option value="1">Activo</option>
             <option value="0">Inactivo</option>
         </select>
+
+        <button id="btn-pdf" class="btn btn-primary me-2" value="1" onclick="generarReporte(this.value)">
+            <i class="material-icons">picture_as_pdf</i> Generar PDF
+        </button>
+        <button id="btn-excel" class="btn btn-excel" value="2" onclick="generarReporte(this.value)">
+            <i class="material-icons">table_chart</i> Generar Excel
+        </button>
+
         <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
     </div>
     <table>
