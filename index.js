@@ -7,23 +7,27 @@ const PuestoTrabajoController = require('./controllers/PuestoTrabajoController')
 const ProductoController = require('./controllers/ProductoController');
 const ProveedorController = require('./controllers/ProveedorController');
 const CategoriaProductoController = require('./controllers/CategoriaProductoController');
-const Usuario = require('./domain/Usuario');
-const Producto = require('./domain/Producto');
-const Proveedor = require('./domain/Proveedor')
-const CategoriaProducto = require('./domain/CategoriaProducto');
-const EntidadFinanciera = require('./domain/EntidadFinanciera');
 const EntidadFinancieraController = require('./controllers/EntidadFinancieraController');
 const ColaboradorController = require('./controllers/ColaboradorController');
-const Colaborador = require('./domain/Colaborador');
 const SalidaController = require('./controllers/SalidaController');
 const SalidaProductoController = require('./controllers/SalidaProductoController');
 const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
 const ComprobantePagoController = require('./controllers/ComprobantePagoController');
+const UnidadMedicionController = require('./controllers/UnidadMedicionController');
+
+const Usuario = require('./domain/Usuario');
+const Producto = require('./domain/Producto');
+const Proveedor = require('./domain/Proveedor')
+const CategoriaProducto = require('./domain/CategoriaProducto');
+const EntidadFinanciera = require('./domain/EntidadFinanciera');
+const Colaborador = require('./domain/Colaborador');
 const Factura = require('./domain/Factura');
 const FacturaProducto = require('./domain/FacturaProducto');
 const Salida = require('./domain/Salida');
 const SalidaProducto = require('./domain/SalidaProducto');
+const UnidadMedicion = require('./domain/UnidadMedicion');
+
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -913,7 +917,8 @@ ipcMain.on('listar-productos', async (event, { pageSize, currentPage, estadoProd
                 nombreProducto: producto.getNombre(),
                 descripcionProducto: producto.getDescripcion(),
                 cantidad: producto.getCantidad(),
-                unidadMedicion: producto.getUnidadMedicion(),
+                idUnidadMedicion: producto.getUnidadMedicion().getIdUnidadMedicion(),
+                nombreUnidadMedicion: producto.getUnidadMedicion().getNombre(),
                 estadoProducto: producto.getEstado(),
                 idCategoria: producto.getCategoria().getIdCategoria(),
                 nombreCategoria: producto.getCategoria().getNombre(),
@@ -987,7 +992,7 @@ ipcMain.on('obtener-producto-por-id', async (event, idProducto) => {
             nombre: producto.getNombre(),
             descripcion: producto.getDescripcion(),
             cantidad: producto.getCantidad(),
-            unidadMedicion: producto.getUnidadMedicion(),
+            idUnidadMedicion: producto.getUnidadMedicion().getIdUnidadMedicion(),
             idCategoria: producto.getCategoria().getIdCategoria()
         };
 
@@ -1325,9 +1330,9 @@ ipcMain.handle('print-pdf', async (event, pdfPath) => {
 
 });
 
-/* --------------------------------           ------------------------------------------
-      --------------------------------  salida  y salida producto  ------------------------------------------
-      --------------------------------           ------------------------------------------ */
+/* --------------------------------                             ------------------------------------------
+   --------------------------------  salida  y salida producto  ------------------------------------------
+   --------------------------------                             ------------------------------------------ */
 
 ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
     const salidaController = new SalidaController();
@@ -1339,8 +1344,6 @@ ipcMain.on('listar-salidas', async (event, { pageSize, currentPage, estado, valo
         event.reply('error-cargar-salidas', { success: false, message: error.message });
     }
 });
-
-
 
 ipcMain.on('listar-salidas', async (event, {
     pageSize, currentPage, estado, valorBusqueda,
@@ -1367,6 +1370,7 @@ ipcMain.on('listar-salidas', async (event, {
         event.reply('cargar-salidas', { salidas: [], error: error.message });
     }
 });
+
 ipcMain.on('obtener-productos-por-salida', async (event, idSalida) => {
     const salidaProductoController = new SalidaProductoController();
 
@@ -1477,6 +1481,7 @@ ipcMain.on('actualizar-salida-y-productos', async (event, data) => {
         });
     }
 });
+
 ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
     const comprobantePagoController = new ComprobantePagoController();
 
@@ -1521,3 +1526,47 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
         }
     }
 });
+
+/* --------------------------------                   ------------------------------------------
+   -------------------------------- UNIDADES MEDICION ------------------------------------------
+   --------------------------------                   ------------------------------------------ */
+ipcMain.on('listar-unidades-medicion', async (event, { }) => {
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const resultado = await unidadMedicionController.listarUnidadesMedicion();
+
+        const unidadesMapeadas = resultado.map(unidad => ({
+            idUnidadMedicion: unidad.getIdUnidadMedicion(),
+            nombre: unidad.getNombre(),
+            estado: unidad.getEstado()
+        }));
+
+        event.reply('cargar-unidades-medicion', unidadesMapeadas);
+    } catch (error) {
+        console.error('Error al listar unidades de medición:', error);
+        event.reply('error-cargar-unidades-medicion', {
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+ipcMain.on('crear-unidad-medicion', async (event, unidadMedicionData) => {
+
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const unidadMedicion = new UnidadMedicion();
+        unidadMedicion.setNombre(unidadMedicionData.nombre);
+        unidadMedicion.setEstado(unidadMedicionData.estado);
+
+        const resultado = await unidadMedicionController.insertarUnidadMedicion(unidadMedicion);
+
+        event.reply('respuesta-crear-unidad-medicion', resultado);
+    } catch (error) {
+        console.error('Error al crear la unidad de medición:', error);
+        event.reply('respuesta-crear-unidad-medicion', { success: false, message: error.message });
+    }
+}
+);
