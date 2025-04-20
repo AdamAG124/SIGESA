@@ -2923,8 +2923,7 @@ function actualizarCamposProducto(select) {
   cantidadAnteriorInput.value = cantidadAnterior;
 }
 function cargarVistaCrearSalida() {
-  cargarColaboradores('colaborador-entregando', 'Seleccione un colaborador');
-  cargarColaboradores('colaborador-recibiendo', 'Seleccione un colaborador');
+  llenarSelectsColaboradores();
   cargarProductos('productosComboBox', 'Seleccione un producto');
   window.api.obtenerUsuarioLogueado((respuesta) => {
     const usuario = respuesta.usuario;

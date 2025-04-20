@@ -422,7 +422,7 @@ class SalidaProductoDB {
     
                 // Insertar SalidaProducto
                 const insertQuery = `
-                    INSERT INTO sigt_salida_producto (
+                    INSERT INTO ${this.#table} (
                         ID_PRODUCTO, 
                         ID_SALIDA, 
                         NUM_CANTIDAD_ANTERIOR, 
