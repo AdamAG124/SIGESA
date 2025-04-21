@@ -358,10 +358,14 @@ class ProductoDB {
                     P.DSC_NOMBRE,
                     P.DSC_PRODUCTO,
                     P.NUM_CANTIDAD,
-                    P.DSC_UNIDAD_MEDICION,
+                    P.ID_UNIDAD_MEDICION,
+                    um.DSC_NOMBRE AS nombreUnidadMedicion,
                     P.ESTADO
                 FROM sigm_producto P
-                INNER JOIN sigm_categoria_producto C ON P.ID_CATEGORIA_PRODUCTO = C.ID_CATEGORIA_PRODUCTO
+                INNER JOIN 
+                    sigm_categoria_producto C ON P.ID_CATEGORIA_PRODUCTO = C.ID_CATEGORIA_PRODUCTO
+                INNER JOIN
+                    sigm_unidad_medicion um ON P.ID_UNIDAD_MEDICION = um.ID_UNIDAD_MEDICION
                 WHERE 1=1
             `;
             const params = [];
@@ -457,7 +461,7 @@ class ProductoDB {
                         row.DSC_NOMBRE || 'Sin nombre',
                         row.DSC_PRODUCTO || 'Sin descripción',
                         row.NUM_CANTIDAD !== null && row.NUM_CANTIDAD !== undefined ? row.NUM_CANTIDAD.toString().replace(/[^0-9]/g, '') : '0',
-                        row.DSC_UNIDAD_MEDICION || 'N/A',
+                        row.nombreUnidadMedicion || 'N/A',
                         row.ESTADO ? 'Activo' : 'Inactivo'
                     ];
 
@@ -537,7 +541,7 @@ class ProductoDB {
                     nombre: row.DSC_NOMBRE || 'Sin nombre',
                     descripcion: row.DSC_PRODUCTO || 'Sin descripción',
                     cantidad: row.NUM_CANTIDAD !== null && row.NUM_CANTIDAD !== undefined ? row.NUM_CANTIDAD : 0,
-                    unidad: row.DSC_UNIDAD_MEDICION || 'N/A',
+                    unidad: row.nombreUnidadMedicion || 'N/A',
                     estado: row.ESTADO ? 'Activo' : 'Inactivo'
                 })));
 
