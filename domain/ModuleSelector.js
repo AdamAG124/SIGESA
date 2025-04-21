@@ -30,7 +30,7 @@ class ModuleSelector {
       this.addBtn.style.display = 'inline-block';
       this.addBtn.addEventListener('click', (e) => { e.preventDefault(); this.showPopup() });
       this.saveBtn.addEventListener('click', (e) => { e.preventDefault(); this.saveNewModule() });
-      this.cancelBtn.addEventListener('click', () => this.popup.style.display = 'none');
+      this.cancelBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); this.closePopup() });
     } else {
       this.addBtn.style.display = 'none';
     }
@@ -38,13 +38,15 @@ class ModuleSelector {
     this.fetchModules();
   }
 
-  fetchModules() {
-    this.handlers.list(this.moduleId, (unidades) => {  // Callback en lugar de `await`
-      if (unidades) {
-        this.modules = unidades;  // Aquí se recibe el array de unidades de medición
+  fetchModules(callback) {
+    this.handlers.list(this.moduleId, (items) => {
+      if (items) {
+        // Normalizar los objetos
+        this.modules = items.map(item => this.normalizeItem(item));
         this.renderModules();
+        if (typeof callback === "function") callback();
       } else {
-        console.error("No se pudieron cargar las unidades de medición.");
+        console.error("No se pudieron cargar los módulos.");
       }
     });
   }
@@ -84,8 +86,8 @@ class ModuleSelector {
       }
 
       input.addEventListener('dblclick', () => {
-        this.selectedModule.textContent = mod.nombre;
-        this.selected = mod; // ← Guardar objeto completo
+        this.updateSelectedDisplay(mod);
+        this.selected = mod;
         this.container.classList.remove('open');
       });
 
@@ -145,14 +147,26 @@ class ModuleSelector {
 
     const errorMsg = document.getElementById('module-error');
 
-    const handleClickOutside = (e) => {
-      if (e.target === this.popup) {
-        errorMsg.style.display = 'none';
-        this.popup.removeEventListener('click', handleClickOutside);
+    this._handleOutsideClick = (e) => {
+      const popupContent = this.popup.querySelector('.popup-content');
+
+      if (!popupContent.contains(e.target)) {
+        this.closePopup();
       }
     };
 
-    this.popup.addEventListener('click', handleClickOutside);
+    setTimeout(() => {
+      document.addEventListener('click', this._handleOutsideClick);
+    }, 0);
+  }
+
+  closePopup() {
+    this.popup.style.display = 'none';
+    const errorMsg = document.getElementById('module-error');
+    if (errorMsg) errorMsg.style.display = 'none';
+
+    document.removeEventListener('click', this._handleOutsideClick);
+    document.removeEventListener('keydown', this._handleEscape);
   }
 
   async saveNewModule() {
@@ -180,10 +194,45 @@ class ModuleSelector {
   }
 
   setSelectedById(id) {
-    const mod = this.modules.find(m => m.id === id);
+    const mod = this.modules.find(m => m.id === id || m.idUnidadMedicion === id);
     if (mod) {
-      this.selectedModule.textContent = mod.nombre;
       this.selected = mod;
+      this.updateSelectedDisplay(mod);
+    } else {
+      console.warn("Set selected by ID: no se encontró un módulo con id", id);
     }
+  }  
+
+  reset() {
+    this.selected = null;
+    this.selectedModule.textContent = "Seleccionar unidad"; // ← o el texto por defecto que quieras
+    this.fetchModules(); // Vuelve a cargar la lista en caso de que haya cambios recientes
+  }
+  // Agregar el módulo para que se pueda normalizar
+  normalizeItem(item) {
+    switch (this.moduleId) {
+      case 1: // Unidades de Medición
+        return {
+          id: item.idUnidadMedicion,
+          nombre: item.nombre,
+          estado: item.estado
+        };
+
+      // Agregá más casos según tus módulos
+      default:
+        console.warn("No se reconoce el tipo de módulo para normalización:", this.moduleId);
+        return {
+          id: item.id || null,
+          nombre: item.nombre || '',
+          estado: item.estado ?? 1
+        };
+    }
+  }
+
+  updateSelectedDisplay(mod) {
+    this.selectedModule.innerHTML = `
+      ${mod.nombre}
+      <span class="dropdown-icon"></span>
+    `;
   }
 }

@@ -1,3 +1,5 @@
+let moduleSelector = null;
+
 function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.classList.toggle("active");
@@ -935,6 +937,11 @@ function cerrarModal(idModalCerrar, idFormReset) {
   // Manejo de errores y estilos específicos para el formulario de editar usuario
   if (idFormReset === "editarUsuarioForm") {
     ocultarErrores();
+  }
+
+  // Reset específico según formulario
+  if (idFormReset === "editarProductoForm") {
+    if (moduleSelector) moduleSelector.reset();
   }
 }
 
@@ -2295,62 +2302,26 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 
         cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
       });
-    }, 500  );
+    }, 500);
   });
 }
 
 function agregarProducto() {
-
-  unidadMedicionSelector = new ModuleSelector({
-    containerId: "module-container",
-    moduleId: "unidad-medicion",
-    handlers: {
-      list: (moduleId, callback) => {
-        window.api.obtenerUnidadesMedicion((unidades) => {
-
-          callback(unidades);
-        });
-      },
-
-      // Los demás métodos siguen igual:
-      create: (moduleId, newName, callback) => {
-        window.api.crearUnidadMedicion(newName, (response) => {
-          if (response.success) callback(response);
-          else console.error("Error al crear unidad de medición", response.message);
-        });
-      },
-
-      update: (moduleId, id, newName, callback) => {
-        window.api.actualizarUnidadMedicion(id, newName, (response) => {
-          if (response.success) callback(response);
-          else console.error("Error al actualizar unidad de medición", response.message);
-        });
-      },
-
-      delete: (moduleId, id, callback) => {
-        window.api.eliminarUnidadMedicion(id, (response) => {
-          if (response.success) callback(response);
-          else console.error("Error al eliminar unidad de medición", response.message);
-        });
-      },
-
-      undoDelete: (moduleId, name, index, callback) => {
-        window.api.revertirUnidadMedicion(name, index, (response) => {
-          if (response.success) callback(response);
-          else console.error("Error al restaurar unidad de medición", response.message);
-        });
-      }
-    }
-  });
+  // Inicializar el moduleSelector para "unidad-medicion" y forzar reinicio
+  initModuleSelector(1, true); // '1' corresponde a Unidades de Medición
 
   const categoriaSelect = document.getElementById("categorias");
-
-  // Crear un array para almacenar los textos de las opciones del select
   cargarCategorias(categoriaSelect, "Seleccionar categoría");
 
-  // Cambiar el título del modal a "Editar Colaborador"
+  // Limpiar campos del formulario si es necesario
+  document.getElementById("editarProductoForm").reset();
+  document.getElementById("idProducto").value = "";
+  document.getElementById("errorMessage").textContent = "";
+
+  // Cambiar el título del modal a "Crear Producto"
   document.getElementById("modalTitle").innerText = "Crear Producto";
   document.getElementById("buttonModal").onclick = enviarCreacionProducto;
+
   // Mostrar el modal
   document.getElementById("editarProductoModal").style.display = "block";
 }
@@ -2360,7 +2331,7 @@ function enviarCreacionProducto() {
   const nombre = document.getElementById("nombre").value;
   const descripcion = document.getElementById("descripcion").value || "N/A";
   const cantidad = document.getElementById("cantidad").value;
-  const unidadMedicion = unidadMedicionSelector.getSelectedId();
+  const unidadMedicion = moduleSelector.getSelectedId();
   const categoria = document.getElementById("categorias").value;
 
   // Array para almacenar los campos vacíos
@@ -2437,7 +2408,6 @@ function enviarCreacionProducto() {
 }
 
 async function editarProducto(id, boton) {
-
   const selectCategoria = document.getElementById("categorias");
   cargarCategorias(selectCategoria, 'Seleccionar categoría', estado = null, validarCategoriasInactivas = 1);
 
@@ -2450,7 +2420,10 @@ async function editarProducto(id, boton) {
       document.getElementById("nombre").value = producto.nombre;
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
-      unidadMedicionSelector.setSelectedById(producto.idUnidadMedicion);
+      
+      initModuleSelector(1, true, () => {
+        moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
+      });
 
       // Usar setTimeout para esperar un poco y luego asignar el valor al select
       setTimeout(() => {
@@ -2462,6 +2435,7 @@ async function editarProducto(id, boton) {
 
       document.getElementById("buttonModal").onclick = enviarEdicionProducto;
 
+      // Mostrar el modal
       document.getElementById("editarProductoModal").style.display = "block";
     } else {
       console.log("Error al obtener el producto, viene nulo");
@@ -2474,7 +2448,7 @@ function enviarEdicionProducto() {
   const nombre = document.getElementById("nombre").value;
   const descripcion = document.getElementById("descripcion").value || "N/A";
   const cantidad = document.getElementById("cantidad").value;
-  const unidadMedicion = unidadMedicionSelector.getSelectedId();
+  const unidadMedicion = moduleSelector.getSelectedId();
   const categoria = document.getElementById("categorias").value;
 
   // Array para almacenar los campos vacíos
@@ -2553,6 +2527,80 @@ function toggleModuleList() {
   const container = document.getElementById("module-list");
   container.classList.toggle("open");
 }
+
+function initModuleSelector(tipo, force = false, callback = null) {
+  if (!moduleSelector || force) {
+    const container = document.getElementById("module-container");
+
+    if (container) {
+      container.innerHTML = `
+        <div id="select-wrapper">
+            <div id="selected-module" onclick="toggleModuleList()">
+                Selección
+                <span class="dropdown-icon"></span>
+            </div>
+            <div id="module-list"></div>
+        </div>
+        <button id="add-module-btn" title="Agregar">＋</button>
+      `;
+    }
+
+    moduleSelector = new ModuleSelector({
+      containerId: "module-container",
+      moduleId: tipo,
+      handlers: getHandlersForType(tipo)
+    });
+
+    // Espera a que los módulos se carguen antes de ejecutar el callback
+    moduleSelector.fetchModules(callback);
+  } else if (callback) {
+    callback(); // Si ya estaba inicializado, ejecutamos el callback directo
+  }
+}
+
+// Función para obtener los handlers según el tipo de módulo con un switch
+function getHandlersForType(tipo) {
+  switch (tipo) {
+    case 1:
+      // Módulo de Unidades de Medición
+      return {
+        list: (moduleId, callback) => {
+          window.api.obtenerUnidadesMedicion((unidades) => {
+            callback(unidades);
+          });
+        },
+        create: (moduleId, newName, callback) => {
+          window.api.crearUnidadMedicion(newName, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al crear unidad de medición", response.message);
+          });
+        },
+        update: (moduleId, id, newName, callback) => {
+          window.api.actualizarUnidadMedicion(id, newName, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al actualizar unidad de medición", response.message);
+          });
+        },
+        delete: (moduleId, id, callback) => {
+          window.api.eliminarUnidadMedicion(id, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al eliminar unidad de medición", response.message);
+          });
+        },
+        undoDelete: (moduleId, name, index, callback) => {
+          window.api.revertirUnidadMedicion(name, index, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al restaurar unidad de medición", response.message);
+          });
+        }
+      };
+
+    default:
+      console.error(`Tipo de módulo no soportado: ${tipo}`);
+      return {}; // Retorna un objeto vacío si el tipo no se reconoce
+  }
+}
+
 
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------
