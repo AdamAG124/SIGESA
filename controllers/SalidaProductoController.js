@@ -11,6 +11,9 @@ class SalidaProductoController {
         console.log("Productos obtenidos en el controlador:", productos); // Verificar los datos obtenidos
         return productos;
     }
+    async crearSalidaProducto(nuevosSalidaProducto, salidaData) {
+        return await this.salidaProductoService.crearSalidaProducto(nuevosSalidaProducto, salidaData);
+    }
 
     async obtenerProductosPorSalida(idSalida) {
         try {
@@ -53,7 +56,7 @@ class SalidaProductoController {
                     // Producto
                     idProducto: salidaProducto.getIdProducto().getIdProducto(),
                     nombreProducto: salidaProducto.getIdProducto().getNombre(),
-                    unidadMedicion: salidaProducto.getIdProducto().getUnidadMedicion(),
+                    unidadMedicion: salidaProducto.getIdProducto().getUnidadMedicion().getNombre(),
                     cantidadTotalProducto: salidaProducto.getIdProducto().getCantidad(),
                     estadoProducto: salidaProducto.getIdProducto().getEstado(),
 

@@ -1115,7 +1115,7 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 nombreProducto: facturaProducto.getIdProducto().getNombre(),
                 descripcionProducto: facturaProducto.getIdProducto().getDescripcion(),
                 cantidadTotalProducto: facturaProducto.getIdProducto().getCantidad(),
-                unidadMedicion: facturaProducto.getIdProducto().getUnidadMedicion(),
+                unidadMedicion: facturaProducto.getIdProducto().getUnidadMedicion().getNombre(),
                 estadoProducto: facturaProducto.getIdProducto().getEstado(),
                 cantidadAnterior: facturaProducto.getCantidadAnterior(),
                 cantidadEntrando: facturaProducto.getCantidadEntrando(),
@@ -1524,6 +1524,21 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
         if (mainWindow) {
             mainWindow.webContents.send('error-cargar-comprobantes-pago', 'Hubo un error al cargar los comprobantes de pago.');
         }
+    }
+});
+ipcMain.on('crear-salida-y-productos', async (event, data) => {
+    const { nuevosSalidaProducto, salidaData } = data;
+    const controllerSalidaProducto = new SalidaProductoController();
+
+    try {
+        const resultado = await controllerSalidaProducto.crearSalidaProducto(nuevosSalidaProducto, salidaData);
+        event.reply('salida-creada', resultado);
+    } catch (error) {
+        console.error('Error en index.js:', error);
+        event.reply('salida-creada', {
+            success: false,
+            message: 'Error al procesar la salida: ' + error.message
+        });
     }
 });
 

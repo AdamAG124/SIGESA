@@ -246,6 +246,11 @@ contextBridge.exposeInMainWorld('api', {
             callback(respuesta);
         });
     },
+    crearSalidaYProductos: (nuevosSalidaProducto, salidaData, callback) => {
+        ipcRenderer.send('crear-salida-y-productos', { nuevosSalidaProducto, salidaData });
+        ipcRenderer.once('salida-creada', (event, respuesta) => callback(respuesta));
+    },
+
 
     // Función para listar productos por salida
     obtenerProductosPorSalida: (idSalida) => {
