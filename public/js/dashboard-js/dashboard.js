@@ -2306,7 +2306,7 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
   });
 }
 
-function agregarProducto() {
+function desplegarAgregarProducto() {
   // Inicializar el moduleSelector para "unidad-medicion" y forzar reinicio
   initModuleSelector(1, true); // '1' corresponde a Unidades de Medición
 
