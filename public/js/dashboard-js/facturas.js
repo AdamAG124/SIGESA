@@ -304,7 +304,7 @@ function llenarProductosSelect(selectId, estadoProducto) {
                 option.value = producto.idProducto;
                 option.textContent = producto.estadoProducto != 0 ? producto.nombreProducto : producto.nombreProducto + ' (Producto Inactivo)';
                 option.setAttribute('data-cantidad', producto.cantidad);
-                option.setAttribute('data-unidad-medicion', producto.unidadMedicion);
+                option.setAttribute('data-unidad-medicion', producto.nombreUnidadMedicion);
                 select.appendChild(option);
             });
         }

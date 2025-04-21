@@ -50,8 +50,10 @@ class FacturaProductoDB {
                     p.DSC_NOMBRE AS nombreProducto,
                     p.DSC_PRODUCTO AS descripcionProducto,
                     p.NUM_CANTIDAD AS cantidadTotalProducto,
-                    p.DSC_UNIDAD_MEDICION AS unidadMedicion,
+                    p.ID_UNIDAD_MEDICION AS unidadMedicion,
                     p.ESTADO AS estadoProducto,
+
+                    um.DSC_NOMBRE AS unidadMedicionNombre,
                     
                     -- Información del usuario
                     u.ID_COLABORADOR AS idColaborador,
@@ -89,6 +91,8 @@ class FacturaProductoDB {
                     sigm_comprobante_pago cp ON f.ID_COMPROBANTE_PAGO = cp.ID_COMPROBANTE_PAGO
                 INNER JOIN 
                     sigm_producto p ON fp.ID_PRODUCTO = p.ID_PRODUCTO
+                INNER JOIN
+                    sigm_unidad_medicion um ON p.ID_UNIDAD_MEDICION = um.ID_UNIDAD_MEDICION
                 INNER JOIN 
                     sigm_usuario u ON fp.ID_USUARIO = u.ID_USUARIO
                 INNER JOIN 
@@ -140,7 +144,8 @@ class FacturaProductoDB {
                 facturaProducto.getIdProducto().setNombre(row.nombreProducto);
                 facturaProducto.getIdProducto().setDescripcion(row.descripcionProducto);
                 facturaProducto.getIdProducto().setCantidad(row.cantidadTotalProducto);
-                facturaProducto.getIdProducto().setUnidadMedicion(row.unidadMedicion);
+                facturaProducto.getIdProducto().getUnidadMedicion().setIdUnidadMedicion(row.unidadMedicion);
+                facturaProducto.getIdProducto().getUnidadMedicion().setNombre(row.unidadMedicionNombre);
                 facturaProducto.getIdProducto().setEstado(row.estadoProducto);
     
                 // Llenar Usuario (usando el objeto existente dentro de FacturaProducto)

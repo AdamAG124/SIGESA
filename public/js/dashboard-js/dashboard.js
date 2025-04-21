@@ -2913,25 +2913,7 @@ function verDetallesSalida(idSalida) {
     cargarProductosSalida(idSalida);
   });
 }
-function cargarColaboradores() {
-  window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
-    const selectSacando = document.getElementById('colaborador-entregando');
-    const selectRecibiendo = document.getElementById('colaborador-recibiendo');
 
-    // Limpiar selects
-    selectSacando.innerHTML = '<option value="">Seleccione un colaborador</option>';
-    selectRecibiendo.innerHTML = '<option value="">Seleccione un colaborador</option>';
-
-    // Agregar opciones
-    colaboradores.colaboradores.forEach(col => {
-      const option = document.createElement('option');
-      option.value = col.idColaborador;
-      option.textContent = `${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}`;
-      selectSacando.appendChild(option.cloneNode(true));
-      selectRecibiendo.appendChild(option);
-    });
-  });
-}
 function agregarProducto() {
   const productsBody = document.getElementById('products-body');
   const row = document.createElement('tr');
@@ -2977,74 +2959,7 @@ function cargarVistaCrearSalida() {
     const usuario = respuesta.usuario;
     console.log(usuario);
     document.getElementById('nombreUsuarioRegistro').textContent = usuario.nombreUsuario;
-  });
-}
-function validarYRecolectarDatosSalidaProducto(esCreacion = false) {
-  // Validar campos generales
-  const fechaSalida = document.getElementById('fecha-salida').value;
-  const idColaboradorEntregando = document.getElementById('colaborador-entregando').value;
-  const idColaboradorRecibiendo = document.getElementById('colaborador-recibiendo').value;
-
-  if (!fechaSalida || !idColaboradorEntregando || !idColaboradorRecibiendo) {
-    alert('Por favor, complete todos los campos obligatorios.');
-    return;
-  }
-  console.log("Guardando datos...");
-      
-  // Recolectar productos
-  const nuevosSalidaProducto = [];
-  const productRows = document.querySelectorAll('#products-body tr');
-
-  for (const row of productRows) {
-    const selectProducto = row.querySelector('.product-select');
-    const cantidadSaliendo = row.querySelector('.product-out-qty').value;
-
-    if (selectProducto.value && cantidadSaliendo > 0) {
-      nuevosSalidaProducto.push({
-        idProducto: Number(selectProducto.value),
-        cantidadAnterior: Number(row.querySelector('.product-prev-qty').value),
-        cantidadSaliendo: Number(cantidadSaliendo)
-      });
-    }
-  }
-
-  if (nuevosSalidaProducto.length === 0) {
-    alert('Por favor, agregue al menos un producto con una cantidad válida.');
-    return;
-  }
-
-  // Datos de la salida
-  const salidaData = {
-    fechaSalida,
-    idColaboradorEntregando: Number(idColaboradorEntregando),
-    idColaboradorRecibiendo: Number(idColaboradorRecibiendo),
-    notas: document.getElementById('notas').value
-  };
-
-  // Enviar datos al backend
-  Swal.fire({
-    title: 'Confirmar',
-    text: '¿Está seguro de registrar esta salida?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, continuar',
-    cancelButtonText: 'Cancelar'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      window.api.crearSalidaYProductos(
-        nuevosSalidaProducto,
-        salidaData,
-        (respuesta) => {
-          if (respuesta.success) {
-            Swal.fire('Éxito', respuesta.message, 'success').then(() => {
-              adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla);
-            });
-          } else {
-            Swal.fire('Error', respuesta.message, 'error');
-          }
-        }
-      );
-    }
+    document.getElementById("idUsuario").value = usuario.idUsuario;
   });
 }
 

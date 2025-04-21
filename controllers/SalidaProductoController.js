@@ -56,7 +56,7 @@ class SalidaProductoController {
                     // Producto
                     idProducto: salidaProducto.getIdProducto().getIdProducto(),
                     nombreProducto: salidaProducto.getIdProducto().getNombre(),
-                    unidadMedicion: salidaProducto.getIdProducto().getUnidadMedicion(),
+                    unidadMedicion: salidaProducto.getIdProducto().getUnidadMedicion().getNombre(),
                     cantidadTotalProducto: salidaProducto.getIdProducto().getCantidad(),
                     estadoProducto: salidaProducto.getIdProducto().getEstado(),
 

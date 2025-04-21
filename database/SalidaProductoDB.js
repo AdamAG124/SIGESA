@@ -36,9 +36,11 @@ class SalidaProductoDB {
                     
                     -- Información del producto
                     p.DSC_NOMBRE AS nombreProducto,
-                    p.DSC_UNIDAD_MEDICION AS unidadMedicion,
+                    p.ID_UNIDAD_MEDICION AS unidadMedicion,
                     p.NUM_CANTIDAD AS cantidadTotalProducto,
                     p.ESTADO AS estadoProducto,
+
+                    um.DSC_NOMBRE AS unidadMedicionNombre,
                     
                     -- Información del usuario
                     u.DSC_NOMBRE AS nombreUsuario,
@@ -74,6 +76,8 @@ class SalidaProductoDB {
                     sigt_salida s ON sp.ID_SALIDA = s.ID_SALIDA
                 INNER JOIN 
                     sigm_producto p ON sp.ID_PRODUCTO = p.ID_PRODUCTO
+                INNER JOIN
+                    sigm_unidad_medicion um ON p.ID_UNIDAD_MEDICION = um.ID_UNIDAD_MEDICION
                 INNER JOIN 
                     sigm_usuario u ON s.ID_USUARIO = u.ID_USUARIO
                 INNER JOIN 
@@ -136,7 +140,8 @@ class SalidaProductoDB {
                 // Llenar Producto (usando el objeto existente dentro de SalidaProducto)
                 salidaProducto.getIdProducto().setIdProducto(row.idProducto);
                 salidaProducto.getIdProducto().setNombre(row.nombreProducto);
-                salidaProducto.getIdProducto().setUnidadMedicion(row.unidadMedicion);
+                salidaProducto.getIdProducto().getUnidadMedicion().setIdUnidadMedicion(row.unidadMedicion);
+                salidaProducto.getIdProducto().getUnidadMedicion().setNombre(row.unidadMedicionNombre);
                 salidaProducto.getIdProducto().setCantidad(row.cantidadTotalProducto);
                 salidaProducto.getIdProducto().setEstado(row.estadoProducto);
 
@@ -376,20 +381,27 @@ class SalidaProductoDB {
     async crearSalidaProductoBD(nuevosSalidaProducto, salidaData) {
         let connection;
         try {
-            connection = await this.db.conectar();
+            connection = await this.#db.conectar();
+    
+            // Iniciar la transacción
+            await connection.beginTransaction();
     
             // 1. Insertar nueva salida en sigt_salida
             const insertSalidaQuery = `
                 INSERT INTO sigt_salida (
                     ID_COLABORADOR_SACANDO, 
                     ID_COLABORADOR_RECIBIENDO, 
-                    FEC_SALIDA, 
-                    DSC_DETALLE_SALIDA
+                    FEC_SALIDA,
+                    ID_USUARIO,
+                    DSC_DETALLE_SALIDA,
+                    ESTADO
                 ) VALUES (
                     ${salidaData.idColaboradorEntregando},
                     ${salidaData.idColaboradorRecibiendo},
                     '${salidaData.fechaSalida}',
-                    '${salidaData.notas || ''}'
+                    '${salidaData.idUsuario}',
+                    '${salidaData.notas || ''}',
+                    1
                 )
             `;
             const [insertSalidaResult] = await connection.query(insertSalidaQuery);
@@ -439,11 +451,20 @@ class SalidaProductoDB {
                 await connection.query(insertQuery);
             }
     
+            // Confirmar la transacción
+            await connection.commit();
+    
             return {
                 success: true,
                 message: 'Salida y productos creados correctamente'
             };
         } catch (error) {
+            // Si ocurre un error, hacer rollback
+            if (connection) {
+                await connection.rollback();
+                console.log('Transacción revertida debido a un error:', error.message);
+            }
+    
             console.error('Error en crearSalidaProductoBD:', error.message);
             return {
                 success: false,

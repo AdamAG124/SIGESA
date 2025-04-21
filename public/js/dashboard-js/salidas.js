@@ -37,6 +37,7 @@ function cargarEdicionSalida(idSalida) {
                 estadoBadge.textContent = datosGenerales.estadoSalida ? 'Activo' : 'Inactivo';
                 estadoBadge.className = `status-badge ${datosGenerales.estadoSalida ? 'status-active' : 'status-inactive'}`;
                 document.getElementById('nombreUsuarioRegistro').textContent = datosGenerales.nombreUsuario;
+                document.getElementById("idUsuario").value = datosGenerales.idUsuario;
 
                 // Preseleccionar y actualizar datos del colaborador sacando
                 const selectSacando = document.getElementById('colaborador-entregando');
@@ -299,7 +300,7 @@ function validarYRecolectarDatosSalidaProducto() {
                 cantidadAnterior: Number(inputCantidadAnterior.value),
                 cantidadSaliendo: cantidadSaliendoNum,
                 cantidadNueva: Number(inputCantidadNueva.value),
-                idUsuario: Number(document.getElementById('id-usuario').value)
+                idUsuario: Number(document.getElementById('idUsuario').value)
             };
 
             if (!selectProducto.disabled) {
@@ -364,6 +365,157 @@ function validarYRecolectarDatosSalidaProducto() {
                             mostrarToastConfirmacion(respuesta.message);
                             setTimeout(() => {
                                 cargarEdicionSalida(document.getElementById('id-salida').value);
+                            }, 2000);
+                        } else {
+                            mostrarToastError(respuesta.message);
+                        }
+                    }
+                );
+            }
+        });
+    }
+}
+
+function validarYRecolectarDatosNuevaSalidaProducto() {
+    // Limpiar mensajes de error previos y estilos
+    const existingErrors = document.querySelectorAll('.error-message');
+    existingErrors.forEach(error => error.remove());
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => input.style.border = '');
+
+    // Seleccionar todos los inputs y selects no deshabilitados dentro del formulario
+    const form = document.getElementById('output-form');
+    const inputs = form.querySelectorAll('input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+    let isValid = true;
+
+    // Array para nuevos SalidaProducto
+    const nuevosSalidaProducto = [];
+    let salidaData = null;
+
+    // Validar campos generales obligatorios
+    inputs.forEach(input => {
+        const value = input.value.trim();
+        const isSelect = input.tagName === 'SELECT';
+        const isNumber = input.type === 'number';
+        const isEmpty = value === '' || (isSelect && value === '0');
+
+        // Validar campos obligatorios
+        if (isEmpty && input.id !== 'notas' && input.id !== 'id-salida' && input.id !== 'id-salida-producto') {
+            if (input.id === 'fecha-salida' || input.id === 'colaborador-entregando' || input.id === 'colaborador-recibiendo') {
+                isValid = false;
+                input.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'Este campo es obligatorio';
+                input.parentElement.appendChild(errorMessage);
+            }
+        }
+    });
+
+    // Validar y recolectar datos de productos dinámicos
+    const productRows = document.querySelectorAll('#products-body .product-row');
+    productRows.forEach(row => {
+        const selectProducto = row.querySelector('.product-select');
+        const inputCantidadAnterior = row.querySelector('.product-prev-qty');
+        const inputCantidadSaliendo = row.querySelector('.product-out-qty');
+        const inputCantidadNueva = row.querySelector('.product-new-qty');
+
+        const idProducto = selectProducto.value;
+        const cantidadSaliendo = inputCantidadSaliendo.value.trim();
+        const cantidadSaliendoNum = Number(cantidadSaliendo);
+
+        // Validar campos no deshabilitados
+        if (!selectProducto.disabled) {
+            if (idProducto === '0') {
+                isValid = false;
+                selectProducto.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'Seleccione un producto';
+                selectProducto.parentElement.appendChild(errorMessage);
+            }
+        }
+
+        if (!inputCantidadSaliendo.disabled) {
+            if (cantidadSaliendo === '') {
+                isValid = false;
+                inputCantidadSaliendo.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'Ingrese la cantidad saliente';
+                inputCantidadSaliendo.parentElement.appendChild(errorMessage);
+            } else if (cantidadSaliendoNum <= 0) {
+                isValid = false;
+                inputCantidadSaliendo.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = 'La cantidad saliente debe ser mayor a 0';
+                inputCantidadSaliendo.parentElement.appendChild(errorMessage);
+            }
+        }
+
+        // Recolectar datos si es válido
+        if (idProducto !== '0' && cantidadSaliendo !== '' && cantidadSaliendoNum > 0) {
+            const productoData = {
+                idProducto: Number(idProducto),
+                cantidadAnterior: Number(inputCantidadAnterior.value),
+                cantidadSaliendo: cantidadSaliendoNum,
+                cantidadNueva: Number(inputCantidadNueva.value),
+                idUsuario: Number(document.getElementById('idUsuario').value)
+            };
+
+            if (!selectProducto.disabled) {
+                nuevosSalidaProducto.push(productoData);
+            }
+        }
+    });
+
+    // Si todo es válido, recolectar datos de la salida
+    if (isValid) {
+        const fechaSalida = document.getElementById('fecha-salida').value;
+        const idUsuarioRegistro = document.getElementById("idUsuario").value;
+        const idColaboradorEntregando = document.getElementById('colaborador-entregando').value;
+        const idColaboradorRecibiendo = document.getElementById('colaborador-recibiendo').value;
+        const notas = document.getElementById('notas').value;
+
+        salidaData = {
+            fechaSalida,
+            idUsuario: Number(idUsuarioRegistro),
+            idColaboradorEntregando: Number(idColaboradorEntregando),
+            idColaboradorRecibiendo: Number(idColaboradorRecibiendo),
+            notas
+        };
+    }
+
+    if (isValid) {
+        Swal.fire({
+            title: "Creando Salida",
+            text: "¿Está seguro que desea crear esta salida? Algunos de los cambios no son reversibles.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4a4af4",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.api.crearSalidaYProductos(
+                    nuevosSalidaProducto,
+                    salidaData,
+                    (respuesta) => {
+                        if (respuesta.success) {
+                            mostrarToastConfirmacion(respuesta.message);
+                            setTimeout(() => {
+                                // Redirigir o recargar el formulario según tu flujo
+                                adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla) // Ajusta según tu estructura
                             }, 2000);
                         } else {
                             mostrarToastError(respuesta.message);

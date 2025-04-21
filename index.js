@@ -325,7 +325,6 @@ ipcMain.on('listar-colaboradores', async (event, { pageSize, currentPage, estado
             mainWindow.webContents.send('error-cargar-colaboradores', 'Hubo un error al cargar los colaboradores.');
         }
     }
-    console.log("Colaboradores enviados al frontend:", resultado);
 });
 
 ipcMain.on('crear-colaborador', async (event, colaboradorData) => {
@@ -1116,7 +1115,7 @@ ipcMain.on('listar-productos-por-factura', async (event, { idFactura }) => {
                 nombreProducto: facturaProducto.getIdProducto().getNombre(),
                 descripcionProducto: facturaProducto.getIdProducto().getDescripcion(),
                 cantidadTotalProducto: facturaProducto.getIdProducto().getCantidad(),
-                unidadMedicion: facturaProducto.getIdProducto().getUnidadMedicion(),
+                unidadMedicion: facturaProducto.getIdProducto().getUnidadMedicion().getNombre(),
                 estadoProducto: facturaProducto.getIdProducto().getEstado(),
                 cantidadAnterior: facturaProducto.getCantidadAnterior(),
                 cantidadEntrando: facturaProducto.getCantidadEntrando(),
