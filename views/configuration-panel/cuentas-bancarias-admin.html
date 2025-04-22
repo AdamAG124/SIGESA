@@ -1,0 +1,88 @@
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Cuentas Bancarias</h1>
+        <button onclick="agregarCuentaBancaria()" class="add-cuenta-bancaria-btn" title="Agregar Nueva Cuenta Bancaria">
+            <span class="material-icons">add_business</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar cuentas bancarias..." onkeypress="filterTable(5)">
+        <button onclick="filterTable(5)" class="search-btn">Buscar</button>
+    </div>
+    
+    <div class="filters">
+        <select id="selectPageSize" onchange="filterTable(5)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estado-filtro" onchange="filterTable(5)">
+            <option value="1">Activa</option>
+            <option value="0">Inactiva</option>
+        </select>
+        <select id="entidad-financiera-filtro" onchange="filterTable(5)">
+            <option value="0">Filtrar por entidad financiera</option>
+            <option value="">Crear nueva entidad</option>
+        </select>
+        <select id="divisa-filtro" onchange="filterTable(5)">
+            <option value="CRC">CRC</option>
+            <option value="USD">USD</option>
+        </select>
+
+        <button class="close-btn" style="float: right;" onclick="limpiarDivCuentaBancaria()">Cerrar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre del Banco</th>
+                <th>Número de cuenta</th>
+                <th>Tipo de Divisa</th>
+                <th>Entidad Financiera</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="cuentas-bancarias-body">
+
+        </tbody>
+    </table>
+    <div class="pagination">
+        
+    </div>
+
+    <div id="crearEditarCuentaBancariaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('crearEditarCuentaBancariaModal', 'crearEditarCuentaBancariaForm')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <form id="crearEditarCuentaBancariaForm" class="editar-entidad-financiera-form">
+                <input type="hidden" id="idCuentaBancaria">
+
+                <label for="entidadFinanciera">Entidad Financiera:</label>
+                <select id="entidadFinanciera" name="entidadFinanciera" onchange="obtenerNombrePorEntidadFinanciera()">
+                    <option value="0">Seleccionar entidad financiera</option>
+                    <!-- Aquí se llenarán las opciones dinámicamente -->
+                    <option value="">Crear nueva entidad</option>
+                </select>
+
+                <label for="nombre">Nombre del banco:</label>
+                <input type="text" id="nombre" name="nombre">
+
+                <label for="telefono">Número de cuenta bancaria:</label>
+                <input type="text" id="numeroCuenta" name="numeroCuenta" min="8">
+
+                <label for="correo">Tipo de divisa:</label>
+                <select id="divisa" name="divisa">
+                    <option value="CRC">CRC</option>
+                    <option value="USD">USD</option>
+                </select>
+
+                <p id="errorMessage" style="color: red;"></p>
+
+                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</div>
+</div> 

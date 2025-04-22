@@ -279,6 +279,16 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-unidades-medicion', (event, respuesta) => callback(respuesta));
     },
 
+    /* --------------------------------                   ------------------------------------------
+       --------------------------------  Cuenta Bancaria  ------------------------------------------
+       --------------------------------                   ------------------------------------------ */
+
+    obtenerCuentasBancarias: (pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, callback) => {
+        // Enviar solicitud al proceso principal
+        ipcRenderer.send('obtener-cuentas-bancarias', { pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa });
+        // Escuchar la respuesta del proceso principal
+        ipcRenderer.once('cuentas-bancarias-obtenidas', (event, respuesta) => callback(respuesta));
+    }
 
 
 });

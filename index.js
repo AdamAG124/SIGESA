@@ -1585,3 +1585,34 @@ ipcMain.on('crear-unidad-medicion', async (event, unidadMedicionData) => {
     }
 }
 );
+
+/* Cuentas Bancarias */
+
+ipcMain.on('obtener-cuentas-bancarias', async (event, args) => {
+    try {
+        const { pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa } = args;
+        const result = await cuentaBancariaController.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa);
+
+        // Enviar la respuesta al proceso de renderizado
+        event.reply('cuentas-bancarias-obtenidas', {
+            success: true,
+            data: result.cuentasBancarias,
+            pagination: result.paginacion,
+            message: 'Cuentas bancarias obtenidas correctamente'
+        });
+    } catch (error) {
+        // Enviar error al proceso de renderizado
+        event.reply('cuentas-bancarias-obtenidas', {
+            success: false,
+            data: [],
+            pagination: {
+                pageSize: 0,
+                totalPages: 0,
+                totalRecords: 0,
+                firstPage: 1,
+                lastPage: 1
+            },
+            message: 'Error al obtener las cuentas bancarias: ' + error.message
+        });
+    }
+});
