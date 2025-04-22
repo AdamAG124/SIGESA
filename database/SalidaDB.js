@@ -118,7 +118,42 @@ class SalidaDB {
             }
         }
     }
+    async crearSalida(salida) {
+        const db = new ConectarDB();
+        let connection;
     
+        try {
+            connection = await db.conectar();
+    
+            const query = `
+                INSERT INTO sigt_salida (
+                    ID_COLABORADOR_SACANDO,
+                    ID_COLABORADOR_RECIBIENDO,
+                    FEC_SALIDA,
+                    ID_USUARIO,
+                    ESTADO
+                ) VALUES (?, ?, ?, ?, ?)
+            `;
+    
+            const params = [
+                salida.getColaboradorSacando().getIdColaborador(),
+                salida.getColaboradorRecibiendo().getIdColaborador(),
+                salida.getFechaSalida(),
+                salida.getIdUsuario(),
+                salida.getEstado()
+            ];
+    
+            const [result] = await connection.query(query, params);
+            return result.insertId; // Devolver el ID de la salida recién creada
+        } catch (error) {
+            console.error("Error al crear la salida:", error);
+            throw new Error("Error al crear la salida.");
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
 
 }
 

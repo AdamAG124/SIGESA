@@ -171,7 +171,18 @@ contextBridge.exposeInMainWorld('api', {
     actualizarProducto: (productoData) => ipcRenderer.send('actualizar-producto', productoData),
     onRespuestaActualizarProducto: (callback) => ipcRenderer.on('respuesta-actualizar-producto', (event, respuesta) => callback(respuesta)),
 
-
+    generarReporte: (filtroEstado, filtroCategoria, formato) => {
+        return new Promise((resolve, reject) => {
+            ipcRenderer.send('generar-reporte-productos', filtroEstado, filtroCategoria, formato);
+            ipcRenderer.once('reporte-generado', (event, response) => {
+                if (response.success) {
+                    resolve(response.message);
+                } else {
+                    reject(new Error(response.message));
+                }
+            });
+        });
+    },
     /* --------------------------------                   ------------------------------------------
        -------------------------------- PUESTO DE TRABAJO ------------------------------------------
        --------------------------------                    ------------------------------------------ */
@@ -235,6 +246,11 @@ contextBridge.exposeInMainWorld('api', {
             callback(respuesta);
         });
     },
+    crearSalidaYProductos: (nuevosSalidaProducto, salidaData, callback) => {
+        ipcRenderer.send('crear-salida-y-productos', { nuevosSalidaProducto, salidaData });
+        ipcRenderer.once('salida-creada', (event, respuesta) => callback(respuesta));
+    },
+
 
     // Función para listar productos por salida
     obtenerProductosPorSalida: (idSalida) => {
@@ -254,5 +270,16 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('actualizar-salida-y-productos', { nuevosSalidaProducto, actualizarSalidaProducto, eliminarSalidaProducto, salidaData });
         ipcRenderer.once('salida-actualizada', (event, respuesta) => callback(respuesta));
     },
+
+    /* --------------------------------                   ------------------------------------------
+       --------------------------------  UNIDAD MEDICIÓN  ------------------------------------------
+       --------------------------------                   ------------------------------------------ */
+    obtenerUnidadesMedicion: (callback) => {
+        ipcRenderer.send('listar-unidades-medicion', {});
+        ipcRenderer.once('cargar-unidades-medicion', (event, respuesta) => callback(respuesta));
+    },
+
+
+
 });
 

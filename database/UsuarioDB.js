@@ -276,7 +276,7 @@ class UsuarioDB {
             const password = usuario.getPassword();
 
             // Validar si el nombre de usuario ya existe
-            let query = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = '${nombreUsuario}'`;
+            let query = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE = '${nombreUsuario}' AND ID_USUARIO != '${idUsuario}'`;
             const [rowsNombreUsuario] = await connection.query(query);
 
             if (rowsNombreUsuario[0].count > 0) {

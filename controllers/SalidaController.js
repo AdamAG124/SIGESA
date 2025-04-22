@@ -9,6 +9,8 @@ class SalidaController {
         const resultado = await this.salidaService.listarSalidas(pageSize, currentPage, estado, valorBusqueda, filtroColaboradorSacando, filtroColaboradorRecibiendo, fechaInicio, fechaFin, filtroUsuario);
         return resultado;
     }
+    
+ 
 }
 
 module.exports = SalidaController;

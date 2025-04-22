@@ -1,3 +1,5 @@
+let moduleSelector = null;
+
 function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.classList.toggle("active");
@@ -591,14 +593,7 @@ function editarUsuario(id, boton) {
     const option = roleSelectOrigen.options[i];
     opcionesArray.push(option.textContent); // Guardar el texto en el array
   }
-
-  // Cargar la lista de roles y preseleccionar el rol del usuario
-  /*roleSelectDestino.innerHTML = ""; // Limpiar las opciones existentes
-  const defaultOption = document.createElement("option");
-  defaultOption.value = "";
-  defaultOption.textContent = "Selecciona un rol";
-  roleSelectDestino.appendChild(defaultOption);*/
-
+  roleSelectDestino.innerHTML = "";
   // Insertar las opciones del select de roles
   for (let i = 1; i < opcionesArray.length; i++) {
     const option = document.createElement("option");
@@ -882,20 +877,6 @@ function enviarCreacionUsuario(event) {
     return; // Detener el envío del formulario si las contraseñas no coinciden
   }
 
-  /*window.api.obtenerUsuarios((usuarios) => {
-    for (const usuario of usuarios) {
-      if (usuario.idColaborador === Number(colaborador)) {
-        passwordError.innerText = "El colaborador ya tiene un usuario asociado.";
-        passwordError.style.display = "block";
-        return; // Detener el envío del formulario si el colaborador ya tiene un usuario asociado
-      }
-      if (usuario.nombreUsuario === nombreUsuario) {
-        passwordError.innerText = "El nombre de usuario ya existe.";
-        passwordError.style.display = "block";
-        return; // Detener el envío del formulario si el nombre de usuario ya existe
-      }
-    }*/
-
   // Si todas las validaciones son exitosas, crear el objeto JSON con los datos del usuario
   const jsonData = {
     colaborador: colaborador,
@@ -956,6 +937,11 @@ function cerrarModal(idModalCerrar, idFormReset) {
   // Manejo de errores y estilos específicos para el formulario de editar usuario
   if (idFormReset === "editarUsuarioForm") {
     ocultarErrores();
+  }
+
+  // Reset específico según formulario
+  if (idFormReset === "editarProductoForm") {
+    if (moduleSelector) moduleSelector.reset();
   }
 }
 
@@ -2291,7 +2277,7 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
         row.innerHTML = `
           <td>${producto.nombreProducto}</td>
           <td>${producto.cantidad}</td>
-          <td>${producto.unidadMedicion}</td>
+          <td>${producto.nombreUnidadMedicion}</td>
           <td>${estado}</td>
           <td class="action-icons">
               <button class="tooltip" value="${producto.idProducto}" onclick="editarProducto(this.value, this)">
@@ -2316,19 +2302,26 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 
         cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
       });
-    }, 100);
+    }, 500);
   });
 }
 
-function agregarProducto() {
-  const categoriaSelect = document.getElementById("categorias");
+function desplegarAgregarProducto() {
+  // Inicializar el moduleSelector para "unidad-medicion" y forzar reinicio
+  initModuleSelector(1, true); // '1' corresponde a Unidades de Medición
 
-  // Crear un array para almacenar los textos de las opciones del select
+  const categoriaSelect = document.getElementById("categorias");
   cargarCategorias(categoriaSelect, "Seleccionar categoría");
 
-  // Cambiar el título del modal a "Editar Colaborador"
+  // Limpiar campos del formulario si es necesario
+  document.getElementById("editarProductoForm").reset();
+  document.getElementById("idProducto").value = "";
+  document.getElementById("errorMessage").textContent = "";
+
+  // Cambiar el título del modal a "Crear Producto"
   document.getElementById("modalTitle").innerText = "Crear Producto";
   document.getElementById("buttonModal").onclick = enviarCreacionProducto;
+
   // Mostrar el modal
   document.getElementById("editarProductoModal").style.display = "block";
 }
@@ -2338,7 +2331,7 @@ function enviarCreacionProducto() {
   const nombre = document.getElementById("nombre").value;
   const descripcion = document.getElementById("descripcion").value || "N/A";
   const cantidad = document.getElementById("cantidad").value;
-  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const unidadMedicion = moduleSelector.getSelectedId();
   const categoria = document.getElementById("categorias").value;
 
   // Array para almacenar los campos vacíos
@@ -2346,7 +2339,7 @@ function enviarCreacionProducto() {
 
   const inputs = [
     { value: nombre, element: document.getElementById("nombre") },
-    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: unidadMedicion, element: document.getElementById("selected-module") },
     { value: categoria, element: document.getElementById("categorias") },
 
     // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
@@ -2415,7 +2408,6 @@ function enviarCreacionProducto() {
 }
 
 async function editarProducto(id, boton) {
-
   const selectCategoria = document.getElementById("categorias");
   cargarCategorias(selectCategoria, 'Seleccionar categoría', estado = null, validarCategoriasInactivas = 1);
 
@@ -2428,8 +2420,11 @@ async function editarProducto(id, boton) {
       document.getElementById("nombre").value = producto.nombre;
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
-      document.getElementById("unidadMedicion").value = producto.unidadMedicion;
-      console.log(producto.idCategoria);
+      
+      initModuleSelector(1, true, () => {
+        moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
+      });
+
       // Usar setTimeout para esperar un poco y luego asignar el valor al select
       setTimeout(() => {
         selectCategoria.value = producto.idCategoria; // Asignamos el valor después de un pequeño retraso
@@ -2440,6 +2435,7 @@ async function editarProducto(id, boton) {
 
       document.getElementById("buttonModal").onclick = enviarEdicionProducto;
 
+      // Mostrar el modal
       document.getElementById("editarProductoModal").style.display = "block";
     } else {
       console.log("Error al obtener el producto, viene nulo");
@@ -2452,7 +2448,7 @@ function enviarEdicionProducto() {
   const nombre = document.getElementById("nombre").value;
   const descripcion = document.getElementById("descripcion").value || "N/A";
   const cantidad = document.getElementById("cantidad").value;
-  const unidadMedicion = document.getElementById("unidadMedicion").value;
+  const unidadMedicion = moduleSelector.getSelectedId();
   const categoria = document.getElementById("categorias").value;
 
   // Array para almacenar los campos vacíos
@@ -2460,7 +2456,7 @@ function enviarEdicionProducto() {
 
   const inputs = [
     { value: nombre, element: document.getElementById("nombre") },
-    { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+    { value: unidadMedicion, element: document.getElementById("selected-module") },
     { value: categoria, element: document.getElementById("categorias") },
 
     // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
@@ -2526,6 +2522,85 @@ function enviarEdicionProducto() {
     }
   });
 }
+
+function toggleModuleList() {
+  const container = document.getElementById("module-list");
+  container.classList.toggle("open");
+}
+
+function initModuleSelector(tipo, force = false, callback = null) {
+  if (!moduleSelector || force) {
+    const container = document.getElementById("module-container");
+
+    if (container) {
+      container.innerHTML = `
+        <div id="select-wrapper">
+            <div id="selected-module" onclick="toggleModuleList()">
+                Selección
+                <span class="dropdown-icon"></span>
+            </div>
+            <div id="module-list"></div>
+        </div>
+        <button id="add-module-btn" title="Agregar">＋</button>
+      `;
+    }
+
+    moduleSelector = new ModuleSelector({
+      containerId: "module-container",
+      moduleId: tipo,
+      handlers: getHandlersForType(tipo)
+    });
+
+    // Espera a que los módulos se carguen antes de ejecutar el callback
+    moduleSelector.fetchModules(callback);
+  } else if (callback) {
+    callback(); // Si ya estaba inicializado, ejecutamos el callback directo
+  }
+}
+
+// Función para obtener los handlers según el tipo de módulo con un switch
+function getHandlersForType(tipo) {
+  switch (tipo) {
+    case 1:
+      // Módulo de Unidades de Medición
+      return {
+        list: (moduleId, callback) => {
+          window.api.obtenerUnidadesMedicion((unidades) => {
+            callback(unidades);
+          });
+        },
+        create: (moduleId, newName, callback) => {
+          window.api.crearUnidadMedicion(newName, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al crear unidad de medición", response.message);
+          });
+        },
+        update: (moduleId, id, newName, callback) => {
+          window.api.actualizarUnidadMedicion(id, newName, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al actualizar unidad de medición", response.message);
+          });
+        },
+        delete: (moduleId, id, callback) => {
+          window.api.eliminarUnidadMedicion(id, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al eliminar unidad de medición", response.message);
+          });
+        },
+        undoDelete: (moduleId, name, index, callback) => {
+          window.api.revertirUnidadMedicion(name, index, (response) => {
+            if (response.success) callback(response);
+            else console.error("Error al restaurar unidad de medición", response.message);
+          });
+        }
+      };
+
+    default:
+      console.error(`Tipo de módulo no soportado: ${tipo}`);
+      return {}; // Retorna un objeto vacío si el tipo no se reconoce
+  }
+}
+
 
 /* --------------------------------          ------------------------------------------
    -------------------------------- FACTURAS ------------------------------------------
@@ -2651,10 +2726,42 @@ function cargarColaboradores(idSelect, mensajeQuemado) {
     respuesta.colaboradores.forEach((colaborador) => {
       const option = document.createElement("option");
       option.value = colaborador.idColaborador;
-      option.textContent = colaborador.nombreColaborador;
+      option.textContent = `${colaborador.nombreColaborador} ${colaborador.primerApellidoColaborador} ${colaborador.segundoApellidoColaborador || ''}`;
+      option.setAttribute("data-correo", colaborador.correo);
+      option.setAttribute("data-telefono", colaborador.numTelefono);
+      option.setAttribute("data-departamento", colaborador.nombreDepartamento);
+      option.setAttribute("data-puesto", colaborador.nombrePuesto);
       colaboradorSelect.appendChild(option);
     });
+    console.log("Respuesta de colaboradores:", respuesta);
   });
+}
+function actualizarDatosColaborador(select) {
+  const selectedOption = select.options[select.selectedIndex]; // La opción seleccionada
+
+  // Determinar si es el colaborador que entrega o recibe según el ID del select
+  const esColaboradorSacando = select.id === 'colaborador-entregando';
+  const prefijo = esColaboradorSacando ? 'sacando' : 'recibiendo';
+
+  // Obtener los inputs correspondientes
+  const correoInput = document.getElementById(`correo-${prefijo}`);
+  const telefonoInput = document.getElementById(`telefono-${prefijo}`);
+  const departamentoInput = document.getElementById(`departamento-${prefijo}`);
+  const puestoInput = document.getElementById(`puesto-${prefijo}`);
+
+  // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
+  if (selectedOption.value === "0") {
+    correoInput.value = '';
+    telefonoInput.value = '';
+    departamentoInput.value = '';
+    puestoInput.value = '';
+  } else {
+    // Llenar los inputs con los datos de los atributos data-*
+    correoInput.value = selectedOption.dataset.correo || '';
+    telefonoInput.value = selectedOption.dataset.telefono || '';
+    departamentoInput.value = selectedOption.dataset.departamento || '';
+    puestoInput.value = selectedOption.dataset.puesto || '';
+  }
 }
 
 /* SALIDA PRODUCTOOOO*/
@@ -2716,7 +2823,93 @@ function cargarSalidasTabla(
 
   }, 100);
 }
+function llenarSelectsColaboradores() {
+  window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
+      // Llenar el <select> del colaborador que entrega
+      const selectSacando = document.getElementById('colaborador-entregando');
+      selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+          colaboradores.colaboradores.map(col => `
+              <option value="${col.idColaborador}" 
+                      data-correo="${col.correo}" 
+                      data-telefono="${col.numTelefono}" 
+                      data-departamento="${col.nombreDepartamento}" 
+                      data-puesto="${col.nombrePuesto}">
+                  ${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}
+              </option>
+          `).join('');
 
+      // Llenar el <select> del colaborador que recibe
+      const selectRecibiendo = document.getElementById('colaborador-recibiendo');
+      selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+          colaboradores.colaboradores.map(col => `
+              <option value="${col.idColaborador}" 
+                      data-correo="${col.correo}" 
+                      data-telefono="${col.numTelefono}" 
+                      data-departamento="${col.nombreDepartamento}" 
+                      data-puesto="${col.nombrePuesto}">
+                  ${col.nombreColaborador} ${col.primerApellidoColaborador} ${col.segundoApellidoColaborador || ''}
+              </option>
+          `).join('');
+
+      // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
+      selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
+      selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
+  });
+}
+function actualizarDatosColaborador(select) {
+  const selectedOption = select.options[select.selectedIndex]; // La opción seleccionada
+
+  // Determinar si es el colaborador que entrega o recibe según el ID del select
+  const esColaboradorSacando = select.id === 'colaborador-entregando';
+  const prefijo = esColaboradorSacando ? 'sacando' : 'recibiendo';
+
+  // Obtener los inputs correspondientes
+  const correoInput = document.getElementById(`correo-${prefijo}`);
+  const telefonoInput = document.getElementById(`telefono-${prefijo}`);
+  const departamentoInput = document.getElementById(`departamento-${prefijo}`);
+  const puestoInput = document.getElementById(`puesto-${prefijo}`);
+
+  // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
+  if (selectedOption.value === "0") {
+      correoInput.value = '';
+      telefonoInput.value = '';
+      departamentoInput.value = '';
+      puestoInput.value = '';
+  } else {
+      // Llenar los inputs con los datos de los atributos data-*
+      correoInput.value = selectedOption.dataset.correo || '';
+      telefonoInput.value = selectedOption.dataset.telefono || '';
+      departamentoInput.value = selectedOption.dataset.departamento || '';
+      puestoInput.value = selectedOption.dataset.puesto || '';
+  }
+}
+
+function cargarProductos(idSelect, mensajeQuemado) {
+  console.log("📢 Solicitando productos para el select:", idSelect);
+
+  window.api.obtenerProductos(null, null, 1, null, null, (respuesta) => {
+    console.log("✅ Productos recibidos en el frontend:", respuesta);
+
+    const productoSelect = document.getElementById(idSelect);
+    productoSelect.innerHTML = ""; // Limpiar las opciones existentes
+
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    productoSelect.appendChild(option);
+
+    respuesta.productos.forEach((producto) => {
+      console.log("➡️ Procesando producto:", producto);
+
+      const option = document.createElement("option");
+      option.value = producto.idProducto;
+      option.textContent = producto.nombreProducto;
+      option.setAttribute("data-unidad", producto.unidadMedicion);
+      option.setAttribute("data-cantidad", producto.cantidad);
+      productoSelect.appendChild(option);
+    });
+  });
+}
 function cargarProductosSalida(idSalida) {
   console.log("Iniciando carga de productos para la salida con ID:", idSalida); // Depuración inicial
 
@@ -2768,3 +2961,53 @@ function verDetallesSalida(idSalida) {
     cargarProductosSalida(idSalida);
   });
 }
+
+function agregarProducto() {
+  const productsBody = document.getElementById('products-body');
+  const row = document.createElement('tr');
+  row.className = 'product-row';
+  row.innerHTML = `
+      <td>
+          <select class="form-select product-select" onchange="actualizarCamposProducto(this)" required>
+              <option value="">Seleccione un producto</option>
+              <!-- Opciones cargadas dinámicamente -->
+          </select>
+      </td>
+      <td><input type="text" class="form-control product-unit" readonly></td>
+      <td><input type="number" class="form-control product-prev-qty" readonly></td>
+      <td><input type="number" class="form-control product-out-qty" min="1" required></td>
+      <td><input type="number" class="form-control product-new-qty" readonly></td>
+      <td class="no-print"><i class="material-icons delete-product" onclick="this.closest('tr').remove()">delete</i></td>
+  `;
+  productsBody.appendChild(row);
+
+  // Cargar productos en el nuevo select
+  cargarProductos();
+}
+function actualizarCamposProducto(select) {
+  const selectedOption = select.options[select.selectedIndex];
+  console.log("📢 Producto seleccionado:", selectedOption);
+
+  const unidad = selectedOption.getAttribute("data-unidad") || "N/A";
+  const cantidadAnterior = selectedOption.getAttribute("data-cantidad") || 0;
+
+  // Obtener la fila actual del producto
+  const row = select.closest('tr');
+  const unidadInput = row.querySelector('.product-unit');
+  const cantidadAnteriorInput = row.querySelector('.product-prev-qty');
+
+  // Actualizar los valores de los campos
+  unidadInput.value = unidad;
+  cantidadAnteriorInput.value = cantidadAnterior;
+}
+function cargarVistaCrearSalida() {
+  llenarSelectsColaboradores();
+  cargarProductos('productosComboBox', 'Seleccione un producto');
+  window.api.obtenerUsuarioLogueado((respuesta) => {
+    const usuario = respuesta.usuario;
+    console.log(usuario);
+    document.getElementById('nombreUsuarioRegistro').textContent = usuario.nombreUsuario;
+    document.getElementById("idUsuario").value = usuario.idUsuario;
+  });
+}
+

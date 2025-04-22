@@ -1,5 +1,8 @@
 <div class="content-header">
     <h1 class="content-title">Administrar Salidas</h1>
+    <button class="add-invoice-btn" title="Registrar Nueva Salida">
+        <span class="material-icons" onclick="adjuntarHTML('/salida-producto/crear-salida.html', cargarVistaCrearSalida)">add_box</span>
+    </button>
 </div>
 <div class="search-bar">
     <input id="search-bar" type="text" placeholder="Buscar salidas..." onkeypress="filterTable(8)">
@@ -22,19 +25,17 @@
         <span>-</span>
         <input id="fechaFinalFiltro" type="date" placeholder="Fecha final" onchange="filterTable(8)">
     </div>
-    <select id="colaboradorSacando" name="colaboradorName"  onchange="filterTable(8)">
+    <select id="colaboradorSacando" name="colaboradorName" onchange="filterTable(8)">
         <option value="">Seleccione un colaborador</option>
-    
     </select>
     <select id="colaboradorRecibiendo" name="colaboradorName" onchange="filterTable(8)">
         <option value="">Seleccione un colaborador</option>
-    
     </select>
 </div>
+
 <table>
     <thead>
         <tr>
-           
             <th>Colaborador Sacando</th>
             <th>Colaborador Recibiendo</th>
             <th>Fecha de Salida</th>

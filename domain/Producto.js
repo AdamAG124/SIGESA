@@ -1,4 +1,5 @@
 const CategoriaProducto = require('./CategoriaProducto'); // Importa la clase CategoriaProducto
+const UnidadMedicion = require('./UnidadMedicion'); // Importa la clase CategoriaProducto
 
 class Producto {
     // Atributos privados
@@ -17,7 +18,7 @@ class Producto {
         this.#nombre = "";                              // Inicializado como cadena vacía
         this.#descripcion = "";                         // Inicializado como cadena vacía
         this.#cantidad = 0.0;                           // Inicializado como 0.0
-        this.#unidadMedicion = "";                      // Inicializado como cadena vacía
+        this.#unidadMedicion = new UnidadMedicion();                      // Inicializado como cadena vacía
         this.#estado = false;                           // Inicializado como false (tinyint(1))
     }
 

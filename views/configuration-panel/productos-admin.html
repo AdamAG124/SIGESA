@@ -1,13 +1,15 @@
 <link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/module-seletor.css">
 <div class="main-content">
     <div class="content-header">
         <h1 class="content-title">Administrar Productos</h1>
-        <button onclick="agregarProducto()" class="add-product-btn" title="Agregar Nuevo Producto">
+        <button onclick="desplegarAgregarProducto()" class="add-product-btn" title="Agregar Nuevo Producto">
             <span class="material-icons">add_circle</span>
         </button>
     </div>
     <div class="search-bar">
-        <input id="search-bar" type="text" placeholder="Buscar productos..." onkeydown="checkEmpty(event, 7)" oninput="checkEmpty(event, 7)">
+        <input id="search-bar" type="text" placeholder="Buscar productos..." onkeydown="checkEmpty(event, 7)"
+            oninput="checkEmpty(event, 7)">
     </div>
     <div class="filters">
         <select id="selectPageSize" onchange="filterTable(7)">
@@ -24,6 +26,14 @@
             <option value="1">Activo</option>
             <option value="0">Inactivo</option>
         </select>
+
+        <button id="btn-pdf" class="btn btn-primary me-2" value="1" onclick="generarReporte(this.value)">
+            <i class="material-icons">picture_as_pdf</i> Generar PDF
+        </button>
+        <button id="btn-excel" class="btn btn-excel" value="2" onclick="generarReporte(this.value)">
+            <i class="material-icons">table_chart</i> Generar Excel
+        </button>
+
         <button class="close-btn" style="float: right;" onclick="limpiarDIV()">Cerrar</button>
     </div>
     <table>
@@ -61,15 +71,33 @@
                 <input type="number" id="cantidad" name="cantidad" min="0" value="0" required>
 
                 <label for="unidadMedicion">Unidad medición:</label>
-                <select type="text" id="unidadMedicion" name="unidadMedicion" required>
-                    <option value="Unidad">Unidad</option>
-                    <option value="Kilogramo">Kilogramo</option>
-                    <option value="Gramo">Gramo</option>   
-                    <option value="Litro">Litro</option>
-                    <option value="Mililitro">Mililitro</option>
-                    <option value="Onza">Onza</option>
-                    <option value="Centímetro cúbico">Centímetro cúbico</option>
-                </select>
+                <div id="module-container">
+                    <div id="select-wrapper">
+                        <div id="selected-module" onclick="toggleModuleList()">
+                            Selección
+                            <span class="dropdown-icon"></span>
+                        </div>
+                        <div id="module-list"></div>
+                    </div>
+                    <button id="add-module-btn" title="Agregar">＋</button>
+                </div>
+                <!-- Modal popup para nuevo módulo -->
+                <div id="module-popup" class="popup-overlay">
+                    <div class="popup-content">
+                        <h3>Agregar</h3>
+
+                        <!-- Aquí va el nuevo div de error -->
+                        <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
+                        </div>
+
+                        <input type="text" id="new-module-name" placeholder="Nombre del módulo" />
+                        <div class="popup-buttons">
+                            <button id="save-module" type="button">Guardar</button>
+                            <button id="cancel-module" type="button">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
                 <label for="categorias">Categoría:</label>
                 <select id="categorias" name="categorias" required>
                     <!-- Opciones de categoria se llenarán aquí -->

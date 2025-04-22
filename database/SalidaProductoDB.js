@@ -36,9 +36,11 @@ class SalidaProductoDB {
                     
                     -- Información del producto
                     p.DSC_NOMBRE AS nombreProducto,
-                    p.DSC_UNIDAD_MEDICION AS unidadMedicion,
+                    p.ID_UNIDAD_MEDICION AS unidadMedicion,
                     p.NUM_CANTIDAD AS cantidadTotalProducto,
                     p.ESTADO AS estadoProducto,
+
+                    um.DSC_NOMBRE AS unidadMedicionNombre,
                     
                     -- Información del usuario
                     u.DSC_NOMBRE AS nombreUsuario,
@@ -74,6 +76,8 @@ class SalidaProductoDB {
                     sigt_salida s ON sp.ID_SALIDA = s.ID_SALIDA
                 INNER JOIN 
                     sigm_producto p ON sp.ID_PRODUCTO = p.ID_PRODUCTO
+                INNER JOIN
+                    sigm_unidad_medicion um ON p.ID_UNIDAD_MEDICION = um.ID_UNIDAD_MEDICION
                 INNER JOIN 
                     sigm_usuario u ON s.ID_USUARIO = u.ID_USUARIO
                 INNER JOIN 
@@ -136,7 +140,8 @@ class SalidaProductoDB {
                 // Llenar Producto (usando el objeto existente dentro de SalidaProducto)
                 salidaProducto.getIdProducto().setIdProducto(row.idProducto);
                 salidaProducto.getIdProducto().setNombre(row.nombreProducto);
-                salidaProducto.getIdProducto().setUnidadMedicion(row.unidadMedicion);
+                salidaProducto.getIdProducto().getUnidadMedicion().setIdUnidadMedicion(row.unidadMedicion);
+                salidaProducto.getIdProducto().getUnidadMedicion().setNombre(row.unidadMedicionNombre);
                 salidaProducto.getIdProducto().setCantidad(row.cantidadTotalProducto);
                 salidaProducto.getIdProducto().setEstado(row.estadoProducto);
 
@@ -363,6 +368,104 @@ class SalidaProductoDB {
 
         } catch (error) {
             console.error('Error en editarSalidaProducto:', error.message);
+            return {
+                success: false,
+                message: 'Error al procesar la salida y productos: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+    async crearSalidaProductoBD(nuevosSalidaProducto, salidaData) {
+        let connection;
+        try {
+            connection = await this.#db.conectar();
+    
+            // Iniciar la transacción
+            await connection.beginTransaction();
+    
+            // 1. Insertar nueva salida en sigt_salida
+            const insertSalidaQuery = `
+                INSERT INTO sigt_salida (
+                    ID_COLABORADOR_SACANDO, 
+                    ID_COLABORADOR_RECIBIENDO, 
+                    FEC_SALIDA,
+                    ID_USUARIO,
+                    DSC_DETALLE_SALIDA,
+                    ESTADO
+                ) VALUES (
+                    ${salidaData.idColaboradorEntregando},
+                    ${salidaData.idColaboradorRecibiendo},
+                    '${salidaData.fechaSalida}',
+                    '${salidaData.idUsuario}',
+                    '${salidaData.notas || ''}',
+                    1
+                )
+            `;
+            const [insertSalidaResult] = await connection.query(insertSalidaQuery);
+            const idSalida = insertSalidaResult.insertId;
+    
+            // 2. Insertar nuevos SalidaProducto
+            for (const nuevo of nuevosSalidaProducto) {
+                const selectProductoQuery = `
+                    SELECT NUM_CANTIDAD 
+                    FROM sigm_producto 
+                    WHERE ID_PRODUCTO = ${nuevo.idProducto}
+                `;
+                const [productoResult] = await connection.query(selectProductoQuery);
+                if (productoResult.length === 0) {
+                    throw new Error(`No se encontró el producto con ID ${nuevo.idProducto}`);
+                }
+                const cantidadActual = productoResult[0].NUM_CANTIDAD || 0;
+                const nuevaCantidad = cantidadActual - nuevo.cantidadSaliendo;
+                if (nuevaCantidad < 0) {
+                    throw new Error(`No hay suficiente stock para el producto con ID ${nuevo.idProducto}`);
+                }
+    
+                // Actualizar stock del producto
+                const updateProductoQuery = `
+                    UPDATE sigm_producto
+                    SET NUM_CANTIDAD = ${nuevaCantidad}
+                    WHERE ID_PRODUCTO = ${nuevo.idProducto}
+                `;
+                await connection.query(updateProductoQuery);
+    
+                // Insertar SalidaProducto
+                const insertQuery = `
+                    INSERT INTO ${this.#table} (
+                        ID_PRODUCTO, 
+                        ID_SALIDA, 
+                        NUM_CANTIDAD_ANTERIOR, 
+                        NUM_CANTIDAD_SALIENDO, 
+                        NUM_CANTIDAD_NUEVA
+                    ) VALUES (
+                        ${nuevo.idProducto},
+                        ${idSalida},
+                        ${nuevo.cantidadAnterior},
+                        ${nuevo.cantidadSaliendo},
+                        ${nuevaCantidad}
+                    )
+                `;
+                await connection.query(insertQuery);
+            }
+    
+            // Confirmar la transacción
+            await connection.commit();
+    
+            return {
+                success: true,
+                message: 'Salida y productos creados correctamente'
+            };
+        } catch (error) {
+            // Si ocurre un error, hacer rollback
+            if (connection) {
+                await connection.rollback();
+                console.log('Transacción revertida debido a un error:', error.message);
+            }
+    
+            console.error('Error en crearSalidaProductoBD:', error.message);
             return {
                 success: false,
                 message: 'Error al procesar la salida y productos: ' + error.message

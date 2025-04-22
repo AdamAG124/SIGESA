@@ -10,6 +10,27 @@ class SalidaProductoService {
         const productos = await this.salidaProductoDB.obtenerProductosPorSalida(idSalida);
         console.log("Productos obtenidos en el servicio:", productos); // Verificar los datos obtenidos
         return productos;
+
+    }  async validarCantidadSaliendo(idProducto, cantidadSaliendo) {
+        // Obtener la cantidad en stock del producto
+        const producto = await this.productoDB.obtenerProductoPorId(idProducto);
+        if (!producto) {
+            throw new Error(`El producto con ID ${idProducto} no existe.`);
+        }
+
+        const cantidadEnStock = producto.cantidadEnStock;
+
+        // Validar que la cantidad saliendo no exceda la cantidad en stock
+        if (cantidadSaliendo > cantidadEnStock) {
+            throw new Error(
+                `La cantidad saliendo (${cantidadSaliendo}) excede la cantidad en stock (${cantidadEnStock}).`
+            );
+        }
+
+        return true; // Validación exitosa
+    }
+    async crearSalidaProducto(nuevosSalidaProducto, salidaData) {
+        return await this.salidaProductoDB.crearSalidaProductoBD(nuevosSalidaProducto, salidaData);
     }
 
     async obtenerProductosPorSalida(idSalida) {
