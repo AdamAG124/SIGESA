@@ -11,6 +11,10 @@ class UnidadMedicionController {
     async listarUnidadesMedicion() {
         return await this.#unidadMedicionService.listarUnidadesMedicion();
     }
+
+    async crearUnidadMedicion(unidadMedicion) {
+        return await this.#unidadMedicionService.crearUnidadMedicion(unidadMedicion);
+    }
 }
 
 module.exports = UnidadMedicionController;

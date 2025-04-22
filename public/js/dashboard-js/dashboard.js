@@ -2421,7 +2421,7 @@ async function editarProducto(id, boton) {
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
       
-      initModuleSelector(1, true, () => {
+      initModuleSelector(1, true, creatable = false, editable = false, () => {
         moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
       });
 
@@ -2528,7 +2528,7 @@ function toggleModuleList() {
   container.classList.toggle("open");
 }
 
-function initModuleSelector(tipo, force = false, callback = null) {
+function initModuleSelector(tipo, force = false, creatable = true, editable = true, callback = null) {
   if (!moduleSelector || force) {
     const container = document.getElementById("module-container");
 
@@ -2548,7 +2548,9 @@ function initModuleSelector(tipo, force = false, callback = null) {
     moduleSelector = new ModuleSelector({
       containerId: "module-container",
       moduleId: tipo,
-      handlers: getHandlersForType(tipo)
+      handlers: getHandlersForType(tipo),
+      creatable: creatable,
+      editable: editable,
     });
 
     // Espera a que los módulos se carguen antes de ejecutar el callback
@@ -2571,8 +2573,14 @@ function getHandlersForType(tipo) {
         },
         create: (moduleId, newName, callback) => {
           window.api.crearUnidadMedicion(newName, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al crear unidad de medición", response.message);
+            if (response.success) {
+              // Llamar al método de listar para actualizar los datos desde la base de datos
+              window.api.obtenerUnidadesMedicion((unidades) => {
+                callback(unidades); // Pasar las unidades actualizadas al callback
+              });
+            } else {
+              console.error("Error al crear una unidad de medición", response.message);
+            }
           });
         },
         update: (moduleId, id, newName, callback) => {
