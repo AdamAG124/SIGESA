@@ -509,34 +509,7 @@ ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado
         event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
     }
 });
-/* --------------------------------                   ------------------------------------------
-   -------------------------------- PUESTO DE TRABAJO ------------------------------------------
-   --------------------------------                   ------------------------------------------ */
-ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
-    const puestoTrabajoController = new PuestoTrabajoController();
 
-    try {
-        const resultado = await puestoTrabajoController.getPuestos(pageSize, currentPage, estado, valorBusqueda);
-
-        // Serializar los datos de los puestos de trabajo manualmente para asegurarse de que todo es serializable
-        const puestosCompletos = resultado.puestos.map(puesto => ({
-            idPuestoTrabajo: puesto.getIdPuestoTrabajo(),
-            nombrePuestoTrabajo: puesto.getNombre(),
-            descripcionPuestoTrabajo: puesto.getDescripcion(),
-            estado: puesto.getEstado()
-        }));
-
-        const respuesta = {
-            puestos: puestosCompletos,  // Lista de puestos de trabajo
-            paginacion: resultado.pagination  // Datos de paginación
-        };
-
-        event.reply('cargar-puestos-trabajo', respuesta);  // Enviar la respuesta de vuelta al cliente
-    } catch (error) {
-        console.error('Error al listar los puestos de trabajo:', error);
-        event.reply('error-cargar-puestos-trabajo', 'Hubo un error al cargar los puestos de trabajo.');
-    }
-});
 /* --------------------------------                    ------------------------------------------
    -------------------------------- CATEGORIA PRODUCTO ------------------------------------------
    --------------------------------                    ------------------------------------------ */

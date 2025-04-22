@@ -1739,6 +1739,17 @@ function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorB
     const tbody = document.getElementById("puestos-body");
     tbody.innerHTML = ""; // Limpiar contenido previo
 
+    
+    if (!respuesta.puestos || respuesta.puestos.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td colspan="4" style="text-align: center; color: gray; font-style: italic;">
+          No hay puestos de trabajo registrados.
+        </td>
+      `;
+      tbody.appendChild(row);
+      return;
+    }
     respuesta.puestos.forEach((puesto) => {
       const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
 
