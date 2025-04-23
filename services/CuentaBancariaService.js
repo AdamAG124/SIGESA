@@ -8,8 +8,11 @@ class CuentaBancariaService {
         this.#cuentaBancariaBD = new CuentaBancariaBD();
     }
 
-    async obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa) {
-        return await this.#cuentaBancariaBD.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa);
+    async obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado) {
+        if(estado === 2){
+            estado = null;
+        }
+        return await this.#cuentaBancariaBD.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado);
     }
 }
 

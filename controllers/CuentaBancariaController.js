@@ -8,9 +8,9 @@ class CuentaBancariaController{
         this.#cuentaBancariaService = new CuentaBancariaService();
     }
 
-    async obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa) {
+    async obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado) {
         try {
-            const result = await this.#cuentaBancariaService.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa);
+            const result = await this.#cuentaBancariaService.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado);
             const cuentasBancarias = result.data.map(cuenta => ({
                 idCuentaBancaria: cuenta.getIdCuentaBancaria(),
                 idEntidadFinanciera: cuenta.getIdEntidadFinanciera().getIdEntidadFinanciera(),

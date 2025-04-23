@@ -11,7 +11,7 @@ class CuentaBancariaBD {
         this.#table = 'SIGM_CUENTA_BANCARIA';
     }
 
-    async obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa) {
+    async obtenerCuentasBancarias(pageSize, currentPage, searchValue, idEntidadFinanciera, tipoDivisa, estado) {
         let connection;
         try {
             connection = await this.#db.conectar();
@@ -64,6 +64,14 @@ class CuentaBancariaBD {
                 countParams.push(tipoDivisa);
             }
 
+            // Filtro por ESTADO
+            if (estado !== null && estado !== undefined) {
+                query += ` AND cb.ESTADO = ?`;
+                countQuery += ` AND cb.ESTADO = ?`;
+                params.push(estado ? 1 : 0); // Convertir booleano a 1 o 0 para la base de datos
+                countParams.push(estado ? 1 : 0);
+            }
+
             // Obtener el total de registros (para paginación)
             const [[{ total }]] = await connection.query(countQuery, countParams);
 
@@ -71,15 +79,20 @@ class CuentaBancariaBD {
             let paginationDetails = {
                 pageSize: pageSize || 0,
                 totalPages: 0,
+                currentPage,
                 totalRecords: total,
                 firstPage: 1,
-                lastPage: 1
+                lastPage: 1,
+                searchValue,
+                idEntidadFinanciera,
+                tipoDivisa,
+                estado // Añadir estado a los detalles de paginación
             };
 
             // Ejecutar la consulta principal
             let rows;
-            if (pageSize && pageNumber && pageSize > 0 && pageNumber > 0) {
-                const offset = (pageNumber - 1) * pageSize;
+            if (pageSize && currentPage && pageSize > 0 && currentPage > 0) {
+                const offset = (currentPage - 1) * pageSize;
                 query += ` LIMIT ? OFFSET ?`;
                 params.push(pageSize, offset);
                 [rows] = await connection.query(query, params);
