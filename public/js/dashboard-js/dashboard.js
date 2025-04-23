@@ -475,7 +475,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
         cargarSalidasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda, pagination.filtroColaboradorSacando, pagination.filtroColaboradorRecibiendo, pagination.fechaInicio, pagination.fechaFin, pagination.filtroUsuario);
         break;
       case 9:
-        cargarCuentasTabla(pagination.pageSize, page, pagination.searchValue, pagination.idEntidadFinanciera, pagination.tipoDivisa);
+        cargarCuentasTabla(pagination.pageSize, page, pagination.searchValue, pagination.idEntidadFinanciera, pagination.tipoDivisa, pagination.estado);
         break
       default:
 

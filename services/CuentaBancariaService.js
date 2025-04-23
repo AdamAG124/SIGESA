@@ -12,6 +12,9 @@ class CuentaBancariaService {
         if(estado === 2){
             estado = null;
         }
+        if(tipoDivisa === "nula"){
+            tipoDivisa = null;
+        }
         return await this.#cuentaBancariaBD.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado);
     }
 }

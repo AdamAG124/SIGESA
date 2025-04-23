@@ -86,7 +86,7 @@ class CuentaBancariaBD {
                 searchValue,
                 idEntidadFinanciera,
                 tipoDivisa,
-                estado // Añadir estado a los detalles de paginación
+                estado
             };
 
             // Ejecutar la consulta principal
