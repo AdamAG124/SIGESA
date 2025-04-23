@@ -169,21 +169,23 @@ class ModuleSelector {
     document.removeEventListener('keydown', this._handleEscape);
   }
 
-  async saveNewModule() {
+  saveNewModule() {
     const newName = this.inputNew.value.trim();
     const errorMsg = document.getElementById('module-error');
 
     if (newName && !this.modules.some(m => m.nombre === newName)) {
-      try {
-        await this.handlers.create(this.moduleId, newName); // Crear la nueva unidad
-        this.fetchModules(); // Cargar la lista actualizada
-        this.showAlert('success', 'Operación exitosa', `"${newName}" ha sido creado.`);
-        this.popup.style.display = 'none';
-        errorMsg.style.display = 'none';
-      } catch (error) {
-        console.error("Error al guardar el nuevo módulo:", error);
-        this.showAlert('error', 'Error', 'No se pudo crear el módulo. Intente nuevamente.');
-      }
+      this.handlers.create(this.moduleId, newName, (updatedModules) => {
+        if (updatedModules && Array.isArray(updatedModules)) {
+          this.modules = updatedModules.map(item => this.normalizeItem(item));
+          this.renderModules(); // Recargar lista
+          this.showAlert('success', 'Operación exitosa', `"${newName}" ha sido creado.`);
+          this.popup.style.display = 'none';
+          errorMsg.style.display = 'none';
+        } else {
+          this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de crear el módulo.');
+          console.error("Error: lista actualizada no recibida.");
+        }
+      });
     } else {
       errorMsg.textContent = "Ingrese un nombre válido y único.";
       errorMsg.style.display = 'block';

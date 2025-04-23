@@ -2420,7 +2420,7 @@ async function editarProducto(id, boton) {
       document.getElementById("nombre").value = producto.nombre;
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
-      
+
       initModuleSelector(1, true, creatable = false, editable = false, () => {
         moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
       });
@@ -2559,7 +2559,6 @@ function initModuleSelector(tipo, force = false, creatable = true, editable = tr
     callback(); // Si ya estaba inicializado, ejecutamos el callback directo
   }
 }
-
 // Función para obtener los handlers según el tipo de módulo con un switch
 function getHandlersForType(tipo) {
   switch (tipo) {
@@ -2572,16 +2571,18 @@ function getHandlersForType(tipo) {
           });
         },
         create: (moduleId, newName, callback) => {
-          window.api.crearUnidadMedicion(newName, (response) => {
+          window.api.onRespuestaCrearUnidadMedicion((response) => {
             if (response.success) {
-              // Llamar al método de listar para actualizar los datos desde la base de datos
               window.api.obtenerUnidadesMedicion((unidades) => {
-                callback(unidades); // Pasar las unidades actualizadas al callback
+                callback(unidades); // <- actualiza la lista en la interfaz
               });
             } else {
               console.error("Error al crear una unidad de medición", response.message);
+              callback(null); // <- enviar null si hay error
             }
           });
+
+          window.api.crearUnidadMedicion(newName);
         },
         update: (moduleId, id, newName, callback) => {
           window.api.actualizarUnidadMedicion(id, newName, (response) => {
@@ -2833,10 +2834,10 @@ function cargarSalidasTabla(
 }
 function llenarSelectsColaboradores() {
   window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
-      // Llenar el <select> del colaborador que entrega
-      const selectSacando = document.getElementById('colaborador-entregando');
-      selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
-          colaboradores.colaboradores.map(col => `
+    // Llenar el <select> del colaborador que entrega
+    const selectSacando = document.getElementById('colaborador-entregando');
+    selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+      colaboradores.colaboradores.map(col => `
               <option value="${col.idColaborador}" 
                       data-correo="${col.correo}" 
                       data-telefono="${col.numTelefono}" 
@@ -2846,10 +2847,10 @@ function llenarSelectsColaboradores() {
               </option>
           `).join('');
 
-      // Llenar el <select> del colaborador que recibe
-      const selectRecibiendo = document.getElementById('colaborador-recibiendo');
-      selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
-          colaboradores.colaboradores.map(col => `
+    // Llenar el <select> del colaborador que recibe
+    const selectRecibiendo = document.getElementById('colaborador-recibiendo');
+    selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+      colaboradores.colaboradores.map(col => `
               <option value="${col.idColaborador}" 
                       data-correo="${col.correo}" 
                       data-telefono="${col.numTelefono}" 
@@ -2859,9 +2860,9 @@ function llenarSelectsColaboradores() {
               </option>
           `).join('');
 
-      // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
-      selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
-      selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
+    // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
+    selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
+    selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
   });
 }
 function actualizarDatosColaborador(select) {
@@ -2879,16 +2880,16 @@ function actualizarDatosColaborador(select) {
 
   // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
   if (selectedOption.value === "0") {
-      correoInput.value = '';
-      telefonoInput.value = '';
-      departamentoInput.value = '';
-      puestoInput.value = '';
+    correoInput.value = '';
+    telefonoInput.value = '';
+    departamentoInput.value = '';
+    puestoInput.value = '';
   } else {
-      // Llenar los inputs con los datos de los atributos data-*
-      correoInput.value = selectedOption.dataset.correo || '';
-      telefonoInput.value = selectedOption.dataset.telefono || '';
-      departamentoInput.value = selectedOption.dataset.departamento || '';
-      puestoInput.value = selectedOption.dataset.puesto || '';
+    // Llenar los inputs con los datos de los atributos data-*
+    correoInput.value = selectedOption.dataset.correo || '';
+    telefonoInput.value = selectedOption.dataset.telefono || '';
+    departamentoInput.value = selectedOption.dataset.departamento || '';
+    puestoInput.value = selectedOption.dataset.puesto || '';
   }
 }
 
