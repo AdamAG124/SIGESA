@@ -474,6 +474,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 8:
         cargarSalidasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda, pagination.filtroColaboradorSacando, pagination.filtroColaboradorRecibiendo, pagination.fechaInicio, pagination.fechaFin, pagination.filtroUsuario);
         break;
+      case 9:
+        cargarCuentasTabla(pagination.pageSize, page, pagination.searchValue, pagination.idEntidadFinanciera, pagination.tipoDivisa, pagination.estado);
+        break
       default:
 
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -562,6 +565,9 @@ function filterTable(moduloFiltrar) {
       break;
     case 8:
       cargarSalidasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), document.getElementById("search-bar").value, Number(document.getElementById("colaboradorSacando").value), Number(document.getElementById("colaboradorRecibiendo").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, null);
+      break;
+    case 9:
+      cargarCuentasTabla(pageSize, 1,  document.getElementById("search-bar").value, Number(document.getElementById("entidad-financiera-filtro").value), document.getElementById("divisa-filtro").value, Number(document.getElementById("estado-filtro").value));
   }
 }
 
@@ -2420,7 +2426,7 @@ async function editarProducto(id, boton) {
       document.getElementById("nombre").value = producto.nombre;
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
-      
+
       initModuleSelector(1, true, () => {
         moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
       });
@@ -2601,83 +2607,6 @@ function getHandlersForType(tipo) {
   }
 }
 
-
-/* --------------------------------          ------------------------------------------
-   -------------------------------- FACTURAS ------------------------------------------
-   --------------------------------          ------------------------------------------ */
-function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
-  // Obtener los elementos del DOM
-  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
-  const selectEstado = document.getElementById('estadoFiltro'); // Estado
-  const inputFechaInicio = document.getElementById('fechaInicialFiltro');
-  const inputFechaFin = document.getElementById('fechaFinalFiltro');
-  const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
-  const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
-  const searchInput = document.getElementById('search-bar');
-
-  // Configurar valores iniciales en los filtros
-  selectPageSize.value = pageSize;
-
-  // Configurar el select de estado
-  if (estadoFactura === 1) selectEstado.value = 1;
-  else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
-  else selectEstado.value = 2;
-
-  if (fechaInicio) inputFechaInicio.value = fechaInicio;
-  if (fechaFin) inputFechaFin.value = fechaFin;
-
-  if (searchValue) searchInput.value = searchValue;
-  cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
-  cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
-
-  setTimeout(function () {
-    if (idProveedor) selectProveedor.value = idProveedor;
-    if (idComprobantePago) selectComprobante.value = idComprobantePago;
-
-    window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
-      const tbody = document.getElementById("facturas-table-body");
-      tbody.innerHTML = ""; // Limpiar contenido previo
-
-      // Iterar sobre las facturas y agregarlas a la tabla
-      respuesta.facturas.forEach((factura) => {
-        const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
-        const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-                  <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
-                  <td>${factura.numeroFactura || 'Sin número'}</td>
-                  <td>${fechaFactura}</td>
-                  <td>${factura.numeroComprobantePago || 'Sin comprobante'}</td>
-                  <td class="action-icons">
-                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/editar-factura.html', 2)">
-                          <span class="material-icons">edit</span>
-                          <span class="tooltiptext">Editar factura</span>
-                      </button>
-                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/detalles-factura.html', 1)">
-                          <span class="material-icons">info</span>
-                          <span class="tooltiptext">Ver detalles</span>
-                      </button>
-                      <button class="tooltip" value="${factura.idFactura}" onclick="${factura.estadoFactura === 1 ? `actualizarEstadoFactura(this.value, 0, 'Eliminando factura', '¿Está seguro que desea eliminar esta factura?', 1)` : `actualizarEstadoFactura(this.value, 1, 'Reactivando factura', '¿Está seguro que desea reactivar esta factura?', 1)`}">
-                          <span class="material-icons">
-                              ${factura.estadoFactura === 1 ? 'delete' : 'restore'}
-                          </span>
-                          <span class="tooltiptext">
-                              ${factura.estadoFactura === 1 ? 'Eliminar factura' : 'Reactivar factura'}
-                          </span>
-                      </button>
-                  </td>
-              `;
-        tbody.appendChild(row);
-      });
-
-      // Actualizar los botones de paginación
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
-    });
-  }, 100);
-}
-
-
 function cargarPtroveedores(idSelect, mensajeQuemado) {
   window.api.obtenerProveedores(null, null, 1, null, (respuesta) => {
     const proveedorSelect = document.getElementById(idSelect);
@@ -2825,10 +2754,10 @@ function cargarSalidasTabla(
 }
 function llenarSelectsColaboradores() {
   window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
-      // Llenar el <select> del colaborador que entrega
-      const selectSacando = document.getElementById('colaborador-entregando');
-      selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
-          colaboradores.colaboradores.map(col => `
+    // Llenar el <select> del colaborador que entrega
+    const selectSacando = document.getElementById('colaborador-entregando');
+    selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+      colaboradores.colaboradores.map(col => `
               <option value="${col.idColaborador}" 
                       data-correo="${col.correo}" 
                       data-telefono="${col.numTelefono}" 
@@ -2838,10 +2767,10 @@ function llenarSelectsColaboradores() {
               </option>
           `).join('');
 
-      // Llenar el <select> del colaborador que recibe
-      const selectRecibiendo = document.getElementById('colaborador-recibiendo');
-      selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
-          colaboradores.colaboradores.map(col => `
+    // Llenar el <select> del colaborador que recibe
+    const selectRecibiendo = document.getElementById('colaborador-recibiendo');
+    selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+      colaboradores.colaboradores.map(col => `
               <option value="${col.idColaborador}" 
                       data-correo="${col.correo}" 
                       data-telefono="${col.numTelefono}" 
@@ -2851,9 +2780,9 @@ function llenarSelectsColaboradores() {
               </option>
           `).join('');
 
-      // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
-      selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
-      selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
+    // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
+    selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
+    selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
   });
 }
 function actualizarDatosColaborador(select) {
@@ -2871,16 +2800,16 @@ function actualizarDatosColaborador(select) {
 
   // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
   if (selectedOption.value === "0") {
-      correoInput.value = '';
-      telefonoInput.value = '';
-      departamentoInput.value = '';
-      puestoInput.value = '';
+    correoInput.value = '';
+    telefonoInput.value = '';
+    departamentoInput.value = '';
+    puestoInput.value = '';
   } else {
-      // Llenar los inputs con los datos de los atributos data-*
-      correoInput.value = selectedOption.dataset.correo || '';
-      telefonoInput.value = selectedOption.dataset.telefono || '';
-      departamentoInput.value = selectedOption.dataset.departamento || '';
-      puestoInput.value = selectedOption.dataset.puesto || '';
+    // Llenar los inputs con los datos de los atributos data-*
+    correoInput.value = selectedOption.dataset.correo || '';
+    telefonoInput.value = selectedOption.dataset.telefono || '';
+    departamentoInput.value = selectedOption.dataset.departamento || '';
+    puestoInput.value = selectedOption.dataset.puesto || '';
   }
 }
 
