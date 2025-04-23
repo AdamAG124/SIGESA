@@ -145,7 +145,8 @@ header {
 .add-supplier-btn,
 .add-category-btn,
 .add-proveedor-btn,
-.add-invoice-btn {
+.add-invoice-btn,
+.add-cuenta-bancaria-btn {
     background-color: var(--secondary-color);
     color: var(--background-color);
     border: none;
@@ -163,7 +164,8 @@ header {
 .add-user-btn:hover,
 .add-category-btn:hover,
 .add-proveedor-btn:hover,
-.add-invoice-btn:hover {
+.add-invoice-btn:hover,
+.add-cuenta-bancaria-btn:hover {
     background-color: #7a1bd2;
 }
 

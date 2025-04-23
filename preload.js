@@ -279,8 +279,21 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-unidades-medicion', (event, respuesta) => callback(respuesta));
     },
 
+<<<<<<< HEAD
     crearUnidadMedicion: (newName) => ipcRenderer.send('crear-unidad-medicion', newName),
     onRespuestaCrearUnidadMedicion: (callback) => ipcRenderer.on('respuesta-crear-unidad-medicion', (event, respuesta) => callback(respuesta)),
+=======
+    /* --------------------------------                   ------------------------------------------
+       --------------------------------  Cuenta Bancaria  ------------------------------------------
+       --------------------------------                   ------------------------------------------ */
+
+    obtenerCuentasBancarias: (pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado, callback) => {
+        // Enviar solicitud al proceso principal
+        ipcRenderer.send('obtener-cuentas-bancarias', { pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado });
+        // Escuchar la respuesta del proceso principal
+        ipcRenderer.once('cuentas-bancarias-obtenidas', (event, respuesta) => callback(respuesta));
+    }
+>>>>>>> cfab8d6e2324fab3044193b13b57c667c374b8ff
 
 
 });
