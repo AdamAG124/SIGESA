@@ -1589,8 +1589,6 @@ ipcMain.on('crear-unidad-medicion', async (event, newName) => {
         console.error('Error al crear la unidad de medición:', error);
         event.reply('respuesta-crear-unidad-medicion', { success: false, message: error.message });
     }
-<<<<<<< HEAD
-=======
 }
 );
 
@@ -1624,5 +1622,4 @@ ipcMain.on('obtener-cuentas-bancarias', async (event, args) => {
             message: 'Error al obtener las cuentas bancarias: ' + error.message
         });
     }
->>>>>>> cfab8d6e2324fab3044193b13b57c667c374b8ff
 });

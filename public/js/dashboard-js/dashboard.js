@@ -2427,11 +2427,7 @@ async function editarProducto(id, boton) {
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
 
-<<<<<<< HEAD
       initModuleSelector(1, true, creatable = false, editable = false, () => {
-=======
-      initModuleSelector(1, true, () => {
->>>>>>> cfab8d6e2324fab3044193b13b57c667c374b8ff
         moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
       });
 
