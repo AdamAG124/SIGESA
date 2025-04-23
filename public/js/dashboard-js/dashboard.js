@@ -474,6 +474,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 8:
         cargarSalidasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda, pagination.filtroColaboradorSacando, pagination.filtroColaboradorRecibiendo, pagination.fechaInicio, pagination.fechaFin, pagination.filtroUsuario);
         break;
+        case 9: // Nuevo caso para Puestos de Trabajo
+        cargarPuestosTrabajo(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
+        break;
       default:
 
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -562,7 +565,12 @@ function filterTable(moduloFiltrar) {
       break;
     case 8:
       cargarSalidasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), document.getElementById("search-bar").value, Number(document.getElementById("colaboradorSacando").value), Number(document.getElementById("colaboradorRecibiendo").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, null);
-  }
+      break;
+    case 9: // Nuevo caso para Puestos de Trabajo
+      cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      break;
+    }
+  
 }
 
 function editarUsuario(id, boton) {
@@ -1734,48 +1742,63 @@ function enviarEdicionCategoria() {
 /* --------------------------------                   ------------------------------------------
    -------------------------------- PUESTO DE TRABAJO ------------------------------------------
    --------------------------------                   ------------------------------------------ */
-function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
-  window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
-    const tbody = document.getElementById("puestos-body");
-    tbody.innerHTML = ""; // Limpiar contenido previo
-
-    
-    if (!respuesta.puestos || respuesta.puestos.length === 0) {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td colspan="4" style="text-align: center; color: gray; font-style: italic;">
-          No hay puestos de trabajo registrados.
-        </td>
-      `;
-      tbody.appendChild(row);
-      return;
-    }
-    respuesta.puestos.forEach((puesto) => {
-      const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
-              <td>${puesto.nombrePuestoTrabajo}</td>
-              <td>${puesto.descripcionPuestoTrabajo}</td>
-              <td>${estadoPuesto}</td>
-              <td class="action-icons">
-                  <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="editarPuesto(this.value, this)">
-                      <span class="material-icons">edit</span>
-                      <span class="tooltiptext">Editar puesto</span>
-                  </button>
-                  <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?', 5)`}">
-                      <span class="material-icons">${puesto.estado === 1 ? 'delete' : 'restore'}</span>
-                      <span class="tooltiptext">${puesto.estado === 1 ? 'Eliminar puesto' : 'Reactivar puesto'}</span>
-                  </button>
-              </td>
-          `;
-      tbody.appendChild(row);
+   function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
+    const selectEstado = document.getElementById('estado-filtro');
+    const selectPageSize = document.getElementById('selectPageSize');
+  
+    // Configurar los valores de los filtros en los select
+    selectEstado.value = estado;
+    selectPageSize.value = pageSize;
+  
+    // Llamar a la API para obtener los puestos de trabajo
+    window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+      const tbody = document.getElementById("puestos-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
+  
+      // Mostrar mensaje si no hay puestos
+      if (!respuesta.puestos || respuesta.puestos.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td colspan="4" style="text-align: center; color: gray; font-style: italic;">
+            No hay puestos de trabajo registrados.
+          </td>
+        `;
+        tbody.appendChild(row);
+        actualizarPaginacion(respuesta.paginacion, ".pagination", 9);
+        return;
+      }
+  
+      // Llenar la tabla con los datos de los puestos
+      respuesta.puestos.forEach((puesto) => {
+        const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
+  
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${puesto.nombrePuestoTrabajo}</td>
+          <td>${puesto.descripcionPuestoTrabajo}</td>
+          <td>${estadoPuesto}</td>
+          <td class="action-icons">
+            <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="editarPuesto(this.value, this)">
+              <span class="material-icons">edit</span>
+              <span class="tooltiptext">Editar puesto</span>
+            </button>
+            <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?', 5)`}">
+              <span class="material-icons">${puesto.estado === 1 ? 'delete' : 'restore'}</span>
+              <span class="tooltiptext">${puesto.estado === 1 ? 'Eliminar puesto' : 'Reactivar puesto'}</span>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+  
+      // Actualizar los controles de paginación
+      if (respuesta.paginacion) {
+        actualizarPaginacion(respuesta.paginacion, ".pagination", 9);
+      } else {
+        console.warn('No se proporcionaron datos de paginación.');
+      }
     });
-
-    actualizarPaginacion(respuesta.paginacion, ".pagination", 5);
-  });
-}
-
+  }
 function agregarPuesto() {
   // Lógica para agregar un nuevo puesto
 }
