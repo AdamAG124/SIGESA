@@ -83,7 +83,7 @@ class ProductoDB {
 
             // Ejecutar consulta
             const [rows] = await connection.query(query, params);
-
+            
             // Mapear resultados a objetos Producto
             const productos = rows.map(productoDB => {
                 const producto = new Producto();
@@ -155,6 +155,7 @@ class ProductoDB {
             const unidadMedicion = producto.getUnidadMedicion()?.getIdUnidadMedicion();
             const categoria = producto.getCategoria()?.getIdCategoria();
             const estado = producto.getEstado() ?? 1; // 1 (Activo)
+            console.log('Estado:', estado);
 
             if (!categoria) {
                 return { success: false, message: 'La categoría del producto es necesaria.' };
@@ -200,7 +201,7 @@ class ProductoDB {
         let connection;
 
         try {
-            connection = await this.#db.conectar(); 1
+            connection = await this.#db.conectar();
 
             // Construimos la consulta SQL
             const query = `UPDATE ${this.#table} SET estado = ? WHERE ID_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)
