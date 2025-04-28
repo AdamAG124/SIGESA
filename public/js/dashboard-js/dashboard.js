@@ -572,9 +572,14 @@ function filterTable(moduloFiltrar) {
     case 9:
       cargarCuentasTabla(pageSize, 1,  document.getElementById("search-bar").value, Number(document.getElementById("entidad-financiera-filtro").value), document.getElementById("divisa-filtro").value, Number(document.getElementById("estado-filtro").value));
       break;
+      case 10: 
+      cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      break;
+    }
+      
     }
  
-}
+
 
 function editarUsuario(id, boton) {
   const colaboradorSelect = document.getElementById("colaboradorName");
