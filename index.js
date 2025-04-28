@@ -1597,10 +1597,10 @@ ipcMain.on('editar-unidad-medicion', async (event, idUnidadMedicion, nuevoNombre
     try {
         const unidadMedicion = new UnidadMedicion();
         unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
-        unidadMedicion.setNombre(nuevoNombre);
+        unidadMedicion.setNombre(nuevoNombre);  
 
         const resultado = await unidadMedicionController.editarUnidadMedicion(unidadMedicion);
-
+        console.log('Resultado de la edición desde index:', resultado);
         event.reply('respuesta-editar-unidad-medicion', resultado);
     } catch (error) {
         console.error('Error al editar la unidad de medición:', error);

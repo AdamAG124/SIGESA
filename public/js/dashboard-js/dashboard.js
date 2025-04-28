@@ -2588,20 +2588,25 @@ function getHandlersForType(tipo) {
           window.api.crearUnidadMedicion(newName);
         },
         update: (moduleId, id, newName, callback) => {
-          console.log("Actualizando unidad de medición...", id, newName); // Agregar log para verificar que la función es llamada
-          window.api.actualizarUnidadMedicion(id, newName, (response) => {
-            if (response.success) {
-              console.log("Respuesta exitosa de actualizarUnidadMedicion:", response); // Verifica que la respuesta sea la correcta
+          console.log("Actualizando unidad de medición...", id, newName);
+          
+          // Registrar el listener UNA SOLA VEZ o cada vez con precaución
+          window.api.onRespuestaActualizarUnidadMedicion((response) => {
+            if (response.success) { 
+              console.log("Respuesta exitosa de actualizarUnidadMedicion:", response);
               window.api.obtenerUnidadesMedicion((unidades) => {
-                console.log("Unidades de medición actualizadas, tras actualizar:", unidades); // Este log debería mostrarse
-                callback(unidades); // ← pasa la lista directamente
+                console.log("Unidades de medición actualizadas, tras actualizar:", unidades);
+                callback(unidades);
               });
             } else {
-              console.error("Error al actualizar una unidad de medición", response.message); // En caso de error
-              callback(null); // ← indica error
+              console.error("Error al actualizar una unidad de medición", response.message);
+              callback(null);
             }
           });
-        },        
+        
+          // Aquí debe estar la llamada real al proceso principal
+          window.api.actualizarUnidadMedicion(id, newName);
+        },             
 
         delete: (moduleId, id, callback) => {
           window.api.eliminarUnidadMedicion(id, (response) => {

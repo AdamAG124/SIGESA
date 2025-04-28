@@ -26,7 +26,7 @@ class UnidadMedicionDB {
                 WHERE
                     U.ESTADO = 1
                 ORDER BY
-                    U.ID_UNIDAD_MEDICION DESC
+                    U.ID_UNIDAD_MEDICION ASC
             `;
 
             // Ejecutar la consulta SQL para obtener las unidades de medición
