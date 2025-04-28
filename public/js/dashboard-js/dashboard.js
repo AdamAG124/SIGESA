@@ -1805,7 +1805,7 @@ function enviarEdicionCategoria() {
   
       // Actualizar los controles de paginación
       if (respuesta.paginacion) {
-        actualizarPaginacion(respuesta.paginacion, ".pagination", 9);
+        actualizarPaginacion(respuesta.paginacion, ".pagination", 10);
       } else {
         console.warn('No se proporcionaron datos de paginación.');
       }
