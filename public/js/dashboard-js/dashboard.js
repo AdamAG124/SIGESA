@@ -474,7 +474,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 8:
         cargarSalidasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda, pagination.filtroColaboradorSacando, pagination.filtroColaboradorRecibiendo, pagination.fechaInicio, pagination.fechaFin, pagination.filtroUsuario);
         break;
-        case 9: // Nuevo caso para Puestos de Trabajo
+      case 9: // Nuevo caso para Puestos de Trabajo
         cargarPuestosTrabajo(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
       default:
@@ -566,7 +566,7 @@ function filterTable(moduloFiltrar) {
     case 8:
       cargarSalidasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), document.getElementById("search-bar").value, Number(document.getElementById("colaboradorSacando").value), Number(document.getElementById("colaboradorRecibiendo").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, null);
       break;
-    case 9: // Nuevo caso para Puestos de Trabajo
+    case 9: 
       cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
     }
@@ -1510,7 +1510,7 @@ function cargarDepartamentos(idSelect, mensajeQuemado) {
     });
   });
 }
-
+/*
 function cargarPuestos(idSelect, mensajeQuemado) {
   window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
@@ -1528,7 +1528,7 @@ function cargarPuestos(idSelect, mensajeQuemado) {
       idSelect.appendChild(option);
     });
   });
-}
+}*/
 
 function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
@@ -1743,17 +1743,22 @@ function enviarEdicionCategoria() {
    -------------------------------- PUESTO DE TRABAJO ------------------------------------------
    --------------------------------                   ------------------------------------------ */
    function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
-    const selectEstado = document.getElementById('estado-filtro');
-    const selectPageSize = document.getElementById('selectPageSize');
+    // Obtener los elementos del DOM
+    const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+    const selectEstado = document.getElementById('estado-filtro'); // Estado
+    const searchInput = document.getElementById('search-bar'); // Búsqueda
   
-    // Configurar los valores de los filtros en los select
-    selectEstado.value = estado;
+    // Configurar valores iniciales en los filtros
     selectPageSize.value = pageSize;
+    selectEstado.value = estado;
+    if (valorBusqueda) searchInput.value = valorBusqueda;
   
     // Llamar a la API para obtener los puestos de trabajo
     window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
       const tbody = document.getElementById("puestos-body");
+      const paginationDiv = document.querySelector(".pagination");
       tbody.innerHTML = ""; // Limpiar contenido previo
+      paginationDiv.innerHTML = ""; // Limpiar controles de paginación
   
       // Mostrar mensaje si no hay puestos
       if (!respuesta.puestos || respuesta.puestos.length === 0) {
@@ -1764,7 +1769,6 @@ function enviarEdicionCategoria() {
           </td>
         `;
         tbody.appendChild(row);
-        actualizarPaginacion(respuesta.paginacion, ".pagination", 9);
         return;
       }
   
