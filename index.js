@@ -15,6 +15,7 @@ const FacturaController = require('./controllers/FacturaController');
 const FacturaProductoController = require('./controllers/FacturaProductoController');
 const ComprobantePagoController = require('./controllers/ComprobantePagoController');
 const UnidadMedicionController = require('./controllers/UnidadMedicionController');
+const CuentaBancariaController = require('./controllers/CuentaBancariaController');
 
 const Usuario = require('./domain/Usuario');
 const Producto = require('./domain/Producto');
@@ -32,6 +33,7 @@ const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
 const fs = require('fs');
+const CuentaBancaria = require('./domain/CuentaBancaria');
 
 let mainWindow;  // Declarar mainWindow a nivel global
 
@@ -1558,3 +1560,35 @@ ipcMain.on('crear-unidad-medicion', async (event, unidadMedicionData) => {
     }
 }
 );
+
+/* Cuentas Bancarias */
+
+ipcMain.on('obtener-cuentas-bancarias', async (event, args) => {
+    const cuentaBancariaController = new CuentaBancariaController();
+    try {
+        const { pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado } = args;
+        const result = await cuentaBancariaController.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado);
+
+        // Enviar la respuesta al proceso de renderizado
+        event.reply('cuentas-bancarias-obtenidas', {
+            success: true,
+            data: result.cuentasBancarias,
+            pagination: result.paginacion,
+            message: 'Cuentas bancarias obtenidas correctamente'
+        });
+    } catch (error) {
+        // Enviar error al proceso de renderizado
+        event.reply('cuentas-bancarias-obtenidas', {
+            success: false,
+            data: [],
+            pagination: {
+                pageSize: 0,
+                totalPages: 0,
+                totalRecords: 0,
+                firstPage: 1,
+                lastPage: 1
+            },
+            message: 'Error al obtener las cuentas bancarias: ' + error.message
+        });
+    }
+});
