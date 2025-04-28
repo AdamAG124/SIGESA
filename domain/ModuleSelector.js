@@ -71,15 +71,32 @@ class ModuleSelector {
           input.select();
         });
 
-        input.addEventListener('keydown', async (e) => {
+        // Guardar el objeto mod en el input para uso posterior
+        input._mod = mod;
+
+        input.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             const newValue = input.value.trim();
-            if (newValue && newValue !== mod.nombre) {
-              await this.handlers.update(this.moduleId, mod.id, newValue);
-              await this.fetchModules();
+            const mod = input._mod; // ← Recuperamos mod correctamente
+            const errorMsg = document.getElementById('module-error');
+
+            if (newValue && mod && newValue !== mod.nombre) {
+              this.handlers.update(this.moduleId, mod.id, newValue, (updatedModules) => {
+                if (updatedModules && Array.isArray(updatedModules)) {
+                  this.modules = updatedModules.map(item => this.normalizeItem(item));
+                  this.renderModules();
+                  this.showAlert('success', 'Operación exitosa', `"${newValue}" ha sido actualizado.`);
+                  input.readOnly = true;
+                  if (errorMsg) errorMsg.style.display = 'none';
+                } else {
+                  this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de modificar el módulo.');
+                  console.error("Error: lista actualizada no recibida.");
+                }
+              });
             }
           } else if (e.key === 'Escape') {
-            input.value = mod.nombre;
+            const mod = input._mod;
+            input.value = mod?.nombre || '';
             input.readOnly = true;
           }
         });

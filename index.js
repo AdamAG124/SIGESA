@@ -1589,8 +1589,24 @@ ipcMain.on('crear-unidad-medicion', async (event, newName) => {
         console.error('Error al crear la unidad de medición:', error);
         event.reply('respuesta-crear-unidad-medicion', { success: false, message: error.message });
     }
-}
-);
+});
+
+ipcMain.on('editar-unidad-medicion', async (event, idUnidadMedicion, nuevoNombre) => {
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const unidadMedicion = new UnidadMedicion();
+        unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
+        unidadMedicion.setNombre(nuevoNombre);
+
+        const resultado = await unidadMedicionController.editarUnidadMedicion(unidadMedicion);
+
+        event.reply('respuesta-editar-unidad-medicion', resultado);
+    } catch (error) {
+        console.error('Error al editar la unidad de medición:', error);
+        event.reply('respuesta-editar-unidad-medicion', { success: false, message: error.message });
+    }
+});
 
 /* Cuentas Bancarias */
 
