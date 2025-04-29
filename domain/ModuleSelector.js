@@ -169,15 +169,23 @@ class ModuleSelector {
     document.removeEventListener('keydown', this._handleEscape);
   }
 
-  async saveNewModule() {
+  saveNewModule() {
     const newName = this.inputNew.value.trim();
     const errorMsg = document.getElementById('module-error');
 
     if (newName && !this.modules.some(m => m.nombre === newName)) {
-      await this.handlers.create(this.moduleId, newName);
-      await this.fetchModules();
-      this.popup.style.display = 'none';
-      errorMsg.style.display = 'none';
+      this.handlers.create(this.moduleId, newName, (updatedModules) => {
+        if (updatedModules && Array.isArray(updatedModules)) {
+          this.modules = updatedModules.map(item => this.normalizeItem(item));
+          this.renderModules(); // Recargar lista
+          this.showAlert('success', 'Operación exitosa', `"${newName}" ha sido creado.`);
+          this.popup.style.display = 'none';
+          errorMsg.style.display = 'none';
+        } else {
+          this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de crear el módulo.');
+          console.error("Error: lista actualizada no recibida.");
+        }
+      });
     } else {
       errorMsg.textContent = "Ingrese un nombre válido y único.";
       errorMsg.style.display = 'block';
@@ -201,12 +209,11 @@ class ModuleSelector {
     } else {
       console.warn("Set selected by ID: no se encontró un módulo con id", id);
     }
-  }  
+  }
 
   reset() {
     this.selected = null;
     this.selectedModule.textContent = "Seleccionar unidad"; // ← o el texto por defecto que quieras
-    this.fetchModules(); // Vuelve a cargar la lista en caso de que haya cambios recientes
   }
   // Agregar el módulo para que se pueda normalizar
   normalizeItem(item) {
@@ -234,5 +241,22 @@ class ModuleSelector {
       ${mod.nombre}
       <span class="dropdown-icon"></span>
     `;
+  }
+
+  showAlert(type, title, message) {
+    const alertContainer = document.createElement("div");
+    alertContainer.className = `module-selector-alert module-selector-alert-${type}`;
+    alertContainer.innerHTML = `
+      <div class="module-selector-alert-header">${title}</div>
+      <div class="module-selector-alert-body">${message}</div>
+      <button class="module-selector-alert-close" onclick="this.parentElement.remove()">Cerrar</button>
+    `;
+
+    document.body.appendChild(alertContainer); // Agregar al body como fallback
+
+    // Eliminar automáticamente la alerta después de 5 segundos
+    setTimeout(() => {
+      alertContainer.remove();
+    }, 5000);
   }
 }

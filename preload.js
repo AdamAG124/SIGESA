@@ -279,6 +279,8 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-unidades-medicion', (event, respuesta) => callback(respuesta));
     },
 
+    crearUnidadMedicion: (newName) => ipcRenderer.send('crear-unidad-medicion', newName),
+    onRespuestaCrearUnidadMedicion: (callback) => ipcRenderer.on('respuesta-crear-unidad-medicion', (event, respuesta) => callback(respuesta)),
     /* --------------------------------                   ------------------------------------------
        --------------------------------  Cuenta Bancaria  ------------------------------------------
        --------------------------------                   ------------------------------------------ */

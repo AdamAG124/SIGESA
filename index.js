@@ -407,83 +407,83 @@ ipcMain.on('editar-colaborador', async (event, colaboradorData) => {
     }
 });
 
-ipcMain.on('crear-producto', async (event, productoData) => {
-    try {
-        // Crear un objetoproducto y setear los datos
-        constproducto = newproducto();
-        producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
-        producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
-        producto.setNombre(productoData.nombre);
-        producto.setPrimerApellido(productoData.primerApellido);
-        producto.setSegundoApellido(productoData.segundoApellido);
-        producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
-        producto.setNumTelefono(productoData.numTelefono);
-        producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
-        producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
-        producto.setEstado(1); // Debe ser booleano o compatible
-        producto.setCorreo(productoData.correo);
-        producto.setCedula(productoData.cedula);
+// ipcMain.on('crear-producto', async (event, productoData) => {
+//     try {
+//         // Crear un objetoproducto y setear los datos
+//         constproducto = newproducto();
+//         producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
+//         producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
+//         producto.setNombre(productoData.nombre);
+//         producto.setPrimerApellido(productoData.primerApellido);
+//         producto.setSegundoApellido(productoData.segundoApellido);
+//         producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
+//         producto.setNumTelefono(productoData.numTelefono);
+//         producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
+//         producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
+//         producto.setEstado(1); // Debe ser booleano o compatible
+//         producto.setCorreo(productoData.correo);
+//         producto.setCedula(productoData.cedula);
 
-        // Llamar al método insertarproducto en elproductoController
-        const productoController = newproductoController();
-        const resultado = awaitproductoController.insertarproducto(producto);
+//         // Llamar al método insertarproducto en elproductoController
+//         const productoController = newproductoController();
+//         const resultado = awaitproductoController.insertarproducto(producto);
 
-        // Enviar respuesta al frontend
-        event.reply('respuesta-crear-producto', resultado); // Pasar el resultado que viene desdeproductoController
-    } catch (error) {
-        console.error('Error al crearproducto:', error);
-        event.reply('respuesta-crear-producto', { success: false, message: error.message });
-    }
-});
+//         // Enviar respuesta al frontend
+//         event.reply('respuesta-crear-producto', resultado); // Pasar el resultado que viene desdeproductoController
+//     } catch (error) {
+//         console.error('Error al crearproducto:', error);
+//         event.reply('respuesta-crear-producto', { success: false, message: error.message });
+//     }
+// });
 
-ipcMain.on('eliminar-producto', async (event, productoId, estado) => {
-    try {
-        // Crear un objeto Usuario y setear los datos
-        constproducto = newproducto();
-        producto.setIdproducto(productoId);
-        producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
+// ipcMain.on('eliminar-producto', async (event, productoId, estado) => {
+//     try {
+//         // Crear un objeto Usuario y setear los datos
+//         constproducto = newproducto();
+//         producto.setIdproducto(productoId);
+//         producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
 
-        // Llamar al método de actualizar en el UsuarioController
-        constproductoController = newproductoController();
-        const resultado = awaitproductoController.eliminarproducto(producto);
+//         // Llamar al método de actualizar en el UsuarioController
+//         constproductoController = newproductoController();
+//         const resultado = awaitproductoController.eliminarproducto(producto);
 
-        // Enviar respuesta al frontend
-        event.reply('respuesta-eliminar-producto', resultado); // Pasar el resultado que viene desde UsuarioController
-    } catch (error) {
-        console.error('Error al eliminar usuario:', error);
-        event.reply('respuesta-eliminar-usuario', { success: false, message: error.message });
-    }
-});
+//         // Enviar respuesta al frontend
+//         event.reply('respuesta-eliminar-producto', resultado); // Pasar el resultado que viene desde UsuarioController
+//     } catch (error) {
+//         console.error('Error al eliminar usuario:', error);
+//         event.reply('respuesta-eliminar-usuario', { success: false, message: error.message });
+//     }
+// });
 
-ipcMain.on('editar-producto', async (event, productoData) => {
-    try {
-        // Crear un objetoproducto y setear los datos
-        constproducto = newproducto();
-        producto.setIdproducto(productoData.idproducto);
-        producto.setNombre(productoData.nombre);
-        producto.setPrimerApellido(productoData.primerApellido);
-        producto.setSegundoApellido(productoData.segundoApellido);
-        producto.setFechaNacimiento(productoData.fechaNacimiento);
-        producto.setNumTelefono(productoData.numTelefono);
-        producto.setFechaIngreso(productoData.fechaIngreso);
-        producto.setFechaSalida(productoData.fechaSalida);
-        producto.setEstado(1);
-        producto.setCorreo(productoData.correo);
-        producto.setCedula(productoData.cedula);
-        producto.setIdDepartamento(productoData.idDepartamento);
-        producto.setIdPuesto(productoData.idPuesto);
+// ipcMain.on('editar-producto', async (event, productoData) => {
+//     try {
+//         // Crear un objetoproducto y setear los datos
+//         constproducto = newproducto();
+//         producto.setIdproducto(productoData.idproducto);
+//         producto.setNombre(productoData.nombre);
+//         producto.setPrimerApellido(productoData.primerApellido);
+//         producto.setSegundoApellido(productoData.segundoApellido);
+//         producto.setFechaNacimiento(productoData.fechaNacimiento);
+//         producto.setNumTelefono(productoData.numTelefono);
+//         producto.setFechaIngreso(productoData.fechaIngreso);
+//         producto.setFechaSalida(productoData.fechaSalida);
+//         producto.setEstado(1);
+//         producto.setCorreo(productoData.correo);
+//         producto.setCedula(productoData.cedula);
+//         producto.setIdDepartamento(productoData.idDepartamento);
+//         producto.setIdPuesto(productoData.idPuesto);
 
-        // Llamar al método de editarproducto en elproductoController
-        constproductoController = newproductoController();
-        const resultado = awaitproductoController.editarproducto(producto);
+//         // Llamar al método de editarproducto en elproductoController
+//         constproductoController = newproductoController();
+//         const resultado = awaitproductoController.editarproducto(producto);
 
-        // Enviar respuesta al frontend
-        event.reply('respuesta-actualizar-producto', resultado); // Pasar el resultado que viene desdeproductoController
-    } catch (error) {
-        console.error('Error al editarproducto:', error);
-        event.reply('respuesta-editar-producto', { success: false, message: error.message });
-    }
-});
+//         // Enviar respuesta al frontend
+//         event.reply('respuesta-actualizar-producto', resultado); // Pasar el resultado que viene desdeproductoController
+//     } catch (error) {
+//         console.error('Error al editarproducto:', error);
+//         event.reply('respuesta-editar-producto', { success: false, message: error.message });
+//     }
+// });
 /* --------------------------------              ------------------------------------------
    -------------------------------- DEPARTAMENTO ------------------------------------------
    --------------------------------              ------------------------------------------ */
@@ -842,7 +842,6 @@ ipcMain.on('editar-entidad-financiera', async (event, entidadFinancieraData) => 
         entidadFinanciera.setIdEntidadFinanciera(entidadFinancieraData.idEntidadFinanciera);
         entidadFinanciera.setNombre(entidadFinancieraData.nombre);
         entidadFinanciera.setTelefono(entidadFinancieraData.telefono);
-        console.log("Correo desde index.js: " + entidadFinancieraData.correo);
         entidadFinanciera.setCorreo(entidadFinancieraData.correo);
         entidadFinanciera.setTipo(entidadFinancieraData.tipo);
         entidadFinanciera.setFechaInicioFinanciamiento(entidadFinancieraData.fechaInicioFinanciamiento);
@@ -922,12 +921,14 @@ ipcMain.on('crear-producto', async (event, productoData) => {
     try {
         const producto = new Producto();
         const categoria = new CategoriaProducto();
+        const unidadMedicion = new UnidadMedicion();
         categoria.setIdCategoria(productoData.categoria);
+        unidadMedicion.setIdUnidadMedicion(productoData.unidadMedicion);
 
         producto.setNombre(productoData.nombre);
         producto.setDescripcion(productoData.descripcion);
         producto.setCantidad(productoData.cantidad);
-        producto.setUnidadMedicion(productoData.unidadMedicion);
+        producto.setUnidadMedicion(unidadMedicion);
         producto.setCategoria(categoria);
         producto.setEstado(1); // estado activo por defecto
 
@@ -982,13 +983,16 @@ ipcMain.on('actualizar-producto', async (event, productoData) => {
     try {
         const producto = new Producto();
         const categoria = new CategoriaProducto();
+        const unidadMedicion = new UnidadMedicion();
+
         categoria.setIdCategoria(productoData.categoria);
+        unidadMedicion.setIdUnidadMedicion(productoData.unidadMedicion);
 
         producto.setIdProducto(productoData.idProducto);
         producto.setNombre(productoData.nombre);
         producto.setDescripcion(productoData.descripcion);
         producto.setCantidad(productoData.cantidad);
-        producto.setUnidadMedicion(productoData.unidadMedicion);
+        producto.setUnidadMedicion(unidadMedicion);
         producto.setCategoria(categoria);
         producto.setEstado(1); // estado activo por defecto
 
@@ -1542,16 +1546,16 @@ ipcMain.on('listar-unidades-medicion', async (event, { }) => {
     }
 });
 
-ipcMain.on('crear-unidad-medicion', async (event, unidadMedicionData) => {
+ipcMain.on('crear-unidad-medicion', async (event, newName) => {
 
     const unidadMedicionController = new UnidadMedicionController();
 
     try {
         const unidadMedicion = new UnidadMedicion();
-        unidadMedicion.setNombre(unidadMedicionData.nombre);
-        unidadMedicion.setEstado(unidadMedicionData.estado);
+        unidadMedicion.setNombre(newName);
+        unidadMedicion.setEstado(1); // estado activo por defecto
 
-        const resultado = await unidadMedicionController.insertarUnidadMedicion(unidadMedicion);
+        const resultado = await unidadMedicionController.crearUnidadMedicion(unidadMedicion);
 
         event.reply('respuesta-crear-unidad-medicion', resultado);
     } catch (error) {
