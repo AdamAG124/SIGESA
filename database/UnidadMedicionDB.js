@@ -14,7 +14,7 @@ class UnidadMedicionDB {
 
         try {
             connection = await db.conectar();
-        
+
             // Construir la consulta SQL principal
             let query = `
                 SELECT 
@@ -26,7 +26,7 @@ class UnidadMedicionDB {
                 WHERE
                     U.ESTADO = 1
                 ORDER BY
-                    U.ID_UNIDAD_MEDICION DESC
+                    U.ID_UNIDAD_MEDICION ASC
             `;
 
             // Ejecutar la consulta SQL para obtener las unidades de medición
@@ -54,6 +54,123 @@ class UnidadMedicionDB {
         }
     }
 
+    async crearUnidadMedicion(unidadMedicion) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Verificar si el nombre ya existe
+            const checkQuery = `
+                SELECT COUNT(*) AS count
+                FROM ${this.#table}
+                WHERE DSC_NOMBRE = ?
+            `;
+            const [checkResult] = await connection.query(checkQuery, [unidadMedicion.getNombre()]);
+
+            if (checkResult[0].count > 0) {
+                return {
+                    success: false,
+                    message: 'El nombre de la unidad de medición ya existe',
+                };
+            }
+
+            // Insertar la nueva unidad de medición
+            const query = `
+                INSERT INTO ${this.#table} (DSC_NOMBRE, ESTADO)
+                VALUES (?, ?)
+            `;
+            const values = [
+                unidadMedicion.getNombre(),
+                unidadMedicion.getEstado()
+            ];
+
+            const [result] = await connection.query(query, values);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Unidad de medición creada exitosamente',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'Error al crear la unidad de medición',
+                };
+            }
+        } catch (error) {
+            console.error('Error al crear unidad de medición:', error.message);
+            return {
+                success: false,
+                message: 'Error interno al crear la unidad de medición',
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+
+    }
+
+    async editarUnidadMedicion(unidadMedicion) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Verificar si el nombre ya existe
+            const checkQuery = `
+                SELECT COUNT(*) AS count
+                FROM ${this.#table}
+                WHERE DSC_NOMBRE = ? AND ID_UNIDAD_MEDICION != ?
+            `;
+            const [checkResult] = await connection.query(checkQuery, [unidadMedicion.getNombre(), unidadMedicion.getIdUnidadMedicion()]);
+
+            if (checkResult[0].count > 0) {
+                return {
+                    success: false,
+                    message: 'El nombre de la unidad de medición ya existe',
+                };
+            }
+
+            // Actualizar la unidad de medición
+            const query = `
+                UPDATE ${this.#table}
+                SET DSC_NOMBRE = ?
+                WHERE ID_UNIDAD_MEDICION = ?
+            `;
+            const values = [
+                unidadMedicion.getNombre(),
+                unidadMedicion.getIdUnidadMedicion()
+            ];
+
+            const [result] = await connection.query(query, values);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Unidad de medición editada exitosamente',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'Error al editar la unidad de medición',
+                };
+            }
+        } catch (error) {
+            console.error('Error al editar unidad de medición:', error.message);
+            return {
+                success: false,
+                message: 'Error interno al editar la unidad de medición',
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
 }
 
 module.exports = UnidadMedicionDB;
