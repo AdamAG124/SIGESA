@@ -2304,20 +2304,17 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 
   setTimeout(() => {
     selectCategoria.value = idCategoriaFiltro;
-    // Cargar los productos
     window.api.obtenerProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda, (respuesta) => {
       const tbody = document.getElementById("productos-body");
-      tbody.innerHTML = ""; // Limpiar contenido previo
+      tbody.innerHTML = ""; 
 
-      // Iterar sobre los colaboradores y generar las filas de la tabla
       respuesta.productos.forEach((producto) => {
         const estado = producto.estadoProducto === 1 ? "Activo" : "Inactivo";
 
         const row = document.createElement("tr");
 
-        // Verificar si la cantidad es menor o igual a 10 para aplicar el color rojo
         if (producto.cantidad <= 10) {
-          row.classList.add("low-stock"); // Agregar la clase 'low-stock' a la fila
+          row.classList.add("low-stock"); 
         }
 
         row.innerHTML = `
@@ -2631,11 +2628,26 @@ function getHandlersForType(tipo) {
           window.api.crearUnidadMedicion(newName);
         },
         update: (moduleId, id, newName, callback) => {
-          window.api.actualizarUnidadMedicion(id, newName, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al actualizar unidad de medición", response.message);
+          console.log("Actualizando unidad de medición...", id, newName);
+          
+          // Registrar el listener UNA SOLA VEZ o cada vez con precaución
+          window.api.onRespuestaActualizarUnidadMedicion((response) => {
+            if (response.success) { 
+              console.log("Respuesta exitosa de actualizarUnidadMedicion:", response);
+              window.api.obtenerUnidadesMedicion((unidades) => {
+                console.log("Unidades de medición actualizadas, tras actualizar:", unidades);
+                callback(unidades);
+              });
+            } else {
+              console.error("Error al actualizar una unidad de medición", response.message);
+              callback(null);
+            }
           });
-        },
+        
+          // Aquí debe estar la llamada real al proceso principal
+          window.api.actualizarUnidadMedicion(id, newName);
+        },             
+
         delete: (moduleId, id, callback) => {
           window.api.eliminarUnidadMedicion(id, (response) => {
             if (response.success) callback(response);

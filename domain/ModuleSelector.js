@@ -43,6 +43,7 @@ class ModuleSelector {
       if (items) {
         // Normalizar los objetos
         this.modules = items.map(item => this.normalizeItem(item));
+        console.log("Lista de módulos:", this.modules);
         this.renderModules();
         if (typeof callback === "function") callback();
       } else {
@@ -71,15 +72,39 @@ class ModuleSelector {
           input.select();
         });
 
-        input.addEventListener('keydown', async (e) => {
+        input.addEventListener('keydown', (e) => {
+
           if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
             const newValue = input.value.trim();
-            if (newValue && newValue !== mod.nombre) {
-              await this.handlers.update(this.moduleId, mod.id, newValue);
-              await this.fetchModules();
+
+            if (newValue && !this.modules.some(m => m.nombre === newValue)) {
+
+              this.handlers.update(this.moduleId, mod.id, newValue, (updatedModules) => {
+                if (updatedModules && Array.isArray(updatedModules)) {
+                  this.modules = updatedModules.map(item => this.normalizeItem(item));
+                  this.renderModules();
+                  this.showAlert('success', 'Operación exitosa', `"${newValue}" ha sido actualizado.`);
+
+                } else {
+                  this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de modificar el módulo.');
+                }
+              });
+            } else {
+              if (newValue === '') {
+                input.value = mod.nombre; // Revertir al nombre original si está vacío
+                this.showAlert('error', 'Error', 'El nombre no puede estar vacío');
+              }
+
+              if (newValue === mod.nombre) {
+                input.value = mod.nombre;
+                this.showAlert('success', 'Operación exitosa', `"${newValue}" ha sido actualizado.`);
+              }
             }
           } else if (e.key === 'Escape') {
-            input.value = mod.nombre;
+            const mod = input._mod;
+            input.value = mod?.nombre || '';
             input.readOnly = true;
           }
         });

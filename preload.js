@@ -280,7 +280,10 @@ contextBridge.exposeInMainWorld('api', {
     },
 
     crearUnidadMedicion: (newName) => ipcRenderer.send('crear-unidad-medicion', newName),
-    onRespuestaCrearUnidadMedicion: (callback) => ipcRenderer.on('respuesta-crear-unidad-medicion', (event, respuesta) => callback(respuesta)),
+    onRespuestaCrearUnidadMedicion: (callback) => ipcRenderer.once('respuesta-crear-unidad-medicion', (event, respuesta) => callback(respuesta)),
+    
+    actualizarUnidadMedicion: (idUnidadMedicion, nuevoNombre) => ipcRenderer.send('editar-unidad-medicion', idUnidadMedicion, nuevoNombre),
+    onRespuestaActualizarUnidadMedicion: (callback) => ipcRenderer.once('respuesta-editar-unidad-medicion', (event, respuesta) => callback(respuesta)),
     /* --------------------------------                   ------------------------------------------
        --------------------------------  Cuenta Bancaria  ------------------------------------------
        --------------------------------                   ------------------------------------------ */
