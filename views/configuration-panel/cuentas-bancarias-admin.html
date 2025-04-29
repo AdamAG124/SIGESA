@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/module-seletor.css">
 <div class="main-content">
     <div class="content-header">
         <h1 class="content-title">Administrar Cuentas Bancarias</h1>
@@ -24,32 +25,9 @@
             <option value="1">Activas</option>
             <option value="0">Inactivas</option>
         </select>
-        <div id="module-container">
-            <div id="select-wrapper">
-                <div id="selected-module" onclick="toggleModuleList()">
-                    Selección
-                    <span class="dropdown-icon"></span>
-                </div>
-                <div id="module-list"></div>
-            </div>
-            <button id="add-module-btn" title="Agregar">＋</button>
-        </div>
-        <!-- Modal popup para nuevo módulo -->
-        <div id="module-popup" class="popup-overlay">
-            <div class="popup-content">
-                <h3>Agregar</h3>
-
-                <!-- Aquí va el nuevo div de error -->
-                <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
-                </div>
-
-                <input type="text" id="new-module-name" placeholder="Nombre de la entidad financiera" />
-                <div class="popup-buttons">
-                    <button id="save-module" type="button">Guardar</button>
-                    <button id="cancel-module" type="button">Cancelar</button>
-                </div>
-            </div>
-        </div>
+        <select id="entidad-financiera-filtro" onchange="filterTable(9)">
+            <option value="0">Filtrar por entidad financiera</option>
+        </select>
         <select id="divisa-filtro" onchange="filterTable(9)">
             <option value="nula">Filtrar por tipo de divisa</option>
             <option value="CRC">CRC</option>
@@ -87,11 +65,32 @@
                 <input type="hidden" id="idCuentaBancaria">
 
                 <label for="entidadFinanciera">Entidad Financiera:</label>
-                <select id="entidadFinanciera" name="entidadFinanciera" onchange="obtenerNombrePorEntidadFinanciera()">
-                    <option value="0">Seleccionar entidad financiera</option>
-                    <!-- Aquí se llenarán las opciones dinámicamente -->
-                    <option value="">Crear nueva entidad</option>
-                </select>
+                    <div id="module-container">
+                        <div id="select-wrapper">
+                            <div id="selected-module" onclick="toggleModuleList()">
+                                Selección
+                                <span class="dropdown-icon"></span>
+                            </div>
+                            <div id="module-list"></div>
+                        </div>
+                        <button id="add-module-btn" title="Agregar">＋</button>
+                    </div>
+                    <!-- Modal popup para nuevo módulo -->
+                    <div id="module-popup" class="popup-overlay">
+                        <div class="popup-content">
+                            <h3>Agregar</h3>
+
+                            <!-- Aquí va el nuevo div de error -->
+                            <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
+                            </div>
+
+                            <input type="text" id="new-module-name" placeholder="Nombre del módulo" />
+                            <div class="popup-buttons">
+                                <button id="save-module" type="button">Guardar</button>
+                                <button id="cancel-module" type="button">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
 
                 <label for="nombre">Nombre del banco:</label>
                 <input type="text" id="nombre" name="nombre">

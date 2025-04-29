@@ -68,7 +68,7 @@ function mostrarFormCrearCuentaBancaria() {
 
 function cargarEntidadesFinancierasEnSelect() {
     const selectEntidadFinanciera = document.getElementById('entidad-financiera-filtro');
-    cargarEntidadesFinancierasEnSelect();
+    //cargarEntidadesFinancierasEnSelect();
 
     window.api.obtenerEntidadesFinancieras(null, null, null, null, (respuesta) => {
         if (respuesta.error) {
