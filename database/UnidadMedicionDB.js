@@ -171,6 +171,105 @@ class UnidadMedicionDB {
             }
         }
     }
+
+    async eliminarUnidadMedicion(unidadMedicion) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            const idUnidad = unidadMedicion.getIdUnidadMedicion();
+            const nuevoEstado = unidadMedicion.getEstado();
+            const tbProducto = 'sigm_producto';
+
+            // 1. Verificar si la unidad está asociada a productos
+            const [asociaciones] = await connection.query(
+                `SELECT COUNT(*) AS total FROM ${tbProducto} WHERE ID_UNIDAD_MEDICION = ?`,
+                [idUnidad]
+            );
+
+            if (asociaciones[0].total > 0 && nuevoEstado === 0) {
+                return {
+                    success: false,
+                    message: 'No se puede deshabilitar la unidad de medición porque está asociada a uno o más productos.',
+                };
+            }
+
+            const query = `
+            UPDATE ${this.#table}
+            SET ESTADO = ?
+            WHERE ID_UNIDAD_MEDICION = ?
+          `;
+            const values = [nuevoEstado, idUnidad];
+
+            const [result] = await connection.query(query, values);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Unidad de medición eliminada exitosamente.',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró la unidad de medición o no se realizaron cambios.',
+                };
+            }
+        } catch (error) {
+            console.error('Error al eliminar unidad de medición:', error.message);
+            return {
+                success: false,
+                message: 'Error interno al eliminar la unidad de medición.',
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
+    async rehabilitarUnidadMedicion(unidadMedicion) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            // Actualizar el estado de la unidad de medición a 1 (habilitada)
+            const query = `
+                UPDATE ${this.#table}
+                SET ESTADO = ?
+                WHERE ID_UNIDAD_MEDICION = ?
+            `;
+            const values = [unidadMedicion.getEstado(), unidadMedicion.getIdUnidadMedicion()];
+
+            const [result] = await connection.query(query, values);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Unidad de medición habilitada exitosamente',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'Error al habilitar la unidad de medición',
+                };
+            }
+        } catch (error) {
+            console.error('Error al habilitar unidad de medición:', error.message);
+            return {
+                success: false,
+                message: 'Error interno al habilitar la unidad de medición',
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
 }
 
 module.exports = UnidadMedicionDB;
