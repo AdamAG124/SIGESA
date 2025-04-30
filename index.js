@@ -1583,6 +1583,41 @@ ipcMain.on('editar-unidad-medicion', async (event, idUnidadMedicion, nuevoNombre
     }
 });
 
+ipcMain.on('eliminar-unidad-medicion', async (event, idUnidadMedicion) => {
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const unidadMedicion = new UnidadMedicion();
+        unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
+        unidadMedicion.setEstado(0); // Cambiar el estado a inactivo
+
+        const resultado = await unidadMedicionController.eliminarUnidadMedicion(unidadMedicion);
+
+        event.reply('respuesta-eliminar-unidad-medicion', resultado);
+    } catch (error) {
+        console.error('Error al eliminar la unidad de medición:', error);
+        event.reply('respuesta-eliminar-unidad-medicion', { success: false, message: error.message });
+    }
+});
+
+
+ipcMain.on('rehabilitar-unidad-medicion', async (event, idUnidadMedicion) => {
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const unidadMedicion = new UnidadMedicion();
+        unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
+        unidadMedicion.setEstado(1); // Cambiar el estado a activo
+
+        const resultado = await unidadMedicionController.rehabilitarUnidadMedicion(unidadMedicion);
+
+        event.reply('respuesta-rehabilitar-unidad-medicion', resultado);
+    } catch (error) {
+        console.error('Error al rehabilitar la unidad de medición:', error);
+        event.reply('respuesta-rehabilitar-unidad-medicion', { success: false, message: error.message });
+    }
+});
+
 /* Cuentas Bancarias */
 
 ipcMain.on('obtener-cuentas-bancarias', async (event, args) => {

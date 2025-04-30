@@ -476,7 +476,7 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
         break;
       case 9:
         cargarCuentasTabla(pagination.pageSize, page, pagination.searchValue, pagination.idEntidadFinanciera, pagination.tipoDivisa, pagination.estado);
-     
+
       case 10: // Nuevo caso para Puestos de Trabajo
         cargarPuestosTrabajo(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
@@ -570,15 +570,15 @@ function filterTable(moduloFiltrar) {
       cargarSalidasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), document.getElementById("search-bar").value, Number(document.getElementById("colaboradorSacando").value), Number(document.getElementById("colaboradorRecibiendo").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, null);
       break;
     case 9:
-      cargarCuentasTabla(pageSize, 1,  document.getElementById("search-bar").value, Number(document.getElementById("entidad-financiera-filtro").value), document.getElementById("divisa-filtro").value, Number(document.getElementById("estado-filtro").value));
+      cargarCuentasTabla(pageSize, 1, document.getElementById("search-bar").value, Number(document.getElementById("entidad-financiera-filtro").value), document.getElementById("divisa-filtro").value, Number(document.getElementById("estado-filtro").value));
       break;
-      case 10: 
+    case 10:
       cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
-    }
-      
-    }
- 
+  }
+
+}
+
 
 
 function editarUsuario(id, boton) {
@@ -1750,42 +1750,42 @@ function enviarEdicionCategoria() {
 /* --------------------------------                   ------------------------------------------
    -------------------------------- PUESTO DE TRABAJO ------------------------------------------
    --------------------------------                   ------------------------------------------ */
-   function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
-    // Obtener los elementos del DOM
-    const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
-    const selectEstado = document.getElementById('estado-filtro'); // Estado
-    const searchInput = document.getElementById('search-bar'); // Búsqueda
-  
-    // Configurar valores iniciales en los filtros
-    selectPageSize.value = pageSize;
-    selectEstado.value = estado;
-    if (valorBusqueda) searchInput.value = valorBusqueda;
-  
-    // Llamar a la API para obtener los puestos de trabajo
-    window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
-      const tbody = document.getElementById("puestos-body");
-      const paginationDiv = document.querySelector(".pagination");
-      tbody.innerHTML = ""; // Limpiar contenido previo
-      paginationDiv.innerHTML = ""; // Limpiar controles de paginación
-  
-      // Mostrar mensaje si no hay puestos
-      if (!respuesta.puestos || respuesta.puestos.length === 0) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
+function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
+  // Obtener los elementos del DOM
+  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+  const selectEstado = document.getElementById('estado-filtro'); // Estado
+  const searchInput = document.getElementById('search-bar'); // Búsqueda
+
+  // Configurar valores iniciales en los filtros
+  selectPageSize.value = pageSize;
+  selectEstado.value = estado;
+  if (valorBusqueda) searchInput.value = valorBusqueda;
+
+  // Llamar a la API para obtener los puestos de trabajo
+  window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+    const tbody = document.getElementById("puestos-body");
+    const paginationDiv = document.querySelector(".pagination");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+    paginationDiv.innerHTML = ""; // Limpiar controles de paginación
+
+    // Mostrar mensaje si no hay puestos
+    if (!respuesta.puestos || respuesta.puestos.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
           <td colspan="4" style="text-align: center; color: gray; font-style: italic;">
             No hay puestos de trabajo registrados.
           </td>
         `;
-        tbody.appendChild(row);
-        return;
-      }
-  
-      // Llenar la tabla con los datos de los puestos
-      respuesta.puestos.forEach((puesto) => {
-        const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
-  
-        const row = document.createElement("tr");
-        row.innerHTML = `
+      tbody.appendChild(row);
+      return;
+    }
+
+    // Llenar la tabla con los datos de los puestos
+    respuesta.puestos.forEach((puesto) => {
+      const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
           <td>${puesto.nombrePuestoTrabajo}</td>
           <td>${puesto.descripcionPuestoTrabajo}</td>
           <td>${estadoPuesto}</td>
@@ -1800,17 +1800,17 @@ function enviarEdicionCategoria() {
             </button>
           </td>
         `;
-        tbody.appendChild(row);
-      });
-  
-      // Actualizar los controles de paginación
-      if (respuesta.paginacion) {
-        actualizarPaginacion(respuesta.paginacion, ".pagination", 10);
-      } else {
-        console.warn('No se proporcionaron datos de paginación.');
-      }
+      tbody.appendChild(row);
     });
-  }
+
+    // Actualizar los controles de paginación
+    if (respuesta.paginacion) {
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 10);
+    } else {
+      console.warn('No se proporcionaron datos de paginación.');
+    }
+  });
+}
 function agregarPuesto() {
   // Lógica para agregar un nuevo puesto
   document.getElementById("modalTitle").innerText = "Crear Puesto de Trabajo";
@@ -2329,7 +2329,7 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
     selectCategoria.value = idCategoriaFiltro;
     window.api.obtenerProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda, (respuesta) => {
       const tbody = document.getElementById("productos-body");
-      tbody.innerHTML = ""; 
+      tbody.innerHTML = "";
 
       respuesta.productos.forEach((producto) => {
         const estado = producto.estadoProducto === 1 ? "Activo" : "Inactivo";
@@ -2337,7 +2337,7 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
         const row = document.createElement("tr");
 
         if (producto.cantidad <= 10) {
-          row.classList.add("low-stock"); 
+          row.classList.add("low-stock");
         }
 
         row.innerHTML = `
@@ -2636,6 +2636,7 @@ function getHandlersForType(tipo) {
             callback(unidades);
           });
         },
+
         create: (moduleId, newName, callback) => {
           window.api.onRespuestaCrearUnidadMedicion((response) => {
             if (response.success) {
@@ -2650,15 +2651,13 @@ function getHandlersForType(tipo) {
 
           window.api.crearUnidadMedicion(newName);
         },
+
         update: (moduleId, id, newName, callback) => {
-          console.log("Actualizando unidad de medición...", id, newName);
-          
+
           // Registrar el listener UNA SOLA VEZ o cada vez con precaución
           window.api.onRespuestaActualizarUnidadMedicion((response) => {
-            if (response.success) { 
-              console.log("Respuesta exitosa de actualizarUnidadMedicion:", response);
+            if (response.success) {
               window.api.obtenerUnidadesMedicion((unidades) => {
-                console.log("Unidades de medición actualizadas, tras actualizar:", unidades);
                 callback(unidades);
               });
             } else {
@@ -2666,21 +2665,46 @@ function getHandlersForType(tipo) {
               callback(null);
             }
           });
-        
+
           // Aquí debe estar la llamada real al proceso principal
           window.api.actualizarUnidadMedicion(id, newName);
-        },             
+        },
 
         delete: (moduleId, id, callback) => {
-          window.api.eliminarUnidadMedicion(id, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al eliminar unidad de medición", response.message);
+          window.api.onRespuestaEliminarUnidadMedicion((response) => {
+            if (response.success) {
+
+              window.api.obtenerUnidadesMedicion((unidades) => {
+
+                callback({
+                  success: true,
+                  updatedModules: unidades
+                });
+              });
+
+            } else {
+              console.error("Error al eliminar una unidad de medición:", response.message);
+
+              callback({
+                success: false,
+                message: response.message
+              });
+            }
           });
+
+          window.api.eliminarUnidadMedicion(id);
         },
-        undoDelete: (moduleId, name, index, callback) => {
-          window.api.revertirUnidadMedicion(name, index, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al restaurar unidad de medición", response.message);
+
+        undoDelete: (moduleId, idUnidadMedicion, callback) => {
+          window.api.rehabilitarUnidadMedicion(idUnidadMedicion);
+          window.api.onRespuestaRehabilitarUnidadMedicion((response) => {
+            if (response.success) {
+              window.api.obtenerUnidadesMedicion((unidades) => {
+                callback({ success: true, data: unidades });
+              });
+            } else {
+              callback({ success: false, message: response.message || 'No se pudo deshacer la eliminación.' });
+            }
           });
         }
       };
