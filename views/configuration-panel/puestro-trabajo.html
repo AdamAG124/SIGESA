@@ -1,8 +1,7 @@
 <div class="main-content">
     <div class="content-header">
         <h1 class="content-title">Administrar Puestos de Trabajo</h1>
-        <button class="add-category-btn" title="Agregar Nuevo Puesto" onclick="abrirModal('crearPuestoModal')">
-            <span class="material-icons">add_circle</span>
+       <button class="add-category-btn" title="Agregar Nuevo Puesto" onclick="agregarPuesto()">     <span class="material-icons">add_circle</span>
         </button>
     </div>
     <div class="search-bar">
@@ -39,20 +38,22 @@
         <!-- Aquí se cargarán los controles de paginación -->
     </div>
 
-    <!-- Modal para Crear Puesto -->
     <div id="crearPuestoModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="cerrarModal('crearPuestoModal', 'crearPuestoForm')">&times;</span>
-            <h2>Crear Puesto</h2>
+            <h2 id="modalTitle"></h2>
             <form id="crearPuestoForm">
-                <label for="nombrePuesto">Nombre:</label>
-                <input type="text" id="nombrePuesto" name="nombrePuesto" required>
+                <label for="nombrePuesto">Nombre del Puesto:</label>
+                <input type="text" id="nombrePuesto" name="nombrePuesto" placeholder="Ingrese el nombre del puesto" required>
+    
                 <label for="descripcionPuesto">Descripción:</label>
-                <textarea id="descripcionPuesto" name="descripcionPuesto" required></textarea>
-                <label for="estadoPuesto">Estado:</label>
-                <input type="checkbox" id="estadoPuesto" name="estadoPuesto">
+                <textarea id="descripcionPuesto" name="descripcionPuesto" placeholder="Ingrese una descripción del puesto" required></textarea>
+    
+             
+    
                 <p id="errorMessage" style="color: red;"></p>
-                <button type="button" class="close-btn" onclick="enviarCreacionPuesto()">Crear</button>
+    
+                <button type="button" class="close-btn" id="buttonModal">Registrar</button>
             </form>
         </div>
     </div>

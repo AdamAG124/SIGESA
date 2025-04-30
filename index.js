@@ -29,6 +29,8 @@ const Salida = require('./domain/Salida');
 const SalidaProducto = require('./domain/SalidaProducto');
 const UnidadMedicion = require('./domain/UnidadMedicion');
 
+const PuestoTrabajo = require('./domain/PuestoTrabajo');
+
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -727,15 +729,15 @@ ipcMain.on('crear-puesto', async (event, puestoData) => {
         const puesto = new PuestoTrabajo();
         puesto.setNombre(puestoData.nombre);
         puesto.setDescripcion(puestoData.descripcion);
-        puesto.setEstado(puestoData.estado);
+        puesto.setEstado(1); // Estado activo por defecto
 
         const puestoTrabajoController = new PuestoTrabajoController();
         const resultado = await puestoTrabajoController.insertarPuesto(puesto);
 
-        event.reply('respuesta-crear-puesto', resultado);
+        event.reply('respuesta-crear-puesto', { success: true, message: 'Puesto creado exitosamente.' });
     } catch (error) {
         console.error('Error al crear puesto:', error);
-        event.reply('respuesta-crear-puesto', { success: false, message: error.message });
+        event.reply('respuesta-crear-puesto', { success: false, message: 'Error al crear el puesto.' });
     }
 });
 

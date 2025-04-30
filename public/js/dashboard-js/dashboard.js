@@ -1813,43 +1813,66 @@ function enviarEdicionCategoria() {
   }
 function agregarPuesto() {
   // Lógica para agregar un nuevo puesto
+  document.getElementById("modalTitle").innerText = "Crear Puesto de Trabajo";
+
+  // Asignar la función de envío al botón del modal
+  document.getElementById("buttonModal").onclick = enviarCreacionPuesto;
+
+  // Mostrar el modal
+  document.getElementById("crearPuestoModal").style.display = "block";
 }
+
 
 function enviarCreacionPuesto() {
-  const nombre = document.getElementById("nombrePuesto").value;
-  const descripcion = document.getElementById("descripcionPuesto").value;
-  const estado = document.getElementById("estadoPuesto").checked ? 1 : 0;
+  const nombre = document.getElementById("nombrePuesto").value.trim();
+  const descripcion = document.getElementById("descripcionPuesto").value.trim();
 
-  const puestoData = { nombre, descripcion, estado };
+  // Validar campos vacíos
+  const camposVacios = [];
+  if (!nombre) camposVacios.push("Nombre del Puesto");
+  if (!descripcion) camposVacios.push("Descripción");
 
+  if (camposVacios.length > 0) {
+      const errorMessage = document.getElementById("errorMessage");
+      errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
+      return;
+  }
+
+  // Crear el objeto con los datos del puesto
+  const puestoData = {
+      nombre,
+      descripcion,
+      estado: 1, // Estado activo por defecto
+  };
+
+  // Confirmar la creación
   Swal.fire({
-    title: "Creando puesto",
-    text: "¿Está seguro que desea crear este nuevo puesto?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#4a4af4",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
-    cancelButtonText: "Cancelar",
+      title: "Registrar Puesto",
+      text: "¿Está seguro que desea registrar este puesto?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4a4af4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, registrar",
+      cancelButtonText: "Cancelar",
   }).then((result) => {
-    if (result.isConfirmed) {
-      window.api.crearPuesto(puestoData);
+      if (result.isConfirmed) {
+          // Llamar a la API para registrar el puesto
+          window.api.crearPuesto(puestoData);
 
-      window.api.onRespuestaCrearPuesto((respuesta) => {
-        if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            cargarPuestosTrabajo();
-            cerrarModal("crearPuestoModal", "crearPuestoForm");
-          }, 2000);
-        } else {
-          mostrarToastError(respuesta.message);
-        }
-      });
-    }
+          // Manejar la respuesta del backend
+          window.api.onRespuestaCrearPuesto((respuesta) => {
+              if (respuesta.success) {
+                  mostrarToastConfirmacion(respuesta.message);
+                  cerrarModal("crearPuestoModal", "crearPuestoForm");
+                  cargarPuestosTrabajo(); // Recargar la tabla de puestos
+              } else {
+                  mostrarToastError(respuesta.message || "Error al registrar el puesto.");
+              }
+          });
+      }
   });
 }
-
 async function editarPuesto(id, boton) {
   // Lógica para editar un puesto
 }
