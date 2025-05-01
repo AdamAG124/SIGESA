@@ -2617,6 +2617,7 @@ function getHandlersForType(tipo) {
             callback(unidades);
           });
         },
+
         create: (moduleId, newName, callback) => {
           window.api.onRespuestaCrearUnidadMedicion((response) => {
             if (response.success) {
@@ -2631,6 +2632,7 @@ function getHandlersForType(tipo) {
 
           window.api.crearUnidadMedicion(newName);
         },
+
         update: (moduleId, id, newName, callback) => {
           console.log("Actualizando unidad de medición...", id, newName);
 
@@ -2639,7 +2641,6 @@ function getHandlersForType(tipo) {
             if (response.success) {
               console.log("Respuesta exitosa de actualizarUnidadMedicion:", response);
               window.api.obtenerUnidadesMedicion((unidades) => {
-                console.log("Unidades de medición actualizadas, tras actualizar:", unidades);
                 callback(unidades);
               });
             } else {
@@ -2653,15 +2654,40 @@ function getHandlersForType(tipo) {
         },
 
         delete: (moduleId, id, callback) => {
-          window.api.eliminarUnidadMedicion(id, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al eliminar unidad de medición", response.message);
+          window.api.onRespuestaEliminarUnidadMedicion((response) => {
+            if (response.success) {
+
+              window.api.obtenerUnidadesMedicion((unidades) => {
+
+                callback({
+                  success: true,
+                  updatedModules: unidades
+                });
+              });
+
+            } else {
+              console.error("Error al eliminar una unidad de medición:", response.message);
+
+              callback({
+                success: false,
+                message: response.message
+              });
+            }
           });
+
+          window.api.eliminarUnidadMedicion(id);
         },
-        undoDelete: (moduleId, name, index, callback) => {
-          window.api.revertirUnidadMedicion(name, index, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al restaurar unidad de medición", response.message);
+
+        undoDelete: (moduleId, idUnidadMedicion, callback) => {
+          window.api.rehabilitarUnidadMedicion(idUnidadMedicion);
+          window.api.onRespuestaRehabilitarUnidadMedicion((response) => {
+            if (response.success) {
+              window.api.obtenerUnidadesMedicion((unidades) => {
+                callback({ success: true, data: unidades });
+              });
+            } else {
+              callback({ success: false, message: response.message || 'No se pudo deshacer la eliminación.' });
+            }
           });
         }
       };
