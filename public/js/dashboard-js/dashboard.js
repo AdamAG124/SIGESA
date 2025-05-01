@@ -2250,8 +2250,8 @@ function enviarEdicionEntidadFinanciera() {
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
-function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoriasInactivas = 0) {
-  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado, valorBusqueda = null, (respuesta) => {
+function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoriasInactivas = 0, callback = null) {
+  window.api.obtenerCategorias(null, null, estado, null, (respuesta) => {
     if (respuesta && respuesta.categorias) {
       idSelect.innerHTML = ""; // Limpiar las opciones existentes
       const option = document.createElement("option");
@@ -2264,22 +2264,27 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
         const option = document.createElement("option");
         option.value = categoria.idCategoria;
 
-        // Si se debe validar si las categorías están deshabilitadas
         if (validarCategoriasInactivas === 1 && categoria.estado === 0) {
           option.textContent = `Categoría ${categoria.nombreCategoria} Inactiva`;
-          option.disabled = true; // Deshabilitar la opción
-          option.classList.add("categoria-inactiva"); // Añadir clase para aplicar estilos específicos
+          option.disabled = true;
+          option.classList.add("categoria-inactiva");
         } else {
           option.textContent = categoria.nombreCategoria;
         }
 
         idSelect.appendChild(option);
       });
+
+      // ✅ Ejecutar el callback si se proporciona
+      if (typeof callback === "function") {
+        callback();
+      }
     } else {
       console.log("No se pudieron cargar las categorías.");
     }
   });
 }
+
 
 function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
@@ -2300,10 +2305,11 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 
   selectPageSize.value = pageSize;
 
-  cargarCategorias(selectCategoria, "Filtrar por categoría");
-
-  setTimeout(() => {
+  cargarCategorias(selectCategoria, "Filtrar por categoría", 1, 0, () => {
+    // Ahora sí se puede establecer el valor del select correctamente
     selectCategoria.value = idCategoriaFiltro;
+
+    // Cargar productos después de haber cargado las categorías y seleccionado el filtro
     window.api.obtenerProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda, (respuesta) => {
       const tbody = document.getElementById("productos-body");
       tbody.innerHTML = "";
@@ -2329,23 +2335,21 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
               </button>                                                                                        
               <button class="tooltip" value="${producto.idProducto}" onclick="${producto.estadoProducto === 1 ? `actualizarEstado(this.value, 0, 'Eliminando producto', '¿Está seguro que desea eliminar este producto?', 7)` : `actualizarEstado(this.value, 1, 'Reactivando producto', '¿Está seguro que desea reactivar este producto?', 7)`}">
                   <span class="material-icons">
-                      ${producto.estadoProducto === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
+                      ${producto.estadoProducto === 1 ? 'delete' : 'restore'}
                   </span>
                   <span class="tooltiptext">
-                      ${producto.estadoProducto === 1 ? 'Eliminar producto' : 'Reactivar producto'} <!-- Cambia el tooltip dependiendo del estado -->
+                      ${producto.estadoProducto === 1 ? 'Eliminar producto' : 'Reactivar producto'}
                   </span>
               </button>
           </td>
         `;
 
         tbody.appendChild(row);
-
-        // Actualizar los botones de paginación
-        actualizarPaginacion(respuesta.paginacion, ".pagination", 7);
-
-        cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
       });
-    }, 500);
+
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 7);
+      cerrarModal("editarProductoModal", "editarProductoForm");
+    });
   });
 }
 
@@ -2630,10 +2634,12 @@ function getHandlersForType(tipo) {
         },
 
         update: (moduleId, id, newName, callback) => {
+          console.log("Actualizando unidad de medición...", id, newName);
 
           // Registrar el listener UNA SOLA VEZ o cada vez con precaución
           window.api.onRespuestaActualizarUnidadMedicion((response) => {
             if (response.success) {
+              console.log("Respuesta exitosa de actualizarUnidadMedicion:", response);
               window.api.obtenerUnidadesMedicion((unidades) => {
                 callback(unidades);
               });
