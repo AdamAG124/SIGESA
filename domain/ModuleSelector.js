@@ -43,7 +43,6 @@ class ModuleSelector {
       if (items) {
         // Normalizar los objetos
         this.modules = items.map(item => this.normalizeItem(item));
-        console.log("Lista de módulos:", this.modules);
         this.renderModules();
         if (typeof callback === "function") callback();
       } else {
@@ -143,24 +142,53 @@ class ModuleSelector {
         </div>
       `;
 
-    item.querySelector('.confirm').onclick = async () => {
-      await this.handlers.delete(this.moduleId, id);
-      await this.fetchModules();
-      this.showUndoToast(mod, index);
+    item.querySelector('.confirm').onclick = () => {
+      this.handlers.delete(this.moduleId, id, (response) => {
+        if (response && response.success) {
+
+          if (Array.isArray(response.updatedModules)) {
+            this.modules = response.updatedModules.map(item => this.normalizeItem(item));
+            this.renderModules();
+          } else {
+            this.fetchModules(); // Fallback si no se devuelve data explícita
+          }
+
+          this.showAlert('success', 'Operación exitosa', `"${mod.nombre}" ha sido eliminado.`);
+          this.showUndoToast(mod);
+        } else {
+          // Mostrar el mensaje del backend, si lo hay
+          const errorMsg = response?.message || 'No se pudo eliminar el módulo.';
+          this.showAlert('error', 'Error', errorMsg);
+          this.renderModules(); // Restaurar UI si no se elimina
+        }
+      });
     };
 
     item.querySelector('.cancel').onclick = () => this.renderModules();
   }
 
-  showUndoToast(mod, index) {
+  showUndoToast(mod) {
     const toast = document.createElement('div');
     toast.className = 'undo-toast';
     toast.innerHTML = `Unidad eliminada: <strong>${mod.nombre}</strong> <button>Deshacer</button>`;
-    toast.querySelector('button').onclick = async () => {
-      await this.handlers.undoDelete?.(this.moduleId, mod, index);
-      await this.fetchModules();
-      toast.remove();
+
+    const undoBtn = toast.querySelector('button');
+    undoBtn.onclick = () => {
+      if (typeof this.handlers.undoDelete === 'function') {
+        this.handlers.undoDelete(this.moduleId, mod.id, (response) => {
+          if (response && response.success && Array.isArray(response.data)) {
+            this.modules = response.data.map(item => this.normalizeItem(item));
+            this.renderModules();
+            toast.remove();
+            this.showAlert('success', 'Deshacer', `"${mod.nombre}" fue restaurado.`);
+          } else {
+            const msg = response?.message || 'No se pudo deshacer la eliminación.';
+            this.showAlert('error', 'Error', msg);
+          }
+        });
+      }
     };
+
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 10000);
   }

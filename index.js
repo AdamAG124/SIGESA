@@ -29,6 +29,8 @@ const Salida = require('./domain/Salida');
 const SalidaProducto = require('./domain/SalidaProducto');
 const UnidadMedicion = require('./domain/UnidadMedicion');
 
+const PuestoTrabajo = require('./domain/PuestoTrabajo');
+
 const os = require('os')
 const { shell } = require('electron')
 // const Producto = require('./domain/Producto');
@@ -721,23 +723,25 @@ ipcMain.on('listar-puestos-trabajo', async (event, { pageSize, currentPage, esta
         event.reply('error-cargar-puestos-trabajo', 'Hubo un error al listar los puestos de trabajo.');
     }
 });
-
 ipcMain.on('crear-puesto', async (event, puestoData) => {
     try {
         const puesto = new PuestoTrabajo();
+
         puesto.setNombre(puestoData.nombre);
         puesto.setDescripcion(puestoData.descripcion);
-        puesto.setEstado(puestoData.estado);
+        puesto.setEstado(1); // Estado activo por defecto
 
         const puestoTrabajoController = new PuestoTrabajoController();
         const resultado = await puestoTrabajoController.insertarPuesto(puesto);
 
+        // Enviar la respuesta tal cual como venga del controlador
         event.reply('respuesta-crear-puesto', resultado);
     } catch (error) {
         console.error('Error al crear puesto:', error);
-        event.reply('respuesta-crear-puesto', { success: false, message: error.message });
+        event.reply('respuesta-crear-puesto', { success: false, message: 'Error al crear el puesto.' });
     }
 });
+
 
 ipcMain.on('actualizar-puesto', async (event, puestoData) => {
     try {
@@ -1578,6 +1582,41 @@ ipcMain.on('editar-unidad-medicion', async (event, idUnidadMedicion, nuevoNombre
     } catch (error) {
         console.error('Error al editar la unidad de medición:', error);
         event.reply('respuesta-editar-unidad-medicion', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-unidad-medicion', async (event, idUnidadMedicion) => {
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const unidadMedicion = new UnidadMedicion();
+        unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
+        unidadMedicion.setEstado(0); // Cambiar el estado a inactivo
+
+        const resultado = await unidadMedicionController.eliminarUnidadMedicion(unidadMedicion);
+
+        event.reply('respuesta-eliminar-unidad-medicion', resultado);
+    } catch (error) {
+        console.error('Error al eliminar la unidad de medición:', error);
+        event.reply('respuesta-eliminar-unidad-medicion', { success: false, message: error.message });
+    }
+});
+
+
+ipcMain.on('rehabilitar-unidad-medicion', async (event, idUnidadMedicion) => {
+    const unidadMedicionController = new UnidadMedicionController();
+
+    try {
+        const unidadMedicion = new UnidadMedicion();
+        unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
+        unidadMedicion.setEstado(1); // Cambiar el estado a activo
+
+        const resultado = await unidadMedicionController.rehabilitarUnidadMedicion(unidadMedicion);
+
+        event.reply('respuesta-rehabilitar-unidad-medicion', resultado);
+    } catch (error) {
+        console.error('Error al rehabilitar la unidad de medición:', error);
+        event.reply('respuesta-rehabilitar-unidad-medicion', { success: false, message: error.message });
     }
 });
 
