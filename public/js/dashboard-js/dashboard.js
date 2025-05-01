@@ -1826,6 +1826,7 @@ function agregarPuesto() {
 function enviarCreacionPuesto() {
   const nombre = document.getElementById("nombrePuesto").value.trim();
   const descripcion = document.getElementById("descripcionPuesto").value.trim();
+  const errorMessage = document.getElementById("errorMessage");
 
   // Validar campos vacíos
   const camposVacios = [];
@@ -1833,44 +1834,45 @@ function enviarCreacionPuesto() {
   if (!descripcion) camposVacios.push("Descripción");
 
   if (camposVacios.length > 0) {
-      const errorMessage = document.getElementById("errorMessage");
-      errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
-      return;
+    errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
+    return;
   }
 
   // Crear el objeto con los datos del puesto
   const puestoData = {
-      nombre,
-      descripcion,
-      estado: 1, // Estado activo por defecto
+    nombre,
+    descripcion,
+    estado: 1, // Estado activo por defecto
   };
 
   // Confirmar la creación
   Swal.fire({
-      title: "Registrar Puesto",
-      text: "¿Está seguro que desea registrar este puesto?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#4a4af4",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, registrar",
-      cancelButtonText: "Cancelar",
+    title: "Registrar Puesto",
+    text: "¿Está seguro que desea registrar este puesto?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, registrar",
+    cancelButtonText: "Cancelar",
   }).then((result) => {
-      if (result.isConfirmed) {
-          // Llamar a la API para registrar el puesto
-          window.api.crearPuesto(puestoData);
+    if (result.isConfirmed) {
+      // Llamar a la API para registrar el puesto
+      window.api.crearPuesto(puestoData);
 
-          // Manejar la respuesta del backend
-          window.api.onRespuestaCrearPuesto((respuesta) => {
-              if (respuesta.success) {
-                  mostrarToastConfirmacion(respuesta.message);
-                  cerrarModal("crearPuestoModal", "crearPuestoForm");
-                  cargarPuestosTrabajo(); // Recargar la tabla de puestos
-              } else {
-                  mostrarToastError(respuesta.message || "Error al registrar el puesto.");
-              }
-          });
-      }
+      // Manejar la respuesta del backend
+      window.api.onRespuestaCrearPuesto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion("Puesto registrado exitosamente.");
+          cerrarModal("crearPuestoModal", "crearPuestoForm");
+          cargarPuestosTrabajo(); // Recargar la tabla de puestos
+        } else {
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al registrar el puesto.";
+          errorMessage.style.color = "red"; // Mostrar el mensaje en rojo
+        }
+      });
+    }
   });
 }
 async function editarPuesto(id, boton) {
