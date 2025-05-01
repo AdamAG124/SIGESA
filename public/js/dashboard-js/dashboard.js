@@ -474,6 +474,12 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 8:
         cargarSalidasTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda, pagination.filtroColaboradorSacando, pagination.filtroColaboradorRecibiendo, pagination.fechaInicio, pagination.fechaFin, pagination.filtroUsuario);
         break;
+      case 9:
+        cargarCuentasTabla(pagination.pageSize, page, pagination.searchValue, pagination.idEntidadFinanciera, pagination.tipoDivisa, pagination.estado);
+
+      case 10: // Nuevo caso para Puestos de Trabajo
+        cargarPuestosTrabajo(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
+        break;
       default:
 
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -562,8 +568,18 @@ function filterTable(moduloFiltrar) {
       break;
     case 8:
       cargarSalidasTabla(pageSize, 1, Number(document.getElementById("estadoFiltro").value), document.getElementById("search-bar").value, Number(document.getElementById("colaboradorSacando").value), Number(document.getElementById("colaboradorRecibiendo").value), document.getElementById("fechaInicialFiltro").value, document.getElementById("fechaFinalFiltro").value, null);
+      break;
+    case 9:
+      cargarCuentasTabla(pageSize, 1, document.getElementById("search-bar").value, Number(document.getElementById("entidad-financiera-filtro").value), document.getElementById("divisa-filtro").value, Number(document.getElementById("estado-filtro").value));
+      break;
+    case 10:
+      cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      break;
   }
+
 }
+
+
 
 function editarUsuario(id, boton) {
   const colaboradorSelect = document.getElementById("colaboradorName");
@@ -1502,7 +1518,7 @@ function cargarDepartamentos(idSelect, mensajeQuemado) {
     });
   });
 }
-
+/*
 function cargarPuestos(idSelect, mensajeQuemado) {
   window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
@@ -1520,7 +1536,7 @@ function cargarPuestos(idSelect, mensajeQuemado) {
       idSelect.appendChild(option);
     });
   });
-}
+}*/
 
 function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
@@ -1734,37 +1750,67 @@ function enviarEdicionCategoria() {
 /* --------------------------------                   ------------------------------------------
    -------------------------------- PUESTO DE TRABAJO ------------------------------------------
    --------------------------------                   ------------------------------------------ */
-function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
+  // Obtener los elementos del DOM
+  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
+  const selectEstado = document.getElementById('estado-filtro'); // Estado
+  const searchInput = document.getElementById('search-bar'); // Búsqueda
+
+  // Configurar valores iniciales en los filtros
+  selectPageSize.value = pageSize;
+  selectEstado.value = estado;
+  if (valorBusqueda) searchInput.value = valorBusqueda;
+
+  // Llamar a la API para obtener los puestos de trabajo
   window.api.obtenerPuestosTrabajo(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
     const tbody = document.getElementById("puestos-body");
+    const paginationDiv = document.querySelector(".pagination");
     tbody.innerHTML = ""; // Limpiar contenido previo
+    paginationDiv.innerHTML = ""; // Limpiar controles de paginación
 
+    // Mostrar mensaje si no hay puestos
+    if (!respuesta.puestos || respuesta.puestos.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+          <td colspan="4" style="text-align: center; color: gray; font-style: italic;">
+            No hay puestos de trabajo registrados.
+          </td>
+        `;
+      tbody.appendChild(row);
+      return;
+    }
+
+    // Llenar la tabla con los datos de los puestos
     respuesta.puestos.forEach((puesto) => {
       const estadoPuesto = puesto.estado === 1 ? "Activo" : "Inactivo";
 
       const row = document.createElement("tr");
       row.innerHTML = `
-              <td>${puesto.nombrePuestoTrabajo}</td>
-              <td>${puesto.descripcionPuestoTrabajo}</td>
-              <td>${estadoPuesto}</td>
-              <td class="action-icons">
-                  <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="editarPuesto(this.value, this)">
-                      <span class="material-icons">edit</span>
-                      <span class="tooltiptext">Editar puesto</span>
-                  </button>
-                  <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?', 5)`}">
-                      <span class="material-icons">${puesto.estado === 1 ? 'delete' : 'restore'}</span>
-                      <span class="tooltiptext">${puesto.estado === 1 ? 'Eliminar puesto' : 'Reactivar puesto'}</span>
-                  </button>
-              </td>
-          `;
+          <td>${puesto.nombrePuestoTrabajo}</td>
+          <td>${puesto.descripcionPuestoTrabajo}</td>
+          <td>${estadoPuesto}</td>
+          <td class="action-icons">
+            <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="editarPuesto(this.value, this)">
+              <span class="material-icons">edit</span>
+              <span class="tooltiptext">Editar puesto</span>
+            </button>
+            <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?', 5)`}">
+              <span class="material-icons">${puesto.estado === 1 ? 'delete' : 'restore'}</span>
+              <span class="tooltiptext">${puesto.estado === 1 ? 'Eliminar puesto' : 'Reactivar puesto'}</span>
+            </button>
+          </td>
+        `;
       tbody.appendChild(row);
     });
 
-    actualizarPaginacion(respuesta.paginacion, ".pagination", 5);
+    // Actualizar los controles de paginación
+    if (respuesta.paginacion) {
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 10);
+    } else {
+      console.warn('No se proporcionaron datos de paginación.');
+    }
   });
 }
-
 function agregarPuesto() {
   // Lógica para agregar un nuevo puesto
 }
@@ -2204,8 +2250,8 @@ function enviarEdicionEntidadFinanciera() {
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
-function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoriasInactivas = 0) {
-  window.api.obtenerCategorias(pageSize = null, currentPage = null, estado, valorBusqueda = null, (respuesta) => {
+function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoriasInactivas = 0, callback = null) {
+  window.api.obtenerCategorias(null, null, estado, null, (respuesta) => {
     if (respuesta && respuesta.categorias) {
       idSelect.innerHTML = ""; // Limpiar las opciones existentes
       const option = document.createElement("option");
@@ -2218,22 +2264,27 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
         const option = document.createElement("option");
         option.value = categoria.idCategoria;
 
-        // Si se debe validar si las categorías están deshabilitadas
         if (validarCategoriasInactivas === 1 && categoria.estado === 0) {
           option.textContent = `Categoría ${categoria.nombreCategoria} Inactiva`;
-          option.disabled = true; // Deshabilitar la opción
-          option.classList.add("categoria-inactiva"); // Añadir clase para aplicar estilos específicos
+          option.disabled = true;
+          option.classList.add("categoria-inactiva");
         } else {
           option.textContent = categoria.nombreCategoria;
         }
 
         idSelect.appendChild(option);
       });
+
+      // ✅ Ejecutar el callback si se proporciona
+      if (typeof callback === "function") {
+        callback();
+      }
     } else {
       console.log("No se pudieron cargar las categorías.");
     }
   });
 }
+
 
 function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
@@ -2254,24 +2305,22 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
 
   selectPageSize.value = pageSize;
 
-  cargarCategorias(selectCategoria, "Filtrar por categoría");
-
-  setTimeout(() => {
+  cargarCategorias(selectCategoria, "Filtrar por categoría", 1, 0, () => {
+    // Ahora sí se puede establecer el valor del select correctamente
     selectCategoria.value = idCategoriaFiltro;
-    // Cargar los productos
+
+    // Cargar productos después de haber cargado las categorías y seleccionado el filtro
     window.api.obtenerProductos(pageSize, currentPage, estado, idCategoriaFiltro, valorBusqueda, (respuesta) => {
       const tbody = document.getElementById("productos-body");
-      tbody.innerHTML = ""; // Limpiar contenido previo
+      tbody.innerHTML = "";
 
-      // Iterar sobre los colaboradores y generar las filas de la tabla
       respuesta.productos.forEach((producto) => {
         const estado = producto.estadoProducto === 1 ? "Activo" : "Inactivo";
 
         const row = document.createElement("tr");
 
-        // Verificar si la cantidad es menor o igual a 10 para aplicar el color rojo
         if (producto.cantidad <= 10) {
-          row.classList.add("low-stock"); // Agregar la clase 'low-stock' a la fila
+          row.classList.add("low-stock");
         }
 
         row.innerHTML = `
@@ -2286,23 +2335,21 @@ function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCate
               </button>                                                                                        
               <button class="tooltip" value="${producto.idProducto}" onclick="${producto.estadoProducto === 1 ? `actualizarEstado(this.value, 0, 'Eliminando producto', '¿Está seguro que desea eliminar este producto?', 7)` : `actualizarEstado(this.value, 1, 'Reactivando producto', '¿Está seguro que desea reactivar este producto?', 7)`}">
                   <span class="material-icons">
-                      ${producto.estadoProducto === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
+                      ${producto.estadoProducto === 1 ? 'delete' : 'restore'}
                   </span>
                   <span class="tooltiptext">
-                      ${producto.estadoProducto === 1 ? 'Eliminar producto' : 'Reactivar producto'} <!-- Cambia el tooltip dependiendo del estado -->
+                      ${producto.estadoProducto === 1 ? 'Eliminar producto' : 'Reactivar producto'}
                   </span>
               </button>
           </td>
         `;
 
         tbody.appendChild(row);
-
-        // Actualizar los botones de paginación
-        actualizarPaginacion(respuesta.paginacion, ".pagination", 7);
-
-        cerrarModal("editarProductoModal", "editarProductoForm"); // Cerrar cualquier modal activo
       });
-    }, 500);
+
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 7);
+      cerrarModal("editarProductoModal", "editarProductoForm");
+    });
   });
 }
 
@@ -2420,8 +2467,8 @@ async function editarProducto(id, boton) {
       document.getElementById("nombre").value = producto.nombre;
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
-      
-      initModuleSelector(1, true, () => {
+
+      initModuleSelector(1, true, creatable = false, editable = false, () => {
         moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
       });
 
@@ -2528,7 +2575,7 @@ function toggleModuleList() {
   container.classList.toggle("open");
 }
 
-function initModuleSelector(tipo, force = false, callback = null) {
+function initModuleSelector(tipo, force = false, creatable = true, editable = true, callback = null) {
   if (!moduleSelector || force) {
     const container = document.getElementById("module-container");
 
@@ -2548,7 +2595,9 @@ function initModuleSelector(tipo, force = false, callback = null) {
     moduleSelector = new ModuleSelector({
       containerId: "module-container",
       moduleId: tipo,
-      handlers: getHandlersForType(tipo)
+      handlers: getHandlersForType(tipo),
+      creatable: creatable,
+      editable: editable,
     });
 
     // Espera a que los módulos se carguen antes de ejecutar el callback
@@ -2557,7 +2606,6 @@ function initModuleSelector(tipo, force = false, callback = null) {
     callback(); // Si ya estaba inicializado, ejecutamos el callback directo
   }
 }
-
 // Función para obtener los handlers según el tipo de módulo con un switch
 function getHandlersForType(tipo) {
   switch (tipo) {
@@ -2569,28 +2617,77 @@ function getHandlersForType(tipo) {
             callback(unidades);
           });
         },
+
         create: (moduleId, newName, callback) => {
-          window.api.crearUnidadMedicion(newName, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al crear unidad de medición", response.message);
+          window.api.onRespuestaCrearUnidadMedicion((response) => {
+            if (response.success) {
+              window.api.obtenerUnidadesMedicion((unidades) => {
+                callback(unidades); // <- actualiza la lista en la interfaz
+              });
+            } else {
+              console.error("Error al crear una unidad de medición", response.message);
+              callback(null); // <- enviar null si hay error
+            }
           });
+
+          window.api.crearUnidadMedicion(newName);
         },
+
         update: (moduleId, id, newName, callback) => {
-          window.api.actualizarUnidadMedicion(id, newName, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al actualizar unidad de medición", response.message);
+          console.log("Actualizando unidad de medición...", id, newName);
+
+          // Registrar el listener UNA SOLA VEZ o cada vez con precaución
+          window.api.onRespuestaActualizarUnidadMedicion((response) => {
+            if (response.success) {
+              console.log("Respuesta exitosa de actualizarUnidadMedicion:", response);
+              window.api.obtenerUnidadesMedicion((unidades) => {
+                callback(unidades);
+              });
+            } else {
+              console.error("Error al actualizar una unidad de medición", response.message);
+              callback(null);
+            }
           });
+
+          // Aquí debe estar la llamada real al proceso principal
+          window.api.actualizarUnidadMedicion(id, newName);
         },
+
         delete: (moduleId, id, callback) => {
-          window.api.eliminarUnidadMedicion(id, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al eliminar unidad de medición", response.message);
+          window.api.onRespuestaEliminarUnidadMedicion((response) => {
+            if (response.success) {
+
+              window.api.obtenerUnidadesMedicion((unidades) => {
+
+                callback({
+                  success: true,
+                  updatedModules: unidades
+                });
+              });
+
+            } else {
+              console.error("Error al eliminar una unidad de medición:", response.message);
+
+              callback({
+                success: false,
+                message: response.message
+              });
+            }
           });
+
+          window.api.eliminarUnidadMedicion(id);
         },
-        undoDelete: (moduleId, name, index, callback) => {
-          window.api.revertirUnidadMedicion(name, index, (response) => {
-            if (response.success) callback(response);
-            else console.error("Error al restaurar unidad de medición", response.message);
+
+        undoDelete: (moduleId, idUnidadMedicion, callback) => {
+          window.api.rehabilitarUnidadMedicion(idUnidadMedicion);
+          window.api.onRespuestaRehabilitarUnidadMedicion((response) => {
+            if (response.success) {
+              window.api.obtenerUnidadesMedicion((unidades) => {
+                callback({ success: true, data: unidades });
+              });
+            } else {
+              callback({ success: false, message: response.message || 'No se pudo deshacer la eliminación.' });
+            }
           });
         }
       };
@@ -2600,83 +2697,6 @@ function getHandlersForType(tipo) {
       return {}; // Retorna un objeto vacío si el tipo no se reconoce
   }
 }
-
-
-/* --------------------------------          ------------------------------------------
-   -------------------------------- FACTURAS ------------------------------------------
-   --------------------------------          ------------------------------------------ */
-function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, idProveedor = null, fechaInicio = null, fechaFin = null, idComprobantePago = null, searchValue = null) {
-  // Obtener los elementos del DOM
-  const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
-  const selectEstado = document.getElementById('estadoFiltro'); // Estado
-  const inputFechaInicio = document.getElementById('fechaInicialFiltro');
-  const inputFechaFin = document.getElementById('fechaFinalFiltro');
-  const selectProveedor = document.getElementById('proveedorFiltro'); // Proveedor
-  const selectComprobante = document.getElementById('comprobanteFiltro'); // Comprobante
-  const searchInput = document.getElementById('search-bar');
-
-  // Configurar valores iniciales en los filtros
-  selectPageSize.value = pageSize;
-
-  // Configurar el select de estado
-  if (estadoFactura === 1) selectEstado.value = 1;
-  else if (estadoFactura === 0 || estadoFactura === null) selectEstado.value = 0;
-  else selectEstado.value = 2;
-
-  if (fechaInicio) inputFechaInicio.value = fechaInicio;
-  if (fechaFin) inputFechaFin.value = fechaFin;
-
-  if (searchValue) searchInput.value = searchValue;
-  cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
-  cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
-
-  setTimeout(function () {
-    if (idProveedor) selectProveedor.value = idProveedor;
-    if (idComprobantePago) selectComprobante.value = idComprobantePago;
-
-    window.api.obtenerFacturas(pageSize, pageNumber, idComprobantePago, idProveedor, fechaInicio, fechaFin, estadoFactura, searchValue, (respuesta) => {
-      const tbody = document.getElementById("facturas-table-body");
-      tbody.innerHTML = ""; // Limpiar contenido previo
-
-      // Iterar sobre las facturas y agregarlas a la tabla
-      respuesta.facturas.forEach((factura) => {
-        const fechaFactura = factura.fechaFactura ? new Date(factura.fechaFactura).toLocaleDateString('es-ES') : 'Sin fecha';
-        const estadoTexto = factura.estadoFactura === 1 ? "Activo" : "Inactivo";
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-                  <td>${factura.nombreProveedor || 'Sin proveedor'}</td>
-                  <td>${factura.numeroFactura || 'Sin número'}</td>
-                  <td>${fechaFactura}</td>
-                  <td>${factura.numeroComprobantePago || 'Sin comprobante'}</td>
-                  <td class="action-icons">
-                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/editar-factura.html', 2)">
-                          <span class="material-icons">edit</span>
-                          <span class="tooltiptext">Editar factura</span>
-                      </button>
-                      <button class="tooltip" value="${factura.idFactura}" onclick="verDetallesFactura(this.value, '/factura-view/detalles-factura.html', 1)">
-                          <span class="material-icons">info</span>
-                          <span class="tooltiptext">Ver detalles</span>
-                      </button>
-                      <button class="tooltip" value="${factura.idFactura}" onclick="${factura.estadoFactura === 1 ? `actualizarEstadoFactura(this.value, 0, 'Eliminando factura', '¿Está seguro que desea eliminar esta factura?', 1)` : `actualizarEstadoFactura(this.value, 1, 'Reactivando factura', '¿Está seguro que desea reactivar esta factura?', 1)`}">
-                          <span class="material-icons">
-                              ${factura.estadoFactura === 1 ? 'delete' : 'restore'}
-                          </span>
-                          <span class="tooltiptext">
-                              ${factura.estadoFactura === 1 ? 'Eliminar factura' : 'Reactivar factura'}
-                          </span>
-                      </button>
-                  </td>
-              `;
-        tbody.appendChild(row);
-      });
-
-      // Actualizar los botones de paginación
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 6);
-    });
-  }, 100);
-}
-
 
 function cargarPtroveedores(idSelect, mensajeQuemado) {
   window.api.obtenerProveedores(null, null, 1, null, (respuesta) => {
@@ -2825,10 +2845,10 @@ function cargarSalidasTabla(
 }
 function llenarSelectsColaboradores() {
   window.api.obtenerColaboradores(null, null, null, null, null, null, (colaboradores) => {
-      // Llenar el <select> del colaborador que entrega
-      const selectSacando = document.getElementById('colaborador-entregando');
-      selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
-          colaboradores.colaboradores.map(col => `
+    // Llenar el <select> del colaborador que entrega
+    const selectSacando = document.getElementById('colaborador-entregando');
+    selectSacando.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+      colaboradores.colaboradores.map(col => `
               <option value="${col.idColaborador}" 
                       data-correo="${col.correo}" 
                       data-telefono="${col.numTelefono}" 
@@ -2838,10 +2858,10 @@ function llenarSelectsColaboradores() {
               </option>
           `).join('');
 
-      // Llenar el <select> del colaborador que recibe
-      const selectRecibiendo = document.getElementById('colaborador-recibiendo');
-      selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
-          colaboradores.colaboradores.map(col => `
+    // Llenar el <select> del colaborador que recibe
+    const selectRecibiendo = document.getElementById('colaborador-recibiendo');
+    selectRecibiendo.innerHTML = '<option value="0">Seleccione un colaborador</option>' +
+      colaboradores.colaboradores.map(col => `
               <option value="${col.idColaborador}" 
                       data-correo="${col.correo}" 
                       data-telefono="${col.numTelefono}" 
@@ -2851,9 +2871,9 @@ function llenarSelectsColaboradores() {
               </option>
           `).join('');
 
-      // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
-      selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
-      selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
+    // Agregar eventos onchange para actualizar los datos al seleccionar un colaborador
+    selectSacando.addEventListener('change', () => actualizarDatosColaborador(selectSacando));
+    selectRecibiendo.addEventListener('change', () => actualizarDatosColaborador(selectRecibiendo));
   });
 }
 function actualizarDatosColaborador(select) {
@@ -2871,16 +2891,16 @@ function actualizarDatosColaborador(select) {
 
   // Si se selecciona "Seleccione un colaborador" (value="0"), limpiar los inputs
   if (selectedOption.value === "0") {
-      correoInput.value = '';
-      telefonoInput.value = '';
-      departamentoInput.value = '';
-      puestoInput.value = '';
+    correoInput.value = '';
+    telefonoInput.value = '';
+    departamentoInput.value = '';
+    puestoInput.value = '';
   } else {
-      // Llenar los inputs con los datos de los atributos data-*
-      correoInput.value = selectedOption.dataset.correo || '';
-      telefonoInput.value = selectedOption.dataset.telefono || '';
-      departamentoInput.value = selectedOption.dataset.departamento || '';
-      puestoInput.value = selectedOption.dataset.puesto || '';
+    // Llenar los inputs con los datos de los atributos data-*
+    correoInput.value = selectedOption.dataset.correo || '';
+    telefonoInput.value = selectedOption.dataset.telefono || '';
+    departamentoInput.value = selectedOption.dataset.departamento || '';
+    puestoInput.value = selectedOption.dataset.puesto || '';
   }
 }
 

@@ -35,7 +35,7 @@
                 </div>
             </div>
             <button class="menu-item" onclick="adjuntarHTML('/usuarios/usuarios-admin.html', cargarUsuariosTabla)">Administrar usuarios</button>
-            <button class="menu-item">Administrar inventario</button>
+            <button class="menu-item" onclick="adjuntarHTML('/configuration-panel/productos-admin.html', () => cargarProductosTabla())">Administrar inventario</button>
             <button class="menu-item" onclick="adjuntarHTML('/factura-view/factura-admin.html', cargarFacturasTabla)">Administrar facturas</button>
             <button class="menu-item" onclick="adjuntarHTML('/salida-producto/salida-admin.html', cargarSalidasTabla)">Administrar salida de productos</button> <button class="menu-item">Administrar comprobantes de pago</button>
         </div>
@@ -48,6 +48,7 @@
     <script src="../../public/js/dashboard-js/salidas.js"></script>
     <script src="../../public/js/dashboard-js/productos.js"></script>
     <script src="../../domain/ModuleSelector.js"></script>
+    <script src="../../public/js/dashboard-js/cuenta-bancaria.js"></script>
 </body>
 
 </html>

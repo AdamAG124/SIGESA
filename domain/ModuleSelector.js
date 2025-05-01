@@ -71,15 +71,39 @@ class ModuleSelector {
           input.select();
         });
 
-        input.addEventListener('keydown', async (e) => {
+        input.addEventListener('keydown', (e) => {
+
           if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
             const newValue = input.value.trim();
-            if (newValue && newValue !== mod.nombre) {
-              await this.handlers.update(this.moduleId, mod.id, newValue);
-              await this.fetchModules();
+
+            if (newValue && !this.modules.some(m => m.nombre === newValue)) {
+
+              this.handlers.update(this.moduleId, mod.id, newValue, (updatedModules) => {
+                if (updatedModules && Array.isArray(updatedModules)) {
+                  this.modules = updatedModules.map(item => this.normalizeItem(item));
+                  this.renderModules();
+                  this.showAlert('success', 'Operación exitosa', `"${newValue}" ha sido actualizado.`);
+
+                } else {
+                  this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de modificar el módulo.');
+                }
+              });
+            } else {
+              if (newValue === '') {
+                input.value = mod.nombre; // Revertir al nombre original si está vacío
+                this.showAlert('error', 'Error', 'El nombre no puede estar vacío');
+              }
+
+              if (newValue === mod.nombre) {
+                input.value = mod.nombre;
+                this.showAlert('success', 'Operación exitosa', `"${newValue}" ha sido actualizado.`);
+              }
             }
           } else if (e.key === 'Escape') {
-            input.value = mod.nombre;
+            const mod = input._mod;
+            input.value = mod?.nombre || '';
             input.readOnly = true;
           }
         });
@@ -118,24 +142,53 @@ class ModuleSelector {
         </div>
       `;
 
-    item.querySelector('.confirm').onclick = async () => {
-      await this.handlers.delete(this.moduleId, id);
-      await this.fetchModules();
-      this.showUndoToast(mod, index);
+    item.querySelector('.confirm').onclick = () => {
+      this.handlers.delete(this.moduleId, id, (response) => {
+        if (response && response.success) {
+
+          if (Array.isArray(response.updatedModules)) {
+            this.modules = response.updatedModules.map(item => this.normalizeItem(item));
+            this.renderModules();
+          } else {
+            this.fetchModules(); // Fallback si no se devuelve data explícita
+          }
+
+          this.showAlert('success', 'Operación exitosa', `"${mod.nombre}" ha sido eliminado.`);
+          this.showUndoToast(mod);
+        } else {
+          // Mostrar el mensaje del backend, si lo hay
+          const errorMsg = response?.message || 'No se pudo eliminar el módulo.';
+          this.showAlert('error', 'Error', errorMsg);
+          this.renderModules(); // Restaurar UI si no se elimina
+        }
+      });
     };
 
     item.querySelector('.cancel').onclick = () => this.renderModules();
   }
 
-  showUndoToast(mod, index) {
+  showUndoToast(mod) {
     const toast = document.createElement('div');
     toast.className = 'undo-toast';
     toast.innerHTML = `Unidad eliminada: <strong>${mod.nombre}</strong> <button>Deshacer</button>`;
-    toast.querySelector('button').onclick = async () => {
-      await this.handlers.undoDelete?.(this.moduleId, mod, index);
-      await this.fetchModules();
-      toast.remove();
+
+    const undoBtn = toast.querySelector('button');
+    undoBtn.onclick = () => {
+      if (typeof this.handlers.undoDelete === 'function') {
+        this.handlers.undoDelete(this.moduleId, mod.id, (response) => {
+          if (response && response.success && Array.isArray(response.data)) {
+            this.modules = response.data.map(item => this.normalizeItem(item));
+            this.renderModules();
+            toast.remove();
+            this.showAlert('success', 'Deshacer', `"${mod.nombre}" fue restaurado.`);
+          } else {
+            const msg = response?.message || 'No se pudo deshacer la eliminación.';
+            this.showAlert('error', 'Error', msg);
+          }
+        });
+      }
     };
+
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 10000);
   }
@@ -169,15 +222,23 @@ class ModuleSelector {
     document.removeEventListener('keydown', this._handleEscape);
   }
 
-  async saveNewModule() {
+  saveNewModule() {
     const newName = this.inputNew.value.trim();
     const errorMsg = document.getElementById('module-error');
 
     if (newName && !this.modules.some(m => m.nombre === newName)) {
-      await this.handlers.create(this.moduleId, newName);
-      await this.fetchModules();
-      this.popup.style.display = 'none';
-      errorMsg.style.display = 'none';
+      this.handlers.create(this.moduleId, newName, (updatedModules) => {
+        if (updatedModules && Array.isArray(updatedModules)) {
+          this.modules = updatedModules.map(item => this.normalizeItem(item));
+          this.renderModules(); // Recargar lista
+          this.showAlert('success', 'Operación exitosa', `"${newName}" ha sido creado.`);
+          this.popup.style.display = 'none';
+          errorMsg.style.display = 'none';
+        } else {
+          this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de crear el módulo.');
+          console.error("Error: lista actualizada no recibida.");
+        }
+      });
     } else {
       errorMsg.textContent = "Ingrese un nombre válido y único.";
       errorMsg.style.display = 'block';
@@ -201,12 +262,11 @@ class ModuleSelector {
     } else {
       console.warn("Set selected by ID: no se encontró un módulo con id", id);
     }
-  }  
+  }
 
   reset() {
     this.selected = null;
     this.selectedModule.textContent = "Seleccionar unidad"; // ← o el texto por defecto que quieras
-    this.fetchModules(); // Vuelve a cargar la lista en caso de que haya cambios recientes
   }
   // Agregar el módulo para que se pueda normalizar
   normalizeItem(item) {
@@ -234,5 +294,22 @@ class ModuleSelector {
       ${mod.nombre}
       <span class="dropdown-icon"></span>
     `;
+  }
+
+  showAlert(type, title, message) {
+    const alertContainer = document.createElement("div");
+    alertContainer.className = `module-selector-alert module-selector-alert-${type}`;
+    alertContainer.innerHTML = `
+      <div class="module-selector-alert-header">${title}</div>
+      <div class="module-selector-alert-body">${message}</div>
+      <button class="module-selector-alert-close" onclick="this.parentElement.remove()">Cerrar</button>
+    `;
+
+    document.body.appendChild(alertContainer); // Agregar al body como fallback
+
+    // Eliminar automáticamente la alerta después de 5 segundos
+    setTimeout(() => {
+      alertContainer.remove();
+    }, 5000);
   }
 }

@@ -1,6 +1,16 @@
 // preload.js
 const { contextBridge, ipcRenderer } = require('electron');
-
+/*
+*       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*
+*
+//      Esta línea Genera un error ✖️
+//      No permite que se pueda interactuar con la ventana de Electron
+//      const { on } = require('pdfkit');        
+*
+*
+*       ¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡
+*/
 // Exponer funciones seguras para interactuar con ipcRenderer
 contextBridge.exposeInMainWorld('api', {
     sendLogin: (username, password) => ipcRenderer.send('login', { username, password }),
@@ -279,6 +289,28 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-unidades-medicion', (event, respuesta) => callback(respuesta));
     },
 
+    crearUnidadMedicion: (newName) => ipcRenderer.send('crear-unidad-medicion', newName),
+    onRespuestaCrearUnidadMedicion: (callback) => ipcRenderer.once('respuesta-crear-unidad-medicion', (event, respuesta) => callback(respuesta)),
+    
+    actualizarUnidadMedicion: (idUnidadMedicion, nuevoNombre) => ipcRenderer.send('editar-unidad-medicion', idUnidadMedicion, nuevoNombre),
+    onRespuestaActualizarUnidadMedicion: (callback) => ipcRenderer.once('respuesta-editar-unidad-medicion', (event, respuesta) => callback(respuesta)),
+    
+    eliminarUnidadMedicion: (idUnidadMedicion) => ipcRenderer.send('eliminar-unidad-medicion', idUnidadMedicion),
+    onRespuestaEliminarUnidadMedicion: (callback) => ipcRenderer.once('respuesta-eliminar-unidad-medicion', (event, respuesta) => callback(respuesta)),
+    
+    rehabilitarUnidadMedicion: (idUnidadMedicion) => ipcRenderer.send('rehabilitar-unidad-medicion', idUnidadMedicion),
+    onRespuestaRehabilitarUnidadMedicion: (callback) => ipcRenderer.once('respuesta-rehabilitar-unidad-medicion', (event, respuesta) => callback(respuesta)),
+
+    /* --------------------------------                   ------------------------------------------
+       --------------------------------  Cuenta Bancaria  ------------------------------------------
+       --------------------------------                   ------------------------------------------ */
+
+    obtenerCuentasBancarias: (pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado, callback) => {
+        // Enviar solicitud al proceso principal
+        ipcRenderer.send('obtener-cuentas-bancarias', { pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado });
+        // Escuchar la respuesta del proceso principal
+        ipcRenderer.once('cuentas-bancarias-obtenidas', (event, respuesta) => callback(respuesta));
+    }
 
 
 });

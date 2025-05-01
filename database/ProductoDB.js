@@ -78,6 +78,7 @@ class ProductoDB {
                     U.DSC_NOMBRE AS nombreUnidadMedicion, U.ESTADO AS estadoUnidadMedicion
                 ${baseQuery}
                 ${whereClause}
+                ORDER BY P.ID_PRODUCTO DESC
                 ${limitOffsetClause}
             `;
 
@@ -155,6 +156,7 @@ class ProductoDB {
             const unidadMedicion = producto.getUnidadMedicion()?.getIdUnidadMedicion();
             const categoria = producto.getCategoria()?.getIdCategoria();
             const estado = producto.getEstado() ?? 1; // 1 (Activo)
+            console.log('Estado:', estado);
 
             if (!categoria) {
                 return { success: false, message: 'La categoría del producto es necesaria.' };
@@ -200,7 +202,7 @@ class ProductoDB {
         let connection;
 
         try {
-            connection = await this.#db.conectar(); 1
+            connection = await this.#db.conectar();
 
             // Construimos la consulta SQL
             const query = `UPDATE ${this.#table} SET estado = ? WHERE ID_PRODUCTO = ?`; // Cambiamos estado a 0 (inactivo)
@@ -296,7 +298,6 @@ class ProductoDB {
         try {
             connection = await this.#db.conectar();
 
-            // Obtén los atributos del objeto Producto
             const idProducto = producto.getIdProducto();
             const nombre = producto.getNombre();
             const descripcion = producto.getDescripcion();
@@ -305,23 +306,20 @@ class ProductoDB {
             const idCategoria = producto.getCategoria().getIdCategoria();
             const estado = producto.getEstado();
 
-            // Construir la consulta SQL para actualizar el producto
-            let query = `
+            const query = `
                 UPDATE ${this.#table}
                     SET DSC_NOMBRE = ?,
-                    DSC_PRODUCTO = ?, 
-                    NUM_CANTIDAD = ?, 
-                    ID_UNIDAD_MEDICION = ?, 
-                    ID_CATEGORIA_PRODUCTO = ?,
-                    ESTADO = ?
+                        DSC_PRODUCTO = ?, 
+                        NUM_CANTIDAD = ?, 
+                        ID_UNIDAD_MEDICION = ?, 
+                        ID_CATEGORIA_PRODUCTO = ?,
+                        ESTADO = ?
                 WHERE ID_PRODUCTO = ?`;
 
-            let params = [nombre, descripcion, cantidad, idUnidadMedicion, idCategoria, idProducto, estado];
+            const params = [nombre, descripcion, cantidad, idUnidadMedicion, idCategoria, estado, idProducto];
 
-            // Ejecutar la consulta
             const [result] = await connection.query(query, params);
 
-            // Verificar si se realizaron cambios
             if (result.affectedRows > 0) {
                 return {
                     success: true,
@@ -340,7 +338,7 @@ class ProductoDB {
             };
         } finally {
             if (connection) {
-                await connection.end(); // Asegurarse de cerrar la conexión
+                await connection.end();
             }
         }
     }
