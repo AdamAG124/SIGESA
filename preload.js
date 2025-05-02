@@ -310,8 +310,8 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('obtener-cuentas-bancarias', { pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado });
         // Escuchar la respuesta del proceso principal
         ipcRenderer.once('cuentas-bancarias-obtenidas', (event, respuesta) => callback(respuesta));
-    }
-
-
+    },
+    crearCuentaBancaria: (cuentaBancariaData) => ipcRenderer.send('crear-cuenta-bancaria', cuentaBancariaData),
+    onRespuestaCrearCuentaBancaria: (callback) => ipcRenderer.once('respuesta-crear-cuenta-bancaria', (event, respuesta) => callback(respuesta))
 });
 

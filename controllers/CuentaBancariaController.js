@@ -1,4 +1,5 @@
 const CuentaBancariaService = require('../services/CuentaBancariaService');
+const CuentaBancaria = require('../domain/CuentaBancaria');
 
 class CuentaBancariaController{
 
@@ -30,6 +31,22 @@ class CuentaBancariaController{
             throw error; // Propagar el error para que pueda ser manejado por el llamador
         }
 
+    }
+
+    async crearCuentaBancaria(cuentaBancariaData) {
+        try {
+            const cuentaBancaria = new CuentaBancaria()
+            cuentaBancaria.getIdEntidadFinanciera().setIdEntidadFinanciera(cuentaBancariaData.entidadFinanciera);
+            cuentaBancaria.setBanco(cuentaBancariaData.nombreBanco);
+            cuentaBancaria.setNumero(cuentaBancariaData.numeroCuenta);
+            cuentaBancaria.setDivisa(cuentaBancariaData.tipoDivisa);
+
+            const result = await this.#cuentaBancariaService.crearCuentaBancaria(cuentaBancaria);
+            return result;
+        } catch (error) {
+            console.error('Error al crear cuenta bancaria:', error);
+            throw error; // Propagar el error para que pueda ser manejado por el llamador
+        }
     }
 }
 

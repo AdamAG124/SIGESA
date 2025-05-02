@@ -1,7 +1,7 @@
 function cargarCuentasTabla(pageSize = 10, pageNumber = 1, searchValue = null, idEntidadFinanciera = null, tipoDivisa = null, estado = 1) {
     cargarEntidadesFinancierasEnSelect()
     setTimeout(() => {
-        if(idEntidadFinanciera!== null) {
+        if (idEntidadFinanciera !== null) {
             document.getElementById("entidad-financiera-filtro").value = idEntidadFinanciera;
         }
         document.getElementById("estado-filtro").value = estado;
@@ -59,8 +59,9 @@ function cargarCuentasTabla(pageSize = 10, pageNumber = 1, searchValue = null, i
 }
 
 function mostrarFormCrearCuentaBancaria() {
+    initModuleSelector(2, true, true, false, false);
     document.getElementById("modalTitle").innerText = "Crear Cuenta Bancaria";
-    document.getElementById("buttonModal").onclick = enviarCreacionEntidadFinanciera;
+    document.getElementById("buttonModal").onclick = validarYCrearCuentaBancaria;
     document.getElementById("crearEditarCuentaBancariaModal").style.display = "block";
 }
 
@@ -85,4 +86,97 @@ function cargarEntidadesFinancierasEnSelect() {
             selectEntidadFinanciera.appendChild(option);
         });
     });
+}
+
+function validarYCrearCuentaBancaria() {
+    const selectedModule = document.getElementById('selected-module');
+    const nombreBancoInput = document.getElementById('nombreBanco');
+    const numeroCuentaInput = document.getElementById('numeroCuenta');
+    const divisaSelect = document.getElementById('divisa');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Estilo para los bordes rojos
+    const errorStyle = '2px solid red';
+    const defaultStyle = '1px solid #ccc'; // Ajusta esto según el estilo por defecto de tus inputs
+
+    // Limpiar estilos y mensajes de error previos
+    nombreBancoInput.style.border = defaultStyle;
+    numeroCuentaInput.style.border = defaultStyle;
+    divisaSelect.style.border = defaultStyle;
+    selectedModule.style.border = defaultStyle;
+    errorMessage.textContent = '';
+
+    // Bandera para indicar si todos los campos están llenos
+    let isValid = true;
+
+    // Validar entidad financiera (selected-module)
+    if (selectedModule.textContent.trim() === 'Selección') {
+        selectedModule.style.border = errorStyle;
+        errorMessage.textContent = 'Por favor, seleccione una entidad financiera.';
+        isValid = false;
+        return; // Salir si hay un error
+    }
+
+    // Validar nombre del banco
+    if (!nombreBancoInput.value.trim()) {
+        nombreBancoInput.style.border = errorStyle;
+        errorMessage.textContent = 'Por favor, rellene el nombre del banco.';
+        isValid = false;
+        return;
+    }
+
+    // Validar número de cuenta bancaria
+    if (!numeroCuentaInput.value.trim()) {
+        numeroCuentaInput.style.border = errorStyle;
+        errorMessage.textContent = 'Por favor, rellene el número de cuenta bancaria.';
+        isValid = false;
+        return;
+    }
+
+    // Validar tipo de divisa (asegurarse de que no esté vacío, aunque el select siempre tendrá un valor por defecto)
+    if (!divisaSelect.value) {
+        divisaSelect.style.border = errorStyle;
+        errorMessage.textContent = 'Por favor, seleccione un tipo de divisa.';
+        isValid = false;
+        return;
+    }
+
+    // Si todos los campos están llenos, crear el array cuentaBancariaData
+    if (isValid) {
+        Swal.fire({
+            title: "Creando Cuenta Bancaria",
+            text: "¿Está seguro que desea crear esta Cuenta Bancaria?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4a4af4",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const cuentaBancariaData = {
+                    entidadFinanciera: moduleSelector.getSelectedId(),
+                    nombreBanco: nombreBancoInput.value.trim(),
+                    numeroCuenta: numeroCuentaInput.value.trim(),
+                    tipoDivisa: divisaSelect.value
+                };
+                errorMessage.textContent = '';
+                window.api.crearCuentaBancaria(cuentaBancariaData);
+                window.api.onRespuestaCrearCuentaBancaria((respuesta) => {
+                    if (respuesta.success) {
+                        mostrarToastConfirmacion(respuesta.message);
+                        setTimeout(() => {
+                            adjuntarHTML('/configuration-panel/cuentas-bancarias-admin.html', () => cargarCuentasTabla());
+                        }, 2000);
+                    } else {
+                        mostrarToastError(respuesta.message);
+                    }
+                }
+                );
+            }
+        }).catch((error) => {
+            mostrarToastError("A ocurrido un erro mientras se enviaba el formulario.");
+            console.error("Error:", error);
+        });
+    }
 }

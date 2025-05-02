@@ -65,35 +65,45 @@
                 <input type="hidden" id="idCuentaBancaria">
 
                 <label for="entidadFinanciera">Entidad Financiera:</label>
-                    <div id="module-container">
-                        <div id="select-wrapper">
-                            <div id="selected-module" onclick="toggleModuleList()">
-                                Selección
-                                <span class="dropdown-icon"></span>
-                            </div>
-                            <div id="module-list"></div>
+                <div id="module-container">
+                    <div id="select-wrapper">
+                        <div id="selected-module" onclick="toggleModuleList()">
+                            Selección
+                            <span class="dropdown-icon"></span>
                         </div>
-                        <button id="add-module-btn" title="Agregar">＋</button>
+                        <div id="module-list"></div>
                     </div>
-                    <!-- Modal popup para nuevo módulo -->
-                    <div id="module-popup" class="popup-overlay">
-                        <div class="popup-content">
-                            <h3>Agregar</h3>
+                    <button id="add-module-btn" title="Agregar">＋</button>
+                </div>
+                <!-- Modal popup para nuevo módulo -->
+                <div id="module-popup" class="popup-overlay">
+                    <div class="popup-content">
+                        <h3>Agregar</h3>
 
-                            <!-- Aquí va el nuevo div de error -->
-                            <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
-                            </div>
+                        <!-- Aquí va el nuevo div de error -->
+                        <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
+                        </div>
 
-                            <input type="text" id="new-module-name" placeholder="Nombre del módulo" />
-                            <div class="popup-buttons">
-                                <button id="save-module" type="button">Guardar</button>
-                                <button id="cancel-module" type="button">Cancelar</button>
-                            </div>
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" id="nombre" name="nombre">
+
+                        <label for="telefono">Teléfono (+506):</label>
+                        <input type="text" id="telefono" name="telefono" min="8">
+
+                        <label for="correo">Correo Electrónico:</label>
+                        <input type="email" id="correo" name="correo">
+
+                        <label for="tipo">Tipo:</label>
+                        <input type="text" id="tipo" name="tipo" required>
+                        <div class="popup-buttons">
+                            <button id="save-module" type="button">Guardar</button>
+                            <button id="cancel-module" type="button">Cancelar</button>
                         </div>
                     </div>
+                </div>
 
                 <label for="nombre">Nombre del banco:</label>
-                <input type="text" id="nombre" name="nombre">
+                <input type="text" id="nombreBanco" name="nombre">
 
                 <label for="telefono">Número de cuenta bancaria:</label>
                 <input type="text" id="numeroCuenta" name="numeroCuenta" min="8">
