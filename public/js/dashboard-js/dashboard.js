@@ -1794,7 +1794,7 @@ function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorB
               <span class="material-icons">edit</span>
               <span class="tooltiptext">Editar puesto</span>
             </button>
-            <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?', 5)`}">
+           <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstadoPuesto(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?')` : `actualizarEstadoPuesto(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?')`}">
               <span class="material-icons">${puesto.estado === 1 ? 'delete' : 'restore'}</span>
               <span class="tooltiptext">${puesto.estado === 1 ? 'Eliminar puesto' : 'Reactivar puesto'}</span>
             </button>
@@ -1808,6 +1808,33 @@ function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorB
       actualizarPaginacion(respuesta.paginacion, ".pagination", 10);
     } else {
       console.warn('No se proporcionaron datos de paginación.');
+    }
+  });
+}
+function actualizarEstadoPuesto(id, estado, titulo, mensaje) {
+  Swal.fire({
+    title: titulo,
+    text: mensaje,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para actualizar el estado del puesto
+      window.api.eliminarPuesto(Number(id), Number(estado));
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaEliminarPuesto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          cargarPuestosTrabajo(); // Recargar la tabla de puestos
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
     }
   });
 }
@@ -1876,45 +1903,81 @@ function enviarCreacionPuesto() {
   });
 }
 async function editarPuesto(id, boton) {
-  // Lógica para editar un puesto
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombrePuesto = fila.children[0].textContent;
+  const descripcionPuesto = fila.children[1].textContent;
+  const estadoPuesto = fila.children[2].textContent === "Activo" ? true : false;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idPuestoTrabajo").value = id;
+  document.getElementById("nombrePuesto").value = nombrePuesto;
+  document.getElementById("descripcionPuesto").value = descripcionPuesto;
+  document.getElementById("estadoPuesto").checked = estadoPuesto;
+
+  // Cambiar el título del modal a "Editar Puesto"
+  document.getElementById("modalTitle").innerText = "Editar Puesto de Trabajo";
+
+  // Configurar el botón del modal para que utilice el método `enviarEdicionPuesto`
+  document.getElementById("buttonModal").onclick = enviarEdicionPuesto;
+
+  // Mostrar el modal
+  document.getElementById("crearPuestoModal").style.display = "block";
 }
-
 function enviarEdicionPuesto() {
-  const idPuestoTrabajo = document.getElementById("idPuestoTrabajo").value;
-  const nombre = document.getElementById("nombrePuesto").value;
-  const descripcion = document.getElementById("descripcionPuesto").value;
+  const id = document.getElementById("idPuestoTrabajo").value;
+  const nombre = document.getElementById("nombrePuesto").value.trim();
+  const descripcion = document.getElementById("descripcionPuesto").value.trim();
   const estado = document.getElementById("estadoPuesto").checked ? 1 : 0;
+  const errorMessage = document.getElementById("errorMessage");
 
-  const puestoData = { idPuestoTrabajo, nombre, descripcion, estado };
+  // Validar campos vacíos
+  if (!nombre || !descripcion) {
+    errorMessage.textContent = "Por favor complete todos los campos.";
+    errorMessage.style.color = "red";
+    return;
+  }
 
+  // Crear el objeto con los datos del puesto
+  const puestoData = {
+    idPuestoTrabajo: id,
+    nombre,
+    descripcion,
+    estado,
+  };
+
+  // Confirmar la edición
   Swal.fire({
-    title: "Editando puesto",
-    text: "¿Está seguro que desea editar este puesto?",
+    title: "Guardar Cambios",
+    text: "¿Está seguro que desea guardar los cambios?",
     icon: "question",
     showCancelButton: true,
     confirmButtonColor: "#4a4af4",
     cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
+    confirmButtonText: "Sí, guardar",
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
+      // Llamar a la API para editar el puesto
       window.api.editarPuesto(puestoData);
 
+      // Manejar la respuesta del backend
       window.api.onRespuestaActualizarPuesto((respuesta) => {
         if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            cargarPuestosTrabajo();
-            cerrarModal("editarPuestoModal", "editarPuestoForm");
-          }, 2000);
+          mostrarToastConfirmacion("Puesto actualizado exitosamente.");
+          cerrarModal("crearPuestoModal", "crearPuestoForm"); // Cerrar el modal
+          cargarPuestosTrabajo(); // Recargar la tabla de puestos
         } else {
-          mostrarToastError(respuesta.message);
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al actualizar el puesto.";
+          errorMessage.style.color = "red";
         }
       });
     }
   });
 }
-
 /* --------------------------------                    ------------------------------------------
    -------------------------------- ENTIDAD FINANCIERA ------------------------------------------
    --------------------------------                    ------------------------------------------ */
