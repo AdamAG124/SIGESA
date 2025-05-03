@@ -1750,7 +1750,7 @@ function enviarEdicionCategoria() {
 /* --------------------------------                   ------------------------------------------
    -------------------------------- PUESTO DE TRABAJO ------------------------------------------
    --------------------------------                   ------------------------------------------ */
-function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
+function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   // Obtener los elementos del DOM
   const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
   const selectEstado = document.getElementById('estado-filtro'); // Estado
