@@ -1651,3 +1651,14 @@ ipcMain.on('obtener-cuentas-bancarias', async (event, args) => {
         });
     }
 });
+
+ipcMain.on('crear-cuenta-bancaria', async (event, cuentaBancariaData) => {
+    const cuentaBancariaController = new CuentaBancariaController();
+    try {
+        const resultado = await cuentaBancariaController.crearCuentaBancaria(cuentaBancariaData);
+        event.reply('respuesta-crear-cuenta-bancaria', resultado);
+    } catch (error) {
+        console.error('Error al crear la cuenta bancaria:', error);
+        event.reply('cuenta-bancaria-creada', { success: false, message: error.message });
+    }
+});
