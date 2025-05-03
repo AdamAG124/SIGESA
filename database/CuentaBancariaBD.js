@@ -154,6 +154,50 @@ class CuentaBancariaBD {
             }
         }
     }
+
+    async crearCuentaBancaria(cuentaBancaria) {
+        let connection;
+        try {
+
+            connection = await this.#db.conectar();
+
+            // Construir la consulta INSERT
+            const query = `
+                INSERT INTO ${this.#table} (
+                    ID_ENTIDAD_FINANCIERA,
+                    DSC_BANCO,
+                    NUM_CUENTA_BANCARIA,
+                    TIPO_DIVISA,
+                    ESTADO
+                ) VALUES (?, ?, ?, ?, ?)
+            `;
+            const params = [
+                cuentaBancaria.getIdEntidadFinanciera().getIdEntidadFinanciera(),
+                cuentaBancaria.getBanco(),
+                cuentaBancaria.getNumero(),
+                cuentaBancaria.getDivisa(),
+                1
+            ];
+
+            // Ejecutar la consulta
+            const [result] = await connection.query(query, params);
+
+            return {
+                success: true,
+                message: 'Cuenta bancaria creada exitosamente'
+            };
+        } catch (error) {
+            console.error('Error en crearCuentaBancaria:', error.message);
+            return {
+                success: false,
+                message: 'Error al crear la cuenta bancaria: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
 }
 
 module.exports = CuentaBancariaBD;

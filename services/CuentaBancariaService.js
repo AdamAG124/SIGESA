@@ -17,6 +17,10 @@ class CuentaBancariaService {
         }
         return await this.#cuentaBancariaBD.obtenerCuentasBancarias(pageSize, pageNumber, searchValue, idEntidadFinanciera, tipoDivisa, estado);
     }
+
+    async crearCuentaBancaria(cuentaBancaria) {
+        return await this.#cuentaBancariaBD.crearCuentaBancaria(cuentaBancaria);
+    }
 }
 
 module.exports = CuentaBancariaService;

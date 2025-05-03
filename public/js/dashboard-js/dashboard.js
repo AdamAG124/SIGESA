@@ -2663,7 +2663,7 @@ function toggleModuleList() {
   container.classList.toggle("open");
 }
 
-function initModuleSelector(tipo, force = false, creatable = true, editable = true, callback = null) {
+function initModuleSelector(tipo, force = false, creatable = true, editable = true, deletable = true, callback = null) {
   if (!moduleSelector || force) {
     const container = document.getElementById("module-container");
 
@@ -2686,6 +2686,7 @@ function initModuleSelector(tipo, force = false, creatable = true, editable = tr
       handlers: getHandlersForType(tipo),
       creatable: creatable,
       editable: editable,
+      deletable: deletable
     });
 
     // Espera a que los módulos se carguen antes de ejecutar el callback
@@ -2779,7 +2780,30 @@ function getHandlersForType(tipo) {
           });
         }
       };
+    case 2:
+      // Módulo de entidades financieras
+      return {
+        list: (moduleId, callback) => {
+          window.api.obtenerEntidadesFinancieras(null, null, 1, null, (entidadesFinancieras) => {
+            callback(entidadesFinancieras);
+          });
+        },
 
+        create: (moduleId, newEntidad, callback) => {
+          window.api.onRespuestaCrearEntidadFinanciera((response) => {
+            if (response.success) {
+              window.api.obtenerEntidadesFinancieras(null, null, 1, null, (entidadesFinancieras) => {
+                callback(entidadesFinancieras);
+              });
+            } else {
+              console.error("Error al crear una entidad financiera.", response.message);
+              callback(null); // <- enviar null si hay error
+            }
+          });
+
+          window.api.crearEntidadFinanciera(newEntidad);
+        }
+      };
     default:
       console.error(`Tipo de módulo no soportado: ${tipo}`);
       return {}; // Retorna un objeto vacío si el tipo no se reconoce
