@@ -29,6 +29,7 @@ function cargarCuentasTabla(pageSize = 10, pageNumber = 1, searchValue = null, i
                             <td>${cuenta.numCuentaBancaria}</td>
                             <td>${cuenta.tipoDivisa}</td>
                             <td>${cuenta.dscNombreEntidadFinanciera}</td>
+                            <td class="hidden-info" style="display:none;">${cuenta.idEntidadFinanciera}</td>
                             <td>${cuenta.estado ? 'Activo' : 'Inactivo'}</td>
                             <td class="action-icons">
                                 <button class="tooltip" value="${cuenta.idCuentaBancaria}" onclick="desplegarModalEditarCuenta(this.value, this)">
@@ -179,4 +180,33 @@ function validarYCrearCuentaBancaria() {
             console.error("Error:", error);
         });
     }
+}
+
+function desplegarModalEditarCuenta(idCuenta, button) {
+    const row = button.closest('tr');
+
+    const dscBanco = row.cells[0].textContent;
+    const numCuentaBancaria = row.cells[1].textContent;
+    const tipoDivisa = row.cells[2].textContent;
+    const idEntidadFinanciera = row.cells[4].textContent;
+
+    const entidadesFinancierasSelect = document.getElementById('module-list');
+    const entidadesFinancieras = entidadesFinancierasSelect.querySelectorAll(':scope > div');
+
+    console.log("Array entidades: ", entidadesFinancieras);
+    entidadesFinancieras.forEach((option) => {
+        console.log("Nombre enntidad: ", option.value);
+        /*if (option.value === idEntidadFinanciera) {
+            option.selected = true;
+        } else {
+            option.selected = false;
+        }*/
+    });
+
+    document.getElementById("nombreBanco").value = dscBanco;
+    document.getElementById("numeroCuenta").value = numCuentaBancaria;
+    document.getElementById("divisa").value = tipoDivisa;
+
+
+    mostrarFormCrearCuentaBancaria();
 }

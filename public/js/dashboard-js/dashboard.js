@@ -1518,7 +1518,7 @@ function cargarDepartamentos(idSelect, mensajeQuemado) {
     });
   });
 }
-/*
+
 function cargarPuestos(idSelect, mensajeQuemado) {
   window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
@@ -1536,7 +1536,7 @@ function cargarPuestos(idSelect, mensajeQuemado) {
       idSelect.appendChild(option);
     });
   });
-}*/
+}
 
 function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
