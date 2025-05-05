@@ -45,6 +45,7 @@ class ModuleSelector {
   }
 
   fetchModules(callback) {
+    console.log("Ejecutando fetchModules para moduleId:", this.moduleId);
     this.handlers.list(this.moduleId, (items) => {
       if (items) {
         // Normalizar los objetos según el módulo
@@ -314,10 +315,12 @@ class ModuleSelector {
   }
 
   setSelectedById(id) {
+    console.log("Set selected by ID:", id);
     switch (this.moduleId) {
       case 1:
         const mod = this.modules.find(m => m.id === id || m.idUnidadMedicion === id);
         if (mod) {
+          console.log("Set selected by ID:", mod);
           this.selected = mod;
           this.updateSelectedDisplay(mod);
         } else {
@@ -374,6 +377,7 @@ class ModuleSelector {
   }
 
   updateSelectedDisplay(mod) {
+    console.log("Update selected display:", mod);
     this.selectedModule.innerHTML = `
       ${mod.nombre}
       <span class="dropdown-icon"></span>

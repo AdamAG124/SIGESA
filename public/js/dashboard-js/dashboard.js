@@ -2556,8 +2556,10 @@ async function editarProducto(id, boton) {
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
 
-      initModuleSelector(1, true, creatable = false, editable = false, () => {
-        moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
+      // Inicializar el selector de módulos
+      initModuleSelector(1, true, false, false, true, () => {
+        // Aquí esperamos que los módulos se carguen antes de seleccionar la unidad
+        moduleSelector.setSelectedById(producto.idUnidadMedicion); // Seleccionamos la unidad de medición guardada
       });
 
       // Usar setTimeout para esperar un poco y luego asignar el valor al select
