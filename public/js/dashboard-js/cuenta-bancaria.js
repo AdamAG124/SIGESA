@@ -191,16 +191,17 @@ function desplegarModalEditarCuenta(idCuenta, button) {
     const tipoDivisa = row.cells[2].textContent;
     const idEntidadFinanciera = row.cells[4].textContent;
 
-    mostrarFormCrearCuentaBancaria();
+    document.getElementById("modalTitle").innerText = "Editar Cuenta Bancaria";
 
-    initModuleSelector(2, true, creatable = true, editable = false, deletable = false, () => {
-        moduleSelector.setSelectedById(idEntidadFinanciera);
+    initModuleSelector(2, true, true, false, true, () => {
+        moduleSelector.setSelectedById(Number(idEntidadFinanciera));
     });
     document.getElementById("nombreBanco").value = dscBanco;
     document.getElementById("numeroCuenta").value = numCuentaBancaria;
     document.getElementById("divisa").value = tipoDivisa;
 
     document.getElementById("buttonModal").onclick = validarYEditarCuentaBancaria;
+    document.getElementById("crearEditarCuentaBancariaModal").style.display = "block";
 }
 
 function validarYEditarCuentaBancaria() {
