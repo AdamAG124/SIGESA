@@ -25,6 +25,8 @@ class PuestoTrabajoService {
     async eliminarPuesto(puesto) {
         return await this.#puestoTrabajoDB.eliminarPuesto(puesto);
     }
+
+    
 }
 
 module.exports = PuestoTrabajoService;

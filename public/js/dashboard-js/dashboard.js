@@ -1518,7 +1518,7 @@ function cargarDepartamentos(idSelect, mensajeQuemado) {
     });
   });
 }
-/*
+
 function cargarPuestos(idSelect, mensajeQuemado) {
   window.api.obtenerPuestosTrabajo(pageSize = null, currentPage = null, estado = 1, valorBusqueda = null, (respuesta) => {
 
@@ -1536,7 +1536,7 @@ function cargarPuestos(idSelect, mensajeQuemado) {
       idSelect.appendChild(option);
     });
   });
-}*/
+}
 
 function cargarCategoriasTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   const selectEstado = document.getElementById('estado-filtro');
@@ -1750,7 +1750,7 @@ function enviarEdicionCategoria() {
 /* --------------------------------                   ------------------------------------------
    -------------------------------- PUESTO DE TRABAJO ------------------------------------------
    --------------------------------                   ------------------------------------------ */
-function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
+function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   // Obtener los elementos del DOM
   const selectPageSize = document.getElementById('selectPageSize'); // Tamaño de página
   const selectEstado = document.getElementById('estado-filtro'); // Estado
@@ -1794,7 +1794,7 @@ function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorB
               <span class="material-icons">edit</span>
               <span class="tooltiptext">Editar puesto</span>
             </button>
-            <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?', 5)` : `actualizarEstado(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?', 5)`}">
+           <button class="tooltip" value="${puesto.idPuestoTrabajo}" onclick="${puesto.estado === 1 ? `actualizarEstadoPuesto(this.value, 0, 'Eliminando puesto', '¿Está seguro que desea eliminar este puesto?')` : `actualizarEstadoPuesto(this.value, 1, 'Reactivando puesto', '¿Está seguro que desea reactivar este puesto?')`}">
               <span class="material-icons">${puesto.estado === 1 ? 'delete' : 'restore'}</span>
               <span class="tooltiptext">${puesto.estado === 1 ? 'Eliminar puesto' : 'Reactivar puesto'}</span>
             </button>
@@ -1811,85 +1811,173 @@ function cargarPuestosTrabajo(pageSize = 10, currentPage = 1, estado = 2, valorB
     }
   });
 }
+function actualizarEstadoPuesto(id, estado, titulo, mensaje) {
+  Swal.fire({
+    title: titulo,
+    text: mensaje,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para actualizar el estado del puesto
+      window.api.eliminarPuesto(Number(id), Number(estado));
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaEliminarPuesto((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          cargarPuestosTrabajo(); // Recargar la tabla de puestos
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
 function agregarPuesto() {
   // Lógica para agregar un nuevo puesto
+  document.getElementById("modalTitle").innerText = "Crear Puesto de Trabajo";
+
+  // Asignar la función de envío al botón del modal
+  document.getElementById("buttonModal").onclick = enviarCreacionPuesto;
+
+  // Mostrar el modal
+  document.getElementById("crearPuestoModal").style.display = "block";
 }
+
 
 function enviarCreacionPuesto() {
-  const nombre = document.getElementById("nombrePuesto").value;
-  const descripcion = document.getElementById("descripcionPuesto").value;
-  const estado = document.getElementById("estadoPuesto").checked ? 1 : 0;
+  const nombre = document.getElementById("nombrePuesto").value.trim();
+  const descripcion = document.getElementById("descripcionPuesto").value.trim();
+  const errorMessage = document.getElementById("errorMessage");
 
-  const puestoData = { nombre, descripcion, estado };
+  // Validar campos vacíos
+  const camposVacios = [];
+  if (!nombre) camposVacios.push("Nombre del Puesto");
+  if (!descripcion) camposVacios.push("Descripción");
 
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
+    return;
+  }
+
+  // Crear el objeto con los datos del puesto
+  const puestoData = {
+    nombre,
+    descripcion,
+    estado: 1, // Estado activo por defecto
+  };
+
+  // Confirmar la creación
   Swal.fire({
-    title: "Creando puesto",
-    text: "¿Está seguro que desea crear este nuevo puesto?",
+    title: "Registrar Puesto",
+    text: "¿Está seguro que desea registrar este puesto?",
     icon: "question",
     showCancelButton: true,
     confirmButtonColor: "#4a4af4",
     cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
+    confirmButtonText: "Sí, registrar",
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
+      // Llamar a la API para registrar el puesto
       window.api.crearPuesto(puestoData);
 
+      // Manejar la respuesta del backend
       window.api.onRespuestaCrearPuesto((respuesta) => {
         if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            cargarPuestosTrabajo();
-            cerrarModal("crearPuestoModal", "crearPuestoForm");
-          }, 2000);
+          mostrarToastConfirmacion("Puesto registrado exitosamente.");
+          cerrarModal("crearPuestoModal", "crearPuestoForm");
+          cargarPuestosTrabajo(); // Recargar la tabla de puestos
         } else {
-          mostrarToastError(respuesta.message);
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al registrar el puesto.";
+          errorMessage.style.color = "red"; // Mostrar el mensaje en rojo
         }
       });
     }
   });
 }
-
 async function editarPuesto(id, boton) {
-  // Lógica para editar un puesto
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombrePuesto = fila.children[0].textContent;
+  const descripcionPuesto = fila.children[1].textContent;
+  const estadoPuesto = fila.children[2].textContent === "Activo" ? true : false;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idPuestoTrabajo").value = id;
+  document.getElementById("nombrePuesto").value = nombrePuesto;
+  document.getElementById("descripcionPuesto").value = descripcionPuesto;
+  document.getElementById("estadoPuesto").checked = estadoPuesto;
+
+  // Cambiar el título del modal a "Editar Puesto"
+  document.getElementById("modalTitle").innerText = "Editar Puesto de Trabajo";
+
+  // Configurar el botón del modal para que utilice el método `enviarEdicionPuesto`
+  document.getElementById("buttonModal").onclick = enviarEdicionPuesto;
+
+  // Mostrar el modal
+  document.getElementById("crearPuestoModal").style.display = "block";
 }
-
 function enviarEdicionPuesto() {
-  const idPuestoTrabajo = document.getElementById("idPuestoTrabajo").value;
-  const nombre = document.getElementById("nombrePuesto").value;
-  const descripcion = document.getElementById("descripcionPuesto").value;
+  const id = document.getElementById("idPuestoTrabajo").value;
+  const nombre = document.getElementById("nombrePuesto").value.trim();
+  const descripcion = document.getElementById("descripcionPuesto").value.trim();
   const estado = document.getElementById("estadoPuesto").checked ? 1 : 0;
+  const errorMessage = document.getElementById("errorMessage");
 
-  const puestoData = { idPuestoTrabajo, nombre, descripcion, estado };
+  // Validar campos vacíos
+  if (!nombre || !descripcion) {
+    errorMessage.textContent = "Por favor complete todos los campos.";
+    errorMessage.style.color = "red";
+    return;
+  }
 
+  // Crear el objeto con los datos del puesto
+  const puestoData = {
+    idPuestoTrabajo: id,
+    nombre,
+    descripcion,
+    estado,
+  };
+
+  // Confirmar la edición
   Swal.fire({
-    title: "Editando puesto",
-    text: "¿Está seguro que desea editar este puesto?",
+    title: "Guardar Cambios",
+    text: "¿Está seguro que desea guardar los cambios?",
     icon: "question",
     showCancelButton: true,
     confirmButtonColor: "#4a4af4",
     cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, continuar",
+    confirmButtonText: "Sí, guardar",
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
+      // Llamar a la API para editar el puesto
       window.api.editarPuesto(puestoData);
 
+      // Manejar la respuesta del backend
       window.api.onRespuestaActualizarPuesto((respuesta) => {
         if (respuesta.success) {
-          mostrarToastConfirmacion(respuesta.message);
-          setTimeout(() => {
-            cargarPuestosTrabajo();
-            cerrarModal("editarPuestoModal", "editarPuestoForm");
-          }, 2000);
+          mostrarToastConfirmacion("Puesto actualizado exitosamente.");
+          cerrarModal("crearPuestoModal", "crearPuestoForm"); // Cerrar el modal
+          cargarPuestosTrabajo(); // Recargar la tabla de puestos
         } else {
-          mostrarToastError(respuesta.message);
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al actualizar el puesto.";
+          errorMessage.style.color = "red";
         }
       });
     }
   });
 }
-
 /* --------------------------------                    ------------------------------------------
    -------------------------------- ENTIDAD FINANCIERA ------------------------------------------
    --------------------------------                    ------------------------------------------ */
@@ -2468,8 +2556,10 @@ async function editarProducto(id, boton) {
       document.getElementById("descripcion").value = producto.descripcion;
       document.getElementById("cantidad").value = producto.cantidad;
 
-      initModuleSelector(1, true, creatable = false, editable = false, () => {
-        moduleSelector.setSelectedById(producto.idUnidadMedicion); // Deselecciona si fuera necesario
+      // Inicializar el selector de módulos
+      initModuleSelector(1, true, false, false, true, () => {
+        // Aquí esperamos que los módulos se carguen antes de seleccionar la unidad
+        moduleSelector.setSelectedById(producto.idUnidadMedicion); // Seleccionamos la unidad de medición guardada
       });
 
       // Usar setTimeout para esperar un poco y luego asignar el valor al select
@@ -2575,7 +2665,7 @@ function toggleModuleList() {
   container.classList.toggle("open");
 }
 
-function initModuleSelector(tipo, force = false, creatable = true, editable = true, callback = null) {
+function initModuleSelector(tipo, force = false, creatable = true, editable = true, deletable = true, callback = null) {
   if (!moduleSelector || force) {
     const container = document.getElementById("module-container");
 
@@ -2598,6 +2688,7 @@ function initModuleSelector(tipo, force = false, creatable = true, editable = tr
       handlers: getHandlersForType(tipo),
       creatable: creatable,
       editable: editable,
+      deletable: deletable
     });
 
     // Espera a que los módulos se carguen antes de ejecutar el callback
@@ -2691,7 +2782,30 @@ function getHandlersForType(tipo) {
           });
         }
       };
+    case 2:
+      // Módulo de entidades financieras
+      return {
+        list: (moduleId, callback) => {
+          window.api.obtenerEntidadesFinancieras(null, null, 1, null, (entidadesFinancieras) => {
+            callback(entidadesFinancieras);
+          });
+        },
 
+        create: (moduleId, newEntidad, callback) => {
+          window.api.onRespuestaCrearEntidadFinanciera((response) => {
+            if (response.success) {
+              window.api.obtenerEntidadesFinancieras(null, null, 1, null, (entidadesFinancieras) => {
+                callback(entidadesFinancieras);
+              });
+            } else {
+              console.error("Error al crear una entidad financiera.", response.message);
+              callback(null); // <- enviar null si hay error
+            }
+          });
+
+          window.api.crearEntidadFinanciera(newEntidad);
+        }
+      };
     default:
       console.error(`Tipo de módulo no soportado: ${tipo}`);
       return {}; // Retorna un objeto vacío si el tipo no se reconoce

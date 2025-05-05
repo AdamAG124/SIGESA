@@ -9,7 +9,7 @@ class ModuleSelector {
     this.modules = [];
     this.selected = null; // ← Guardar el objeto seleccionado
 
-    // Selectores del DOM
+    // Selectores del DOM para unidad de medición
     this.moduleList = this.container.querySelector('#module-list');
     this.selectedModule = this.container.querySelector('#selected-module');
     this.addBtn = this.container.querySelector('#add-module-btn');
@@ -17,6 +17,12 @@ class ModuleSelector {
     this.inputNew = document.getElementById('new-module-name');
     this.saveBtn = document.getElementById('save-module');
     this.cancelBtn = document.getElementById('cancel-module');
+
+    // Selectores del DOM para entidades financieras
+    this.entidadName = document.getElementById('nombre');
+    this.entidadTelefono = document.getElementById('telefono');
+    this.entidadEmail = document.getElementById('correo');
+    this.entidadTipo = document.getElementById('tipo');
 
     this.init();
   }
@@ -28,7 +34,7 @@ class ModuleSelector {
 
     if (this.creatable) {
       this.addBtn.style.display = 'inline-block';
-      this.addBtn.addEventListener('click', (e) => { e.preventDefault(); this.showPopup() });
+      this.addBtn.addEventListener('click', (e) => { e.preventDefault(); this.showPopup(this.moduleId) });
       this.saveBtn.addEventListener('click', (e) => { e.preventDefault(); this.saveNewModule() });
       this.cancelBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); this.closePopup() });
     } else {
@@ -39,10 +45,21 @@ class ModuleSelector {
   }
 
   fetchModules(callback) {
+    console.log("Ejecutando fetchModules para moduleId:", this.moduleId);
     this.handlers.list(this.moduleId, (items) => {
       if (items) {
-        // Normalizar los objetos
-        this.modules = items.map(item => this.normalizeItem(item));
+        // Normalizar los objetos según el módulo
+        switch (this.moduleId) {
+          case 1:
+            this.modules = items.map(item => this.normalizeItem(item));
+            break;
+          case 2:
+            this.modules = items.entidadesFinancieras.map(item => this.normalizeItem(item));
+            break;
+          default:
+            console.warn("No se reconoce el tipo de módulo:", this.moduleId);
+            break;
+        }
         this.renderModules();
         if (typeof callback === "function") callback();
       } else {
@@ -193,13 +210,25 @@ class ModuleSelector {
     setTimeout(() => toast.remove(), 10000);
   }
 
-  showPopup() {
-    this.inputNew.value = '';
-    this.popup.style.display = 'flex';
-    this.inputNew.focus();
+  showPopup(module) {
+    switch (module) {
+      case 1:
+        this.inputNew.value = '';
+        this.popup.style.display = 'flex';
+        this.inputNew.focus();
 
-    const errorMsg = document.getElementById('module-error');
-
+        break;
+      case 2:
+        this.entidadName.value = '';
+        this.entidadTelefono.value = '';
+        this.entidadEmail.value = '';
+        this.entidadTipo.value = '';
+        this.popup.style.display = 'flex';
+        break;
+      default:
+        console.warn("No se reconoce el módulo para mostrar el popup:", module);
+        break;
+    }
     this._handleOutsideClick = (e) => {
       const popupContent = this.popup.querySelector('.popup-content');
 
@@ -223,26 +252,57 @@ class ModuleSelector {
   }
 
   saveNewModule() {
-    const newName = this.inputNew.value.trim();
     const errorMsg = document.getElementById('module-error');
+    switch (this.moduleId) {
+      case 1:
+        const newName = this.inputNew.value.trim();
 
-    if (newName && !this.modules.some(m => m.nombre === newName)) {
-      this.handlers.create(this.moduleId, newName, (updatedModules) => {
-        if (updatedModules && Array.isArray(updatedModules)) {
-          this.modules = updatedModules.map(item => this.normalizeItem(item));
-          this.renderModules(); // Recargar lista
-          this.showAlert('success', 'Operación exitosa', `"${newName}" ha sido creado.`);
-          this.popup.style.display = 'none';
-          errorMsg.style.display = 'none';
+        if (newName && !this.modules.some(m => m.nombre === newName)) {
+          this.handlers.create(this.moduleId, newName, (updatedModules) => {
+            if (updatedModules && Array.isArray(updatedModules)) {
+              this.modules = updatedModules.map(item => this.normalizeItem(item));
+              this.renderModules(); // Recargar lista
+              this.showAlert('success', 'Operación exitosa', `"${newName}" ha sido creado.`);
+              this.popup.style.display = 'none';
+              errorMsg.style.display = 'none';
+            } else {
+              this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de crear el módulo.');
+              console.error("Error: lista actualizada no recibida.");
+            }
+          });
         } else {
-          this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de crear el módulo.');
-          console.error("Error: lista actualizada no recibida.");
+          errorMsg.textContent = "Ingrese un nombre válido y único.";
+          errorMsg.style.display = 'block';
+          this.inputNew.focus();
         }
-      });
-    } else {
-      errorMsg.textContent = "Ingrese un nombre válido y único.";
-      errorMsg.style.display = 'block';
-      this.inputNew.focus();
+        break;
+      case 2:
+        const newEntidad = {
+          nombre: this.entidadName.value.trim(),
+          telefono: this.entidadTelefono.value.trim(),
+          correo: this.entidadEmail.value.trim(),
+          tipo: this.entidadTipo.value.trim()
+        };
+
+        if (newEntidad.nombre && newEntidad.telefono && newEntidad.correo && newEntidad.tipo) {
+          this.handlers.create(this.moduleId, newEntidad, (updatedModules) => {
+            if (updatedModules && Array.isArray(updatedModules.entidadesFinancieras)) {
+              this.modules = updatedModules.entidadesFinancieras.map(item => this.normalizeItem(item));
+              this.renderModules(); // Recargar lista
+              this.showAlert('success', 'Operación exitosa', `"${newEntidad.nombre}" ha sido creado.`);
+              this.popup.style.display = 'none';
+            } else {
+              this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de crear el módulo.');
+              console.error("Error: lista actualizada no recibida.");
+            }
+          });
+        } else {
+          errorMsg.textContent = "Porfavor, complete todos los campos.";
+          errorMsg.style.display = 'block';
+          this.inputNew.focus();
+        }
+        break;
+        break;
     }
   }
 
@@ -255,13 +315,32 @@ class ModuleSelector {
   }
 
   setSelectedById(id) {
-    const mod = this.modules.find(m => m.id === id || m.idUnidadMedicion === id);
-    if (mod) {
-      this.selected = mod;
-      this.updateSelectedDisplay(mod);
-    } else {
-      console.warn("Set selected by ID: no se encontró un módulo con id", id);
+    console.log("Set selected by ID:", id);
+    switch (this.moduleId) {
+      case 1:
+        const mod = this.modules.find(m => m.id === id || m.idUnidadMedicion === id);
+        if (mod) {
+          console.log("Set selected by ID:", mod);
+          this.selected = mod;
+          this.updateSelectedDisplay(mod);
+        } else {
+          console.warn("Set selected by ID: no se encontró un módulo con id", id);
+        }
+        break;
+      case 2:
+        const mod2 = this.modules.find(m => m.id === id || m.idEntidadFinanciera === id);
+        if (mod2) {
+          this.selected = mod2;
+          this.updateSelectedDisplay(mod2);
+        } else {
+          console.warn("Set selected by ID: no se encontró un módulo con id", id);
+        }
+        break;
+      default:
+        console.warn("No se reconoce el tipo de módulo:", this.moduleId);
+        break;
     }
+  
   }
 
   reset() {
@@ -277,7 +356,15 @@ class ModuleSelector {
           nombre: item.nombre,
           estado: item.estado
         };
-
+      case 2: // Entidades Financieras
+        return {
+          id: item.idEntidadFinanciera,
+          nombre: item.nombre,
+          telefono: item.telefono,
+          correo: item.correo,
+          tipo: item.tipo,
+          estado: item.estado
+        };
       // Agregá más casos según tus módulos
       default:
         console.warn("No se reconoce el tipo de módulo para normalización:", this.moduleId);
@@ -290,6 +377,7 @@ class ModuleSelector {
   }
 
   updateSelectedDisplay(mod) {
+    console.log("Update selected display:", mod);
     this.selectedModule.innerHTML = `
       ${mod.nombre}
       <span class="dropdown-icon"></span>

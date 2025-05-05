@@ -1,8 +1,10 @@
 <link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/module-seletor.css">
 <div class="main-content">
     <div class="content-header">
         <h1 class="content-title">Administrar Cuentas Bancarias</h1>
-        <button onclick="agregarCuentaBancaria()" class="add-cuenta-bancaria-btn" title="Agregar Nueva Cuenta Bancaria">
+        <button onclick="mostrarFormCrearCuentaBancaria()" class="add-cuenta-bancaria-btn"
+            title="Agregar Nueva Cuenta Bancaria">
             <span class="material-icons">add_business</span>
         </button>
     </div>
@@ -10,7 +12,7 @@
         <input id="search-bar" type="text" placeholder="Buscar cuentas bancarias..." onkeypress="filterTable(9)">
         <button onclick="filterTable(9)" class="search-btn">Buscar</button>
     </div>
-    
+
     <div class="filters">
         <select id="selectPageSize" onchange="filterTable(9)">
             <option value="5">5 por página</option>
@@ -25,7 +27,6 @@
         </select>
         <select id="entidad-financiera-filtro" onchange="filterTable(9)">
             <option value="0">Filtrar por entidad financiera</option>
-            <option value="">Crear nueva entidad</option>
         </select>
         <select id="divisa-filtro" onchange="filterTable(9)">
             <option value="nula">Filtrar por tipo de divisa</option>
@@ -33,7 +34,8 @@
             <option value="USD">USD</option>
         </select>
 
-        <button class="close-btn" style="float: right;" onclick="adjuntarHTML('/configuration-panel/configuration-panel.html', 0)">Regresar</button>
+        <button class="close-btn" style="float: right;"
+            onclick="adjuntarHTML('/configuration-panel/configuration-panel.html', 0)">Regresar</button>
     </div>
     <table>
         <thead>
@@ -51,25 +53,58 @@
         </tbody>
     </table>
     <div class="pagination">
-        
+
     </div>
 
     <div id="crearEditarCuentaBancariaModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="cerrarModal('crearEditarCuentaBancariaModal', 'crearEditarCuentaBancariaForm')">&times;</span>
+            <span class="close"
+                onclick="cerrarModal('crearEditarCuentaBancariaModal', 'crearEditarCuentaBancariaForm')">&times;</span>
             <h2 id="modalTitle"></h2>
             <form id="crearEditarCuentaBancariaForm" class="editar-entidad-financiera-form">
-                <input type="hidden" id="idCuentaBancaria">
 
                 <label for="entidadFinanciera">Entidad Financiera:</label>
-                <select id="entidadFinanciera" name="entidadFinanciera" onchange="obtenerNombrePorEntidadFinanciera()">
-                    <option value="0">Seleccionar entidad financiera</option>
-                    <!-- Aquí se llenarán las opciones dinámicamente -->
-                    <option value="">Crear nueva entidad</option>
-                </select>
+                <div id="module-container">
+                    <div id="select-wrapper">
+                        <div id="selected-module" onclick="toggleModuleList()">
+                            Selección
+                            <span class="dropdown-icon"></span>
+                        </div>
+                        <div id="module-list"></div>
+                    </div>
+                    <button id="add-module-btn" title="Agregar">＋</button>
+                </div>
+                <!-- Modal popup para nuevo módulo -->
+                <div id="module-popup" class="popup-overlay">
+                    <div class="popup-content">
+                        <h3>Agregar</h3>
+
+                        <!-- Aquí va el nuevo div de error -->
+                        <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
+                        </div>
+
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" id="nombre" name="nombre">
+
+                        <label for="telefono">Teléfono (+506):</label>
+                        <input type="text" id="telefono" name="telefono" min="8">
+
+                        <label for="correo">Correo Electrónico:</label>
+                        <input type="email" id="correo" name="correo">
+
+                        <label for="tipo">Tipo:</label>
+                        <input type="text" id="tipo" name="tipo" required>
+                        <div class="popup-buttons">
+                            <button id="save-module" type="button">Guardar</button>
+                            <button id="cancel-module" type="button">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="idCuentaBancaria" name="idCuentaBancaria">
 
                 <label for="nombre">Nombre del banco:</label>
-                <input type="text" id="nombre" name="nombre">
+                <input type="text" id="nombreBanco" name="nombre">
 
                 <label for="telefono">Número de cuenta bancaria:</label>
                 <input type="text" id="numeroCuenta" name="numeroCuenta" min="8">
@@ -82,9 +117,9 @@
 
                 <p id="errorMessage" style="color: red;"></p>
 
-                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+                <button type="button" class="close-btn" id="buttonModal" onclick="validarYEditarCuentaBancaria()">Guardar Cambios</button>
             </form>
         </div>
     </div>
 </div>
-</div> 
+</div>
