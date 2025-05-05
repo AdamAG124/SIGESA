@@ -312,6 +312,10 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cuentas-bancarias-obtenidas', (event, respuesta) => callback(respuesta));
     },
     crearCuentaBancaria: (cuentaBancariaData) => ipcRenderer.send('crear-cuenta-bancaria', cuentaBancariaData),
-    onRespuestaCrearCuentaBancaria: (callback) => ipcRenderer.once('respuesta-crear-cuenta-bancaria', (event, respuesta) => callback(respuesta))
+    onRespuestaCrearCuentaBancaria: (callback) => ipcRenderer.once('respuesta-crear-cuenta-bancaria', (event, respuesta) => callback(respuesta)),
+    editarCuentaBancaria: (cuentaBancariaData) => ipcRenderer.send('editar-cuenta-bancaria', cuentaBancariaData),
+    onRespuestaEditarCuentaBancaria: (callback) => ipcRenderer.once('respuesta-editar-cuenta-bancaria', (event, respuesta) => callback(respuesta)),
+    eliminarCuentaBancaria: (cuentaBancariaId, estado) => ipcRenderer.send('eliminar-cuenta-bancaria', cuentaBancariaId, estado),
+    onRespuestaEliminarCuentaBancaria: (callback) => ipcRenderer.once('respuesta-eliminar-cuenta-bancaria', (event, respuesta) => callback(respuesta)),
 });
 

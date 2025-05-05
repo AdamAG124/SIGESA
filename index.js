@@ -1662,3 +1662,25 @@ ipcMain.on('crear-cuenta-bancaria', async (event, cuentaBancariaData) => {
         event.reply('cuenta-bancaria-creada', { success: false, message: error.message });
     }
 });
+
+ipcMain.on('editar-cuenta-bancaria', async (event, cuentaBancariaData) => {
+    const cuentaBancariaController = new CuentaBancariaController();
+    try {
+        const resultado = await cuentaBancariaController.actualizarCuentaBancaria(cuentaBancariaData);
+        event.reply('respuesta-editar-cuenta-bancaria', resultado);
+    } catch (error) {
+        console.error('Error al actualizar la cuenta bancaria:', error);
+        event.reply('cuenta-bancaria-actualizada', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-cuenta-bancaria', async (event, idCuentaBancaria, estado) => {
+    const cuentaBancariaController = new CuentaBancariaController();
+    try {
+        const resultado = await cuentaBancariaController.eliminarCuentaBancaria(idCuentaBancaria, estado);
+        event.reply('respuesta-eliminar-cuenta-bancaria', resultado);
+    } catch (error) {
+        console.error('Error al eliminar la cuenta bancaria:', error);
+        event.reply('cuenta-bancaria-eliminada', { success: false, message: error.message });
+    }
+});

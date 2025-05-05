@@ -21,6 +21,14 @@ class CuentaBancariaService {
     async crearCuentaBancaria(cuentaBancaria) {
         return await this.#cuentaBancariaBD.crearCuentaBancaria(cuentaBancaria);
     }
+
+    async actualizarCuentaBancaria(cuentaBancaria) {
+        return await this.#cuentaBancariaBD.actualizarCuentaBancaria(cuentaBancaria);
+    }
+
+    async eliminarCuentaBancaria(idCuentaBancaria, estado) {
+        return await this.#cuentaBancariaBD.eliminarCuentaBancaria(idCuentaBancaria, estado);
+    }
 }
 
 module.exports = CuentaBancariaService;

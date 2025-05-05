@@ -101,6 +101,8 @@
                     </div>
                 </div>
 
+                <input type="hidden" id="idCuentaBancaria" name="idCuentaBancaria">
+
                 <label for="nombre">Nombre del banco:</label>
                 <input type="text" id="nombreBanco" name="nombre">
 
@@ -115,7 +117,7 @@
 
                 <p id="errorMessage" style="color: red;"></p>
 
-                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+                <button type="button" class="close-btn" id="buttonModal" onclick="validarYEditarCuentaBancaria()">Guardar Cambios</button>
             </form>
         </div>
     </div>
