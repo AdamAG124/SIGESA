@@ -2373,6 +2373,33 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
   });
 }
 
+function cargarUnidadesMedición(idSelect, mensajeQuemado, callback = null) {
+  window.api.obtenerUnidadesMedicion((unidadesMapeadas) => {
+    if (unidadesMapeadas) {
+      idSelect.innerHTML = ""; // Limpiar las opciones existentes
+      const option = document.createElement("option");
+      option.value = "0";
+      option.textContent = mensajeQuemado;
+      option.selected = true;
+      idSelect.appendChild(option);
+
+      unidadesMapeadas.forEach((unidad) => {
+        const option = document.createElement("option");
+        option.value = unidad.idUnidadMedicion;
+        option.textContent = unidad.nombre;
+
+        idSelect.appendChild(option);
+      });
+
+      // ✅ Ejecutar el callback si se proporciona
+      if (typeof callback === "function") {
+        callback();
+      }
+    } else {
+      console.log("No se pudieron cargar las unidades de medición.");
+    }
+  });
+}
 
 function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
@@ -2805,6 +2832,28 @@ function getHandlersForType(tipo) {
 
           window.api.crearEntidadFinanciera(newEntidad);
         }
+      };
+    case 3:
+      // Módulo de Productos
+      return {
+        list: (moduleId, callback) => {
+          window.api.obtenerProductos(null, null, 1, null, null, (productos) => {
+            callback(productos);
+          });
+        },
+        create: (moduleId, newProducto, callback) => {
+          window.api.onRespuestaCrearProducto((response) => {
+            if (response.success) {
+              window.api.obtenerProductos(null, null, 1, null, null, (productos) => {
+                callback(productos);
+              });
+            } else {
+              console.error("Error al crear un producto.", response.message);
+              callback(null); // <- enviar null si hay error
+            }
+          });
+          window.api.crearProducto(newProducto);
+        },
       };
     default:
       console.error(`Tipo de módulo no soportado: ${tipo}`);

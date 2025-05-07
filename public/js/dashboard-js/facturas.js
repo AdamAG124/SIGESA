@@ -1,14 +1,25 @@
-
 // Agregar nuevo producto
 function addProduct() {
+    const categoriaSelect = document.getElementById("categorias");
+    cargarCategorias(categoriaSelect, "Seleccionar categoría");
+    const unidadMedicionSelect = document.getElementById("unidadMedicion");
+    cargarUnidadesMedición(unidadMedicionSelect, "Seleccionar");
     const tbody = document.getElementById('products-body');
     const newRow = document.createElement('tr');
     const uniqueId = `product-select-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     newRow.className = 'product-row';
     newRow.innerHTML = `
-        <td><select class="form-control product-name" id="${uniqueId}" onchange="actualizarCantidadPrevia(this)">
-            <option value="0">Seleccione un producto</option>
-        </select></td>
+        <td><div id="module-container">
+                    <div id="select-wrapper">
+                        <div id="selected-module" onclick="toggleModuleList()">
+                            Selección
+                            <span class="dropdown-icon"></span>
+                        </div>
+                        <div id="module-list"></div>
+                    </div>
+                    <button id="add-module-btn" title="Agregar" onclick="">＋</button>
+                </div>
+                </div></td>
         <td><input type="text" class="form-control product-unit" disabled></td>
         <td><input type="number" class="form-control product-prev-qty" value="0" disabled></td>
         <td><input type="number" class="form-control product-new-qty" value="0"></td>
@@ -16,7 +27,10 @@ function addProduct() {
         <td class="no-print"><i class="material-icons delete-product" onclick="deleteProduct(this)">delete</i></td>
     `;
     tbody.appendChild(newRow);
-    llenarProductosSelect(uniqueId, 1);
+
+    setTimeout(() => {
+        initModuleSelector(3, true, true, false, false);
+    }, 500);
 }
 
 // Eliminar producto

@@ -24,6 +24,13 @@ class ModuleSelector {
     this.entidadEmail = document.getElementById('correo');
     this.entidadTipo = document.getElementById('tipo');
 
+    // Selectores del DOM para productos
+    this.nombreProducto = document.getElementById('nombre');
+    this.descripcionProducto = document.getElementById('descripcion');
+    this.cantidadProducto = document.getElementById('cantidad');
+    this.unidadMedicionProductoSelect = document.getElementById('unidadMedicion');
+    this.categoriasProductoSelect = document.getElementById('categorias');
+
     this.init();
   }
 
@@ -55,6 +62,9 @@ class ModuleSelector {
             break;
           case 2:
             this.modules = items.entidadesFinancieras.map(item => this.normalizeItem(item));
+            break;
+          case 3:
+            this.modules = items.productos.map(item => this.normalizeItem(item));
             break;
           default:
             console.warn("No se reconoce el tipo de módulo:", this.moduleId);
@@ -225,6 +235,15 @@ class ModuleSelector {
         this.entidadTipo.value = '';
         this.popup.style.display = 'flex';
         break;
+
+      case 3:
+        this.nombreProducto.value = '';
+        this.descripcionProducto.value = '';
+        this.cantidadProducto.value = '';
+        this.unidadMedicionProductoSelect.value = 0;
+        this.categoriasProductoSelect.value = 0;
+        this.popup.style.display = 'flex';
+        break;
       default:
         console.warn("No se reconoce el módulo para mostrar el popup:", module);
         break;
@@ -302,6 +321,31 @@ class ModuleSelector {
           this.inputNew.focus();
         }
         break;
+      case 3:
+        const newProducto = {
+          nombre: this.nombreProducto.value.trim(),
+          descripcion: this.descripcionProducto.value.trim(),
+          cantidad: this.cantidadProducto.value.trim(),
+          unidadMedicion: this.unidadMedicionProductoSelect.value,
+          categoria: this.categoriasProductoSelect.value
+        };
+        if (newProducto.nombre && newProducto.descripcion && newProducto.cantidad) {
+          this.handlers.create(this.moduleId, newProducto, (updatedModules) => {
+            if (updatedModules && Array.isArray(updatedModules.productos)) {
+              this.modules = updatedModules.productos.map(item => this.normalizeItem(item));
+              this.renderModules(); // Recargar lista
+              this.showAlert('success', 'Operación exitosa', `"${newProducto.nombre}" ha sido creado.`);
+              this.popup.style.display = 'none';
+            } else {
+              this.showAlert('error', 'Error', 'No se pudo actualizar la lista luego de crear el módulo.');
+              console.error("Error: lista actualizada no recibida.");
+            }
+          });
+        } else {
+          errorMsg.textContent = "Porfavor, complete todos los campos.";
+          errorMsg.style.display = 'block';
+          this.inputNew.focus();
+        }
         break;
     }
   }
@@ -336,11 +380,20 @@ class ModuleSelector {
           console.warn("Set selected by ID: no se encontró un módulo con id", id);
         }
         break;
+      case 3:
+        const mod3 = this.modules.find(m => m.id === id || m.idProducto === id);
+        if (mod3) {
+          this.selected = mod3;
+          this.updateSelectedDisplay(mod3);
+        } else {
+          console.warn("Set selected by ID: no se encontró un módulo con id", id);
+        }
+        break;
       default:
         console.warn("No se reconoce el tipo de módulo:", this.moduleId);
         break;
     }
-  
+
   }
 
   reset() {
@@ -364,6 +417,13 @@ class ModuleSelector {
           correo: item.correo,
           tipo: item.tipo,
           estado: item.estado
+        };
+      case 3: // Productos
+        return {
+          id: item.idProducto,
+          nombre: item.nombreProducto,
+          descripcion: item.descripcionProducto,
+          cantidad: item.cantidad
         };
       // Agregá más casos según tus módulos
       default:
