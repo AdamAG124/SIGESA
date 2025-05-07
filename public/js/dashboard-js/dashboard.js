@@ -3144,4 +3144,49 @@ function cargarVistaCrearSalida() {
     document.getElementById("idUsuario").value = usuario.idUsuario;
   });
 }
+function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+  const tbody = document.getElementById("departamentos-body");
+  const paginationDiv = document.querySelector(".pagination");
+  tbody.innerHTML = ""; // Limpiar contenido previo
+
+  window.api.obtenerDepartamentos(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+      if (!respuesta.departamentos || respuesta.departamentos.length === 0) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td colspan="4" style="text-align: center; color: gray; font-style: italic;">
+                  No hay departamentos registrados.
+              </td>
+          `;
+          tbody.appendChild(row);
+          return;
+      }
+
+      respuesta.departamentos.forEach(departamento => {
+          const estadoDepartamento = departamento.estado === 1 ? "Activo" : "Inactivo";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td>${departamento.nombreDepartamento}</td>
+              <td>${departamento.descripcionDepartamento}</td>
+              <td>${estadoDepartamento}</td>
+              <td class="action-icons">
+                  <button class="tooltip" value="${departamento.idDepartamento}" onclick="editarDepartamento(this.value, this)">
+                      <span class="material-icons">edit</span>
+                      <span class="tooltiptext">Editar departamento</span>
+                  </button>
+                  <button class="tooltip" value="${departamento.idDepartamento}" onclick="${departamento.estado === 1 ? `actualizarEstadoDepartamento(this.value, 0, 'Eliminando departamento', '¿Está seguro que desea eliminar este departamento?')` : `actualizarEstadoDepartamento(this.value, 1, 'Reactivando departamento', '¿Está seguro que desea reactivar este departamento?')`}">
+                      <span class="material-icons">${departamento.estado === 1 ? 'delete' : 'restore'}</span>
+                      <span class="tooltiptext">${departamento.estado === 1 ? 'Eliminar departamento' : 'Reactivar departamento'}</span>
+                  </button>
+              </td>
+          `;
+          tbody.appendChild(row);
+      });
+
+      // Actualizar los controles de paginación
+      if (respuesta.paginacion) {
+          actualizarPaginacion(respuesta.paginacion, ".pagination", 10);
+      }
+  });
+}
 
