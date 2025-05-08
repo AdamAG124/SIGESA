@@ -1,5 +1,5 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="../../public/CSS/dashboard-css/module-seletor.css">
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
 <style>
     #invoice-title{
         font-size: 24px;
@@ -373,39 +373,34 @@
     </div>
 </form>
 
-<!-- Modal popup para nuevo módulo -->
-<div id="module-popup" class="popup-overlay">
-    <div class="popup-content">
-        <h3>Agregar</h3>
+<div id="editarProductoModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('editarProductoModal', 'editarProductoForm')">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <form id="editarProductoForm" class="editar-producto-form">
+            <input type="hidden" id="idProducto">
 
-        <!-- Aquí va el nuevo div de error -->
-        <div id="module-error" style="color: red; font-size: 0.9em; margin-bottom: 8px; display: none;">
-        </div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
 
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required>
+            <label for="descripcion">Descripción:</label>
+            <input type="text" id="descripcion" name="descripcion" required>
 
-        <label for="descripcion">Descripción:</label>
-        <input type="text" id="descripcion" name="descripcion" required>
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" name="cantidad" min="0" value="0" required>
 
-        <label for="cantidad">Cantidad:</label>
-        <input type="number" id="cantidad" name="cantidad" min="0" value="0" required>
+            <label for="unidadMedicion">Unidad medición:</label>
+            <select id="unidadMedicion" name="unidadMedicion" required></select>
 
-        <label for="unidadMedicion">Unidad medición:</label>
-        <br>
-        <select id="unidadMedicion" name="unidadMedicion" required>
-        </select>
-        <br>
-        <label for="categorias">Categoría:</label>
-        <br>
-        <select id="categorias" name="categorias" required>
-            <!-- Opciones de categoria se llenarán aquí -->
-        </select>
-        <br><br>
-        <div class="popup-buttons">
-            <button id="save-module" type="button">Guardar</button>
-            <button id="cancel-module" type="button">Cancelar</button>
-        </div>
+            <label for="categorias">Categoría:</label>
+            <select id="categorias" name="categorias" required>
+                <!-- Opciones de categoria se llenarán aquí -->
+            </select>
+            <p id="errorMessage" style="color: red;"></p>
+
+            <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+        </form>
     </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
