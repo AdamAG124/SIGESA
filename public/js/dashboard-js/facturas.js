@@ -321,6 +321,10 @@ function llenarProductosSelectByClass(selectClass, estadoProducto) {
     window.api.obtenerProductos(null, null, estadoProducto, null, null, (respuesta) => {
         const selects = document.querySelectorAll(selectClass);
         selects.forEach(select => {
+            select.innerHTML = `
+                <option value="0">Seleccione un producto</option>
+                <option value="crear">+ Agregar Nuevo</option>
+            `;
             if (respuesta && respuesta.productos) {
                 respuesta.productos.forEach(producto => {
                     const option = document.createElement('option');
@@ -852,7 +856,7 @@ function enviarCreacionProductoDesdeFactura() {
                 if (respuesta.success) {
                     mostrarToastConfirmacion(respuesta.message);
                     setTimeout(() => {                        
-                        llenarProductosSelectByClass("product-name", 1)
+                        llenarProductosSelectByClass(".product-name", 1)
                         cerrarModal("editarProductoModal", "editarProductoForm");
                     }, 2000);
                 } else {
