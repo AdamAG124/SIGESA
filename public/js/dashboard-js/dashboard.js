@@ -55,6 +55,11 @@ function adjuntarHTML(filePath, cargarTabla) {
     if (innerDiv) {
       innerDiv.innerHTML = data; // Adjunta el HTML solo si el div existe
 
+      // Detectar si estamos en el configuration panel
+      if (filePath.includes("configuration-panel")) {
+        ocultarElementosConfigPanel(); // Ejecutar lógica de ocultar si corresponde
+    }
+
       if (cargarTabla) {
         cargarTabla(); // Ejecuta cargarTabla solo después de cargar el HTML
       }
@@ -63,6 +68,33 @@ function adjuntarHTML(filePath, cargarTabla) {
     }
   });
 }
+
+function ocultarElementosConfigPanel() {
+  if (!usuarioActual) return;
+
+  const rol = usuarioActual.roleName.toLowerCase();
+
+  if (rol === 'asistente') {
+      // Buscamos la tarjeta de "Administrar empleados"
+      const tarjetas = document.querySelectorAll('.config-card');
+      tarjetas.forEach((tarjeta) => {
+          const titulo = tarjeta.querySelector('.config-title');
+          if (titulo && titulo.innerText.trim() === "Administrar empleados") {
+              tarjeta.style.display = 'none';
+          }
+          if (titulo && titulo.innerText.trim() === "Administrar roles de usuario") {
+            tarjeta.style.display = 'none';
+          }
+          if (titulo && titulo.innerText.trim() === "Administrar puestos de trabajo") {
+            tarjeta.style.display = 'none';
+          }
+          if (titulo && titulo.innerText.trim() === "Administrar departamentos de trabajo") {
+            tarjeta.style.display = 'none';
+          }
+      });
+  }
+}
+
 
 function limpiarDIV() {
   document.getElementById("inner-div").innerHTML = "";
@@ -92,71 +124,6 @@ function mostrarToastConfirmacion(titulo) {
     icon: "success",
     title: titulo,
   });
-}
-
-function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFiltro = 0, valorBusqueda = null) {
-
-  // Obtener el select por su id
-  const selectEstado = document.getElementById('filtrado-estado');
-
-  const selectRoles = document.getElementById("filtrado-role");
-
-  // Verificar el valor del estado
-  if (estado === 0 || estado === 1) {
-    // Si el estado es 0 o 1, preseleccionamos ese valor en el select
-    selectEstado.value = estado;
-  } else {
-    // Si el estado es null o cualquier otro valor, preseleccionamos el option con value=2
-    selectEstado.value = 2;
-  }
-
-  selectPageSize.value = pageSize;
-
-  // Cargar los roles para el filtrado (esto permanece igual)
-  cargarRoles("filtrado-role", "Filtrar por tipo");
-  setTimeout(() => {
-    selectRoles.value = idRolFiltro;
-
-    // Llamar al método del preload.js pasando los datos de paginación
-    window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, valorBusqueda, (respuesta) => {
-      const tbody = document.getElementById("usuarios-body");
-      tbody.innerHTML = ""; // Limpiar contenido previo
-
-      // Iterar sobre los usuarios y agregarlos a la tabla
-      respuesta.usuarios.forEach((usuario) => {
-        const nombreCompleto = `${usuario.nombreColaborador} ${usuario.primerApellidoColaborador} ${usuario.segundoApellidoColaborador}`;
-        const estadoUsuario = usuario.estado === 1 ? "Activo" : "Inactivo";
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-                <td>${nombreCompleto}</td>
-                <td>${usuario.nombreUsuario}</td>
-                <td>${usuario.nombreRol}</td>
-                <td>${estadoUsuario}</td>
-                <td class="action-icons">
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value, this)">
-                        <span class="material-icons">edit</span>
-                        <span class="tooltiptext">Editar usuario</span>
-                    </button>
-                    <button class="tooltip" value="${usuario.idUsuario}" onclick="${usuario.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando usuario', '¿Está seguro que desea eliminar a este usuario?', 1)` : `actualizarEstado(this.value, 1, 'Reactivando usuario', '¿Está seguro que desea reactivar a este usuario?', 1)`}">
-                        <span class="material-icons">
-                          ${usuario.estado === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
-                        </span>
-                        <span class="tooltiptext">
-                          ${usuario.estado === 1 ? 'Eliminar usuario' : 'Reactivar usuario'} <!-- Cambia el tooltip dependiendo del estado -->
-                        </span>
-                    </button>
-                </td>
-            `;
-        tbody.appendChild(row);
-      });
-
-      // Actualizar los botones de paginación
-      actualizarPaginacion(respuesta.paginacion, ".pagination", 1);
-
-      cerrarModal("editarUsuarioModal", "editarUsuarioForm");
-    });
-  }, 100);
 }
 
 function checkEmpty(event, moduloFiltrar) {
@@ -579,7 +546,73 @@ function filterTable(moduloFiltrar) {
 
 }
 
+// ------------------------------------------------------
+// ------------ USUARIOS --------------------------------
+// ------------------------------------------------------
+function cargarUsuariosTabla(pageSize = 10, pageNumber = 1, estado = 1, idRolFiltro = 0, valorBusqueda = null) {
 
+  // Obtener el select por su id
+  const selectEstado = document.getElementById('filtrado-estado');
+
+  const selectRoles = document.getElementById("filtrado-role");
+
+  // Verificar el valor del estado
+  if (estado === 0 || estado === 1) {
+    // Si el estado es 0 o 1, preseleccionamos ese valor en el select
+    selectEstado.value = estado;
+  } else {
+    // Si el estado es null o cualquier otro valor, preseleccionamos el option con value=2
+    selectEstado.value = 2;
+  }
+
+  selectPageSize.value = pageSize;
+
+  // Cargar los roles para el filtrado (esto permanece igual)
+  cargarRoles("filtrado-role", "Filtrar por tipo");
+  setTimeout(() => {
+    selectRoles.value = idRolFiltro;
+
+    // Llamar al método del preload.js pasando los datos de paginación
+    window.api.obtenerUsuarios(pageSize, pageNumber, estado, idRolFiltro, valorBusqueda, (respuesta) => {
+      const tbody = document.getElementById("usuarios-body");
+      tbody.innerHTML = ""; // Limpiar contenido previo
+
+      // Iterar sobre los usuarios y agregarlos a la tabla
+      respuesta.usuarios.forEach((usuario) => {
+        const nombreCompleto = `${usuario.nombreColaborador} ${usuario.primerApellidoColaborador} ${usuario.segundoApellidoColaborador}`;
+        const estadoUsuario = usuario.estado === 1 ? "Activo" : "Inactivo";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+                <td>${nombreCompleto}</td>
+                <td>${usuario.nombreUsuario}</td>
+                <td>${usuario.nombreRol}</td>
+                <td>${estadoUsuario}</td>
+                <td class="action-icons">
+                    <button class="tooltip" value="${usuario.idUsuario}" onclick="editarUsuario(this.value, this)">
+                        <span class="material-icons">edit</span>
+                        <span class="tooltiptext">Editar usuario</span>
+                    </button>
+                    <button class="tooltip" value="${usuario.idUsuario}" onclick="${usuario.estado === 1 ? `actualizarEstado(this.value, 0, 'Eliminando usuario', '¿Está seguro que desea eliminar a este usuario?', 1)` : `actualizarEstado(this.value, 1, 'Reactivando usuario', '¿Está seguro que desea reactivar a este usuario?', 1)`}">
+                        <span class="material-icons">
+                          ${usuario.estado === 1 ? 'delete' : 'restore'} <!-- Cambia el icono dependiendo del estado -->
+                        </span>
+                        <span class="tooltiptext">
+                          ${usuario.estado === 1 ? 'Eliminar usuario' : 'Reactivar usuario'} <!-- Cambia el tooltip dependiendo del estado -->
+                        </span>
+                    </button>
+                </td>
+            `;
+        tbody.appendChild(row);
+      });
+
+      // Actualizar los botones de paginación
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 1);
+
+      cerrarModal("editarUsuarioModal", "editarUsuarioForm");
+    });
+  }, 100);
+}
 
 function editarUsuario(id, boton) {
   const colaboradorSelect = document.getElementById("colaboradorName");
@@ -939,6 +972,34 @@ function enviarCreacionUsuario(event) {
   });
   //});
 }
+
+// ===================== OCULTAR ELEMENTOS DEL DOM SEGUN NOMBRE DE ROL =====================
+
+function procesarDatosUsuario(usuario) {
+  const rol = usuario.roleName;
+
+  document.getElementById('user-name').innerText = usuario.nombre || 'Sin nombre';
+  document.getElementById('user-role').innerText = rol;
+
+  // Si no es administrador, ocultar ciertos elementos
+  if (rol.toLowerCase() === 'asistente') {
+      const adminUsuariosBtn = document.getElementById('admin-usuarios');
+      if (adminUsuariosBtn) {
+          adminUsuariosBtn.style.display = 'none';
+      }
+      console.log("Usuario no administrador, ocultando elementos del DOM.");
+      // Aquí podrías ocultar más cosas si lo deseas
+  }
+}
+
+let usuarioActual = null; // Variable global para almacenar el usuario actual
+window.api.receiveUserData((usuario) => {
+  usuarioActual = usuario; // Guardar el usuario actual en una variable global
+  procesarDatosUsuario(usuario);
+});
+
+// =============================================================
+
 // Función para cerrar el modal
 function cerrarModal(idModalCerrar, idFormReset) {
   const modal = document.getElementById(idModalCerrar);
