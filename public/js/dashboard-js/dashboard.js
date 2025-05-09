@@ -82,6 +82,15 @@ function ocultarElementosConfigPanel() {
           if (titulo && titulo.innerText.trim() === "Administrar empleados") {
               tarjeta.style.display = 'none';
           }
+          if (titulo && titulo.innerText.trim() === "Administrar roles de usuario") {
+            tarjeta.style.display = 'none';
+          }
+          if (titulo && titulo.innerText.trim() === "Administrar puestos de trabajo") {
+            tarjeta.style.display = 'none';
+          }
+          if (titulo && titulo.innerText.trim() === "Administrar departamentos de trabajo") {
+            tarjeta.style.display = 'none';
+          }
       });
   }
 }
