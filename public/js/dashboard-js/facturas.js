@@ -1,14 +1,20 @@
-
 // Agregar nuevo producto
 function addProduct() {
+    const categoriaSelect = document.getElementById("categorias");
+    cargarCategorias(categoriaSelect, "Seleccionar categoría");
+    const unidadMedicionSelect = document.getElementById("unidadMedicion");
+    cargarUnidadesMedición(unidadMedicionSelect, "Seleccionar");
     const tbody = document.getElementById('products-body');
     const newRow = document.createElement('tr');
     const uniqueId = `product-select-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     newRow.className = 'product-row';
     newRow.innerHTML = `
-        <td><select class="form-control product-name" id="${uniqueId}" onchange="actualizarCantidadPrevia(this)">
-            <option value="0">Seleccione un producto</option>
-        </select></td>
+        <td>
+            <select class="form-control product-name" id="${uniqueId}" onchange="selectProductosOptionValidation(this)">
+                <option value="0">Seleccione un producto</option>
+                <option value="crear">+ Agregar Nuevo</option>
+            </select>
+        </td>
         <td><input type="text" class="form-control product-unit" disabled></td>
         <td><input type="number" class="form-control product-prev-qty" value="0" disabled></td>
         <td><input type="number" class="form-control product-new-qty" value="0"></td>
@@ -310,6 +316,29 @@ function llenarProductosSelect(selectId, estadoProducto) {
         }
     });
 }
+
+function llenarProductosSelectByClass(selectClass, estadoProducto) {
+    window.api.obtenerProductos(null, null, estadoProducto, null, null, (respuesta) => {
+        const selects = document.querySelectorAll(selectClass);
+        selects.forEach(select => {
+            select.innerHTML = `
+                <option value="0">Seleccione un producto</option>
+                <option value="crear">+ Agregar Nuevo</option>
+            `;
+            if (respuesta && respuesta.productos) {
+                respuesta.productos.forEach(producto => {
+                    const option = document.createElement('option');
+                    option.value = producto.idProducto;
+                    option.textContent = producto.estadoProducto != 0 ? producto.nombreProducto : producto.nombreProducto + ' (Producto Inactivo)';
+                    option.setAttribute('data-cantidad', producto.cantidad);
+                    option.setAttribute('data-unidad-medicion', producto.nombreUnidadMedicion);
+                    select.appendChild(option);
+                });
+            }
+        });
+    });
+}
+
 
 function actualizarCantidadPrevia(select) {
     const selectedOption = select.options[select.selectedIndex];
@@ -737,5 +766,112 @@ function cargarVistaCrearFactura() {
         document.getElementById('cedula').textContent = usuario.cedula;
         document.getElementById('departamentoColaborador').textContent = usuario.nombreDepartamento;
         document.getElementById('telefonoColab').textContent = usuario.numTelefono;
+    });
+}
+
+function selectProductosOptionValidation(select) {
+    if (select.value === 'crear') {
+        const form = document.getElementById("editarProductoForm");
+        form.reset()
+
+        var selectIdInput = document.createElement("input");
+        selectIdInput.setAttribute("type", "hidden");
+        selectIdInput.setAttribute("id", "idSelectProductoDesdeFactura");
+        selectIdInput.value = select.id;
+
+        form.appendChild(selectIdInput);
+
+        document.getElementById("idProducto").value = "";
+        document.getElementById("errorMessage").textContent = "";
+
+        // Cambiar el título del modal a "Crear Producto"
+        document.getElementById("modalTitle").innerText = "Crear Producto";
+        document.getElementById("buttonModal").onclick = enviarCreacionProductoDesdeFactura;
+
+        // Mostrar el modal
+        document.getElementById("editarProductoModal").style.display = "block";
+    } else {
+        actualizarCantidadPrevia(select);
+    }
+}
+
+function enviarCreacionProductoDesdeFactura() {
+
+    const nombre = document.getElementById("nombre").value;
+    const descripcion = document.getElementById("descripcion").value || "N/A";
+    const cantidad = document.getElementById("cantidad").value;
+    const unidadMedicion = document.getElementById("unidadMedicion").value;
+    const categoria = document.getElementById("categorias").value;
+
+    // Array para almacenar los campos vacíos
+    const camposVacios = [];
+
+    const inputs = [
+        { value: nombre, element: document.getElementById("nombre") },
+        { value: unidadMedicion, element: document.getElementById("unidadMedicion") },
+        { value: categoria, element: document.getElementById("categorias") },
+
+        // ES OPCIONAL AGREGAR LA DESCRIPCIÓN Y LA CANTIDAD
+        // Si quieren registrar un nuevo producto y luego asignarle la cantidad el sistema debe soportarlo
+
+        // { value: descripcion, element: document.getElementById("descripcion") }, 
+        { value: cantidad, element: document.getElementById("cantidad") }
+    ];
+
+    inputs.forEach(input => {
+        if (!input.value || (Number(input.value) == 0 && input.element.id === "categorias") || (Number(input.value) < 0 && input.element.id === "cantidad") || (Number(input.value) === 0 && input.element.id === "unidadMedicion")) {
+            // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
+            input.element.style.border = "2px solid red";
+            camposVacios.push(input.element);
+        } else {
+            input.element.style.border = ""; // Resetear el borde si no está vacío o es válido
+        }
+    });
+
+    // Mostrar mensaje de error si hay campos vacíos
+    const errorMessage = document.getElementById("errorMessage");
+    if (camposVacios.length > 0) {
+        errorMessage.textContent = "Por favor, llene todos los campos.";
+        return; // Salir de la función si hay campos vacíos
+    } else {
+        errorMessage.textContent = ""; // Resetear mensaje de error si no hay campos vacíos
+    }
+
+    // Crear el objeto categoría con los datos del formulario
+    const productoData = {
+        nombre: nombre,
+        descripcion: descripcion,
+        cantidad: cantidad,
+        unidadMedicion: unidadMedicion,
+        categoria: categoria
+    };
+
+    Swal.fire({
+        title: "Creando producto",
+        text: "¿Está seguro que desea crear este nuevo producto?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#4a4af4",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Usar el preload para enviar los datos al proceso principal
+            window.api.crearProducto(productoData);
+
+            // Manejar la respuesta del proceso principal
+            window.api.onRespuestaCrearProducto((respuesta) => {
+                if (respuesta.success) {
+                    mostrarToastConfirmacion(respuesta.message);
+                    setTimeout(() => {                        
+                        llenarProductosSelectByClass(".product-name", 1)
+                        cerrarModal("editarProductoModal", "editarProductoForm");
+                    }, 2000);
+                } else {
+                    mostrarToastError(respuesta.message);
+                }
+            });
+        }
     });
 }
