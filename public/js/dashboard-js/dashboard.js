@@ -1004,7 +1004,13 @@ window.api.receiveUserData((usuario) => {
 function cerrarModal(idModalCerrar, idFormReset) {
   const modal = document.getElementById(idModalCerrar);
   const form = document.getElementById(idFormReset);
-
+  
+  if(document.getElementById("idSelectProductoDesdeFactura")) {
+    const selectProductoDesdeFactura = document.getElementById(document.getElementById("idSelectProductoDesdeFactura").value);
+    if (selectProductoDesdeFactura) {
+      selectProductoDesdeFactura.value = 0;
+    }
+  }
   // Cerrar el modal
   modal.style.display = "none";
 

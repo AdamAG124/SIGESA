@@ -771,7 +771,16 @@ function cargarVistaCrearFactura() {
 
 function selectProductosOptionValidation(select) {
     if (select.value === 'crear') {
-        document.getElementById("editarProductoForm").reset();
+        const form = document.getElementById("editarProductoForm");
+        form.reset()
+
+        var selectIdInput = document.createElement("input");
+        selectIdInput.setAttribute("type", "hidden");
+        selectIdInput.setAttribute("id", "idSelectProductoDesdeFactura");
+        selectIdInput.value = select.id;
+
+        form.appendChild(selectIdInput);
+
         document.getElementById("idProducto").value = "";
         document.getElementById("errorMessage").textContent = "";
 
@@ -810,7 +819,7 @@ function enviarCreacionProductoDesdeFactura() {
     ];
 
     inputs.forEach(input => {
-        if (!input.value || (input.value == 0 && input.element.id === "categorias") || (input.value < 0 && input.element.id === "cantidad")) {
+        if (!input.value || (Number(input.value) == 0 && input.element.id === "categorias") || (Number(input.value) < 0 && input.element.id === "cantidad") || (Number(input.value) === 0 && input.element.id === "unidadMedicion")) {
             // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
             input.element.style.border = "2px solid red";
             camposVacios.push(input.element);
