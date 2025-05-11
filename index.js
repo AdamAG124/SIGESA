@@ -28,7 +28,7 @@ const FacturaProducto = require('./domain/FacturaProducto');
 const Salida = require('./domain/Salida');
 const SalidaProducto = require('./domain/SalidaProducto');
 const UnidadMedicion = require('./domain/UnidadMedicion');
-
+const Departamento = require('./domain/Departamento');
 const PuestoTrabajo = require('./domain/PuestoTrabajo');
 
 const os = require('os')
