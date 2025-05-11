@@ -3151,7 +3151,8 @@ function cargarVistaCrearSalida() {
     document.getElementById('nombreUsuarioRegistro').textContent = usuario.nombreUsuario;
     document.getElementById("idUsuario").value = usuario.idUsuario;
   });
-}function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+}
+function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   // Obtener los elementos del DOM
   const selectPageSize = document.getElementById("selectPageSize");
   const selectEstado = document.getElementById("estado-filtro");
@@ -3197,7 +3198,7 @@ function cargarVistaCrearSalida() {
               <span class="material-icons">edit</span>
               <span class="tooltiptext">Editar departamento</span>
             </button>
-           <button class="tooltip" value="${departamento.idDepartamento}" onclick="${departamento.estado === 1 ? `actualizarEstadoDepartamento(this.value, 0, 'Eliminando departamento', '¿Está seguro que desea eliminar este departamento?')` : `actualizarEstadoDepartamento(this.value, 1, 'Reactivando departamento', '¿Está seguro que desea reactivar este departamento?')`}">
+            <button class="tooltip" value="${departamento.idDepartamento}" onclick="${departamento.estado === 1 ? `actualizarEstadoDepartamento(this.value, 0, 'Eliminando departamento', '¿Está seguro que desea eliminar este departamento?')` : `actualizarEstadoDepartamento(this.value, 1, 'Reactivando departamento', '¿Está seguro que desea reactivar este departamento?')`}">
               <span class="material-icons">${departamento.estado === 1 ? 'delete' : 'restore'}</span>
               <span class="tooltiptext">${departamento.estado === 1 ? 'Eliminar departamento' : 'Reactivar departamento'}</span>
             </button>
