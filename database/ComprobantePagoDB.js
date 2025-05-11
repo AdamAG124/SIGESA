@@ -168,6 +168,45 @@ class ComprobantePagoDB {
             }
         }
     }
+
+    async actualizarComprobantePago(comprobantePago) { 
+
+        let connection;
+
+        try {
+            connection = await this.#db.conectar();
+
+            const query = `
+                UPDATE ${this.#table}
+                SET 
+                    ID_ENTIDAD_FINANCIERA = ?,
+                    FEC_PAGO = ?,
+                    NUM_COMPROBANTE_PAGO = ?,
+                    MONTO_COMPROBANTE_PAGO = ?,
+                    ESTADO = ?
+                WHERE 
+                    ID_COMPROBANTE_PAGO = ?
+            `;
+
+            const params = [
+                comprobantePago.getIdEntidadFinanciera().getIdEntidadFinanciera(),
+                comprobantePago.getFechaPago(),
+                comprobantePago.getNumero(),
+                comprobantePago.getMonto(),
+                comprobantePago.getEstado(),
+                comprobantePago.getIdComprobantePago()
+            ];
+
+            await connection.query(query, params);
+        } catch (error) {
+            console.error('Error al actualizar el comprobante de pago:', error.message);
+            throw new Error('Error al actualizar el comprobante de pago: ' + error.message);
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
 }
 
 module.exports = ComprobantePagoDB;

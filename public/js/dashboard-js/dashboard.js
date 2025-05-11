@@ -58,7 +58,7 @@ function adjuntarHTML(filePath, cargarTabla) {
       // Detectar si estamos en el configuration panel
       if (filePath.includes("configuration-panel")) {
         ocultarElementosConfigPanel(); // Ejecutar lógica de ocultar si corresponde
-    }
+      }
 
       if (cargarTabla) {
         cargarTabla(); // Ejecuta cargarTabla solo después de cargar el HTML
@@ -75,23 +75,23 @@ function ocultarElementosConfigPanel() {
   const rol = usuarioActual.roleName.toLowerCase();
 
   if (rol === 'asistente') {
-      // Buscamos la tarjeta de "Administrar empleados"
-      const tarjetas = document.querySelectorAll('.config-card');
-      tarjetas.forEach((tarjeta) => {
-          const titulo = tarjeta.querySelector('.config-title');
-          if (titulo && titulo.innerText.trim() === "Administrar empleados") {
-              tarjeta.style.display = 'none';
-          }
-          if (titulo && titulo.innerText.trim() === "Administrar roles de usuario") {
-            tarjeta.style.display = 'none';
-          }
-          if (titulo && titulo.innerText.trim() === "Administrar puestos de trabajo") {
-            tarjeta.style.display = 'none';
-          }
-          if (titulo && titulo.innerText.trim() === "Administrar departamentos de trabajo") {
-            tarjeta.style.display = 'none';
-          }
-      });
+    // Buscamos la tarjeta de "Administrar empleados"
+    const tarjetas = document.querySelectorAll('.config-card');
+    tarjetas.forEach((tarjeta) => {
+      const titulo = tarjeta.querySelector('.config-title');
+      if (titulo && titulo.innerText.trim() === "Administrar empleados") {
+        tarjeta.style.display = 'none';
+      }
+      if (titulo && titulo.innerText.trim() === "Administrar roles de usuario") {
+        tarjeta.style.display = 'none';
+      }
+      if (titulo && titulo.innerText.trim() === "Administrar puestos de trabajo") {
+        tarjeta.style.display = 'none';
+      }
+      if (titulo && titulo.innerText.trim() === "Administrar departamentos de trabajo") {
+        tarjeta.style.display = 'none';
+      }
+    });
   }
 }
 
@@ -547,7 +547,7 @@ function filterTable(moduloFiltrar) {
     case 10:
       cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
-      case 11: // Nuevo caso para Departamentos de Trabajo
+    case 11: // Nuevo caso para Departamentos de Trabajo
       cargarDepartamentosTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
   }
@@ -991,12 +991,12 @@ function procesarDatosUsuario(usuario) {
 
   // Si no es administrador, ocultar ciertos elementos
   if (rol.toLowerCase() === 'asistente') {
-      const adminUsuariosBtn = document.getElementById('admin-usuarios');
-      if (adminUsuariosBtn) {
-          adminUsuariosBtn.style.display = 'none';
-      }
-      console.log("Usuario no administrador, ocultando elementos del DOM.");
-      // Aquí podrías ocultar más cosas si lo deseas
+    const adminUsuariosBtn = document.getElementById('admin-usuarios');
+    if (adminUsuariosBtn) {
+      adminUsuariosBtn.style.display = 'none';
+    }
+    console.log("Usuario no administrador, ocultando elementos del DOM.");
+    // Aquí podrías ocultar más cosas si lo deseas
   }
 }
 
@@ -1012,8 +1012,8 @@ window.api.receiveUserData((usuario) => {
 function cerrarModal(idModalCerrar, idFormReset) {
   const modal = document.getElementById(idModalCerrar);
   const form = document.getElementById(idFormReset);
-  
-  if(document.getElementById("idSelectProductoDesdeFactura")) {
+
+  if (document.getElementById("idSelectProductoDesdeFactura")) {
     const selectProductoDesdeFactura = document.getElementById(document.getElementById("idSelectProductoDesdeFactura").value);
     if (selectProductoDesdeFactura) {
       selectProductoDesdeFactura.value = 0;
@@ -2954,24 +2954,6 @@ function cargarPtroveedores(idSelect, mensajeQuemado) {
   });
 }
 
-function cargarComprobantesPago(idSelect, mensajeQuemado) {
-  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
-    const comprobantePagoSelect = document.getElementById(idSelect);
-    comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
-    const option = document.createElement("option");
-    option.value = "0";
-    option.textContent = mensajeQuemado;
-    comprobantePagoSelect.appendChild(option);
-
-    respuesta.comprobantes.forEach((comprobante) => {
-      const option = document.createElement("option");
-      option.value = comprobante.idComprobantePago;
-      option.textContent = comprobante.numeroComprobantePago;
-      comprobantePagoSelect.appendChild(option);
-    });
-  });
-}
-
 function cargarColaboradores(idSelect, mensajeQuemado) {
   window.api.obtenerColaboradores(null, null, 1, null, null, null, (respuesta) => {
     const colaboradorSelect = document.getElementById(idSelect);
@@ -3328,6 +3310,142 @@ function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, va
       actualizarPaginacion(respuesta.paginacion, ".pagination", 11);
     } else {
       console.warn("No se proporcionaron datos de paginación.");
+    }
+  });
+}
+
+/**
+ * ------------------------------------------------------------------
+ * ---------------------- COMPROBANTES DE PAGO ----------------------
+ * ------------------------------------------------------------------
+ */
+
+function cargarComprobantesPago(idSelect, mensajeQuemado) { // Carga para un select
+  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
+    const comprobantePagoSelect = document.getElementById(idSelect);
+    comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    comprobantePagoSelect.appendChild(option);
+
+    respuesta.comprobantes.forEach((comprobante) => {
+      const option = document.createElement("option");
+      option.value = comprobante.idComprobantePago;
+      option.textContent = comprobante.numeroComprobantePago;
+      comprobantePagoSelect.appendChild(option);
+    });
+  });
+}
+
+function desplegarModalEditarComprobantePago(idComprobantePago, boton) {
+  const fila = boton.closest("tr");
+
+  const idEntidadFinanciera = fila.querySelector("td:nth-child(1)").textContent;
+  const fechaPago = fila.querySelector("td:nth-child(2)").textContent;
+  const numeroComprobantePago = fila.querySelector("td:nth-child(3)").textContent;
+  const montoComprobantePago = fila.querySelector("td:nth-child(4)").textContent;
+  const estadoComprobantePago = fila.querySelector("td:nth-child(5)").textContent;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idComprobantePago").value = idComprobantePago;
+  document.getElementById("idEntidadFinanciera").value = idEntidadFinanciera;
+  document.getElementById("fechaPago").value = fechaPago;
+  document.getElementById("numeroComprobantePago").value = numeroComprobantePago;
+  document.getElementById("montoComprobantePago").value = montoComprobantePago;
+  document.getElementById("estadoComprobantePago").value = estadoComprobantePago;
+
+  // Cambiar el título del modal a "Detalles del Comprobante de Pago"
+  document.getElementById("modalTitle").innerText = "Detalles del Comprobante de Pago";
+
+  document.getElementById("buttonModal").onclick = enviarEdicionComprobante;
+
+  // Mostrar el modal
+  document.getElementById("editarProductoModal").style.display = "block";
+}
+
+function enviarEdicionComprobante() {
+  const idComprobantePago = document.getElementById("idComprobantePago").value;
+  const idEntidadFinanciera = document.getElementById("idEntidadFinanciera").value;
+  const fechaPago = document.getElementById("fechaPago").value;
+  const numeroComprobantePago = document.getElementById("numeroComprobantePago").value;
+  const montoComprobantePago = document.getElementById("montoComprobantePago").value;
+  const estadoComprobantePago = document.getElementById("estadoComprobantePago").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: idEntidadFinanciera, element: document.getElementById("idEntidadFinanciera") },
+    { value: fechaPago, element: document.getElementById("fechaPago") },
+    { value: numeroComprobantePago, element: document.getElementById("numeroComprobantePago") },
+    { value: montoComprobantePago, element: document.getElementById("montoComprobantePago") },
+    { value: estadoComprobantePago, element: document.getElementById("estadoComprobantePago") }
+  ];
+
+  inputs.forEach(input => {
+    if (!input.value || (input.value == 0 && input.element.id === "categorias")) {
+      // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
+      input.element.style.border = "2px solid red";
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde si no está vacío o es válido
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error si no hay campos vacíos
+  }
+
+  if (inputs.element.id === "montoComprobantePago" && parseFloat(inputs.value) < 0) {
+    inputs.element.style.border = "2px solid red";
+    camposVacios.push(input.element);
+    errorMessage.textContent = "El monto no puede ser negativo.";
+    return; // Salir de la función si el monto es negativo
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const comprobantePagoData = {
+    idComprobantePago: idComprobantePago,
+    idEntidadFinanciera: idEntidadFinanciera,
+    fechaPago: fechaPago,
+    numeroComprobantePago: numeroComprobantePago,
+    montoComprobantePago: montoComprobantePago,
+    estadoComprobantePago: estadoComprobantePago
+  };
+
+  Swal.fire({
+    title: "Editando comprobante de pago",
+    text: "¿Está seguro que desea actualizar este comprobante de pago?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.actualizarComprobantePago(comprobantePagoData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaActualizarComprobantePago((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => { // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            filterTable();   // QUEDA PENDIENTE COLOCAR EL NÚMERO CORRESPONDIENTE PARA LA CARGA DE LA TABLA DE COMPROBANTES DE PAGO
+                             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            cerrarModal("editarProductoModal", "editarProductoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
     }
   });
 }

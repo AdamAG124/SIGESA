@@ -10,6 +10,10 @@ class ComprobantePagoController{
     async obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado){
         return await this.#comprobanteDePagoService.obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado);
     }
+
+    async actualizarComprobantePago(comprobantePago) {
+        return await this.#comprobanteDePagoService.actualizarComprobantePago(comprobantePago);
+    }
 }
 
 module.exports = ComprobantePagoController;

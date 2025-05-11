@@ -10,6 +10,10 @@ class ComprobantePagoService {
     async obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado){
         return await this.#comprobantePagoDB.listarComprobantesPago(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado);
     }
+
+    async actualizarComprobantePago(comprobantePago) {
+        return await this.#comprobantePagoDB.actualizarComprobantePago(comprobantePago);
+    }
 }
 
 module.exports = ComprobantePagoService;
