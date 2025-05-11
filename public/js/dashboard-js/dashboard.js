@@ -3206,3 +3206,69 @@ function cargarVistaCrearSalida() {
   });
 }
 
+/* --------------------------------                    ------------------------------------------
+   -------------------------------- DEPARTAMENTO DE TRABAJO ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
+function agregarDepartamento() {
+  // Lógica para agregar un nuevo departamento
+  document.getElementById("modalTitle").innerText = "Crear Departamento de Trabajo";
+
+  // Asignar la función de envío al botón del modal
+  document.getElementById("buttonModal").onclick = enviarCreacionDepartamento;
+
+  // Mostrar el modal
+  document.getElementById("crearDepartamentoModal").style.display = "block";
+}
+
+function enviarCreacionDepartamento() {
+  const nombre = document.getElementById("nombreDepartamento").value.trim();
+  const descripcion = document.getElementById("descripcionDepartamento").value.trim();
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Validar campos vacíos
+  const camposVacios = [];
+  if (!nombre) camposVacios.push("Nombre del Departamento");
+  if (!descripcion) camposVacios.push("Descripción");
+
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
+    return;
+  }
+
+  // Crear el objeto con los datos del departamento
+  const departamentoData = {
+    nombre,
+    descripcion,
+    estado: 1, // Estado activo por defecto
+  };
+
+  // Confirmar la creación
+  Swal.fire({
+    title: "Registrar Departamento",
+    text: "¿Está seguro que desea registrar este departamento?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, registrar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para registrar el departamento
+      window.api.crearDepartamento(departamentoData);
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaCrearDepartamento((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion("Departamento registrado exitosamente.");
+          cerrarModal("crearDepartamentoModal", "crearDepartamentoForm");
+          cargarDepartamentosTabla(); // Recargar la tabla de departamentos
+        } else {
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al registrar el departamento.";
+          errorMessage.style.color = "red"; // Mostrar el mensaje en rojo
+        }
+      });
+    }
+  });
+}

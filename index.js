@@ -514,6 +514,54 @@ ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado
     }
 });
 
+ipcMain.on('crear-departamento', async (event, departamentoData) => {
+    try {
+        const departamento = new Departamento();
+        departamento.setNombre(departamentoData.nombre);
+        departamento.setDescripcion(departamentoData.descripcion);
+        departamento.setEstado(1); // Activo por defecto
+
+        const resultado = await departamentoController.insertarDepartamento(departamento);
+
+        event.reply('respuesta-crear-departamento', resultado);
+    } catch (error) {
+        console.error('Error al crear departamento:', error);
+        event.reply('respuesta-crear-departamento', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('actualizar-departamento', async (event, departamentoData) => {
+    try {
+        const departamento = new Departamento();
+        departamento.setIdDepartamento(departamentoData.idDepartamento);
+        departamento.setNombre(departamentoData.nombre);
+        departamento.setDescripcion(departamentoData.descripcion);
+        departamento.setEstado(departamentoData.estado);
+
+        const resultado = await departamentoController.editarDepartamento(departamento);
+
+        event.reply('respuesta-actualizar-departamento', resultado);
+    } catch (error) {
+        console.error('Error al actualizar departamento:', error);
+        event.reply('respuesta-actualizar-departamento', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('eliminar-departamento', async (event, { idDepartamento, estado }) => {
+    try {
+        const departamento = new Departamento();
+        departamento.setIdDepartamento(idDepartamento);
+        departamento.setEstado(estado);
+
+        const resultado = await departamentoController.eliminarDepartamento(departamento);
+
+        event.reply('respuesta-eliminar-departamento', resultado);
+    } catch (error) {
+        console.error('Error al eliminar departamento:', error);
+        event.reply('respuesta-eliminar-departamento', { success: false, message: error.message });
+    }
+});
+
 /* --------------------------------                    ------------------------------------------
    -------------------------------- CATEGORIA PRODUCTO ------------------------------------------
    --------------------------------                    ------------------------------------------ */
