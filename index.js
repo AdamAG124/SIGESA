@@ -1732,3 +1732,28 @@ ipcMain.on('eliminar-cuenta-bancaria', async (event, idCuentaBancaria, estado) =
         event.reply('cuenta-bancaria-eliminada', { success: false, message: error.message });
     }
 });
+
+ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const departamentoController = new DepartamentoController();
+    try {
+        const resultado = await departamentoController.listarDepartamentos(pageSize, currentPage, estado, valorBusqueda);
+
+        // Serializar los datos de los departamentos
+        const departamentosCompletos = resultado.departamentos.map(departamento => ({
+            idDepartamento: departamento.getIdDepartamento(),
+            nombreDepartamento: departamento.getNombre(),
+            descripcionDepartamento: departamento.getDescripcion(),
+            estado: departamento.getEstado()
+        }));
+
+        const respuesta = {
+            departamentos: departamentosCompletos,
+            paginacion: resultado.pagination
+        };
+
+        event.reply('cargar-departamentos', respuesta);
+    } catch (error) {
+        console.error('Error al listar los departamentos:', error);
+        event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
+    }
+});
