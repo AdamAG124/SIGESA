@@ -1,0 +1,40 @@
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Departamentos de Trabajo</h1>
+        <button class="add-category-btn" title="Agregar Nuevo Departamento" onclick="agregarDepartamento()">
+            <span class="material-icons">add_circle</span>
+        </button>
+    </div>
+    <div class="search-bar">
+          <input id="search-bar" type="text" onkeypress="filterTable(11)" placeholder="Buscar departamentos de Trabajo...">
+    </div>
+    <div class="filters">
+        <select id="selectPageSize" onchange="filterTable(11)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estado-filtro" onchange="filterTable(11)">
+            <option value="2">Filtrar por estado</option>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre del Departamento</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="departamentos-body">
+            <!-- Aquí se cargarán los departamentos -->
+        </tbody>
+    </table>
+    <div class="pagination">
+        <!-- Aquí se cargarán los controles de paginación -->
+    </div>
+</div>
