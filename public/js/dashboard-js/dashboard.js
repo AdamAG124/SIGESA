@@ -3352,7 +3352,7 @@ function enviarCreacionDepartamento() {
   // Validar campos vacíos
   const camposVacios = [];
   if (!nombre) camposVacios.push("Nombre del Departamento");
-  if (!descripcion) camposVacios.push("Descripción");
+  
 
   if (camposVacios.length > 0) {
     errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;

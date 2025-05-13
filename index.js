@@ -521,6 +521,8 @@ ipcMain.on('crear-departamento', async (event, departamentoData) => {
         departamento.setDescripcion(departamentoData.descripcion);
         departamento.setEstado(1); // Activo por defecto
 
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
         const resultado = await departamentoController.insertarDepartamento(departamento);
 
         event.reply('respuesta-crear-departamento', resultado);
