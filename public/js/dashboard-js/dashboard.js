@@ -1977,6 +1977,7 @@ function enviarCreacionPuesto() {
     }
   });
 }
+
 async function editarPuesto(id, boton) {
   // Obtener la fila del botón clicado
   const fila = boton.closest('tr');
@@ -3268,6 +3269,32 @@ function cargarVistaCrearSalida() {
     document.getElementById("idUsuario").value = usuario.idUsuario;
   });
 }
+// ...existing code...
+async function editarDepartamento(id, boton) {
+  // Obtener la fila del botón clicado
+  const fila = boton.closest('tr');
+
+  // Extraer la información de la fila
+  const nombreDepartamento = fila.children[0].textContent;
+  const descripcionDepartamento = fila.children[1].textContent;
+  const estadoDepartamento = fila.children[2].textContent === "Activo" ? true : false;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idDepartamento").value = id;
+  document.getElementById("nombreDepartamento").value = nombreDepartamento;
+  document.getElementById("descripcionDepartamento").value = descripcionDepartamento;
+  document.getElementById("estadoDepartamento").checked = estadoDepartamento;
+
+  // Cambiar el título del modal a "Editar Departamento"
+  document.getElementById("modalTitle").innerText = "Editar Departamento de Trabajo";
+
+  // Configurar el botón del modal para que utilice el método `enviarEdicionDepartamento`
+  document.getElementById("buttonModal").onclick = enviarEdicionDepartamento;
+
+  // Mostrar el modal
+  document.getElementById("crearDepartamentoModal").style.display = "block";
+}
+// ...existing code...
 function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   // Obtener los elementos del DOM
   const selectPageSize = document.getElementById("selectPageSize");
