@@ -45,6 +45,8 @@ async function getStore() {
 }
 
 const createWindow = async () => {
+    console.log('__dirname:', __dirname);
+    console.log('Ruta preload:', path.join(__dirname, 'preload.js'));
     mainWindow = new BrowserWindow({  // Asignar la ventana creada a mainWindow
         width: 800,
         height: 600,
@@ -1574,7 +1576,7 @@ ipcMain.on('editar-unidad-medicion', async (event, idUnidadMedicion, nuevoNombre
     try {
         const unidadMedicion = new UnidadMedicion();
         unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
-        unidadMedicion.setNombre(nuevoNombre);  
+        unidadMedicion.setNombre(nuevoNombre);
 
         const resultado = await unidadMedicionController.editarUnidadMedicion(unidadMedicion);
         console.log('Resultado de la edición desde index:', resultado);
