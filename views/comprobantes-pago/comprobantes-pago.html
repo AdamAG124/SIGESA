@@ -1,0 +1,51 @@
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Comprobantes de Pago</h1>
+        <button class="add-receipt-btn" title="Agregar Nuevo Comprobante de Pago">
+            <span class="material-icons">add_box</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input type="text" placeholder="Buscar comprobantes de pago...">
+    </div>
+    <div class="filters">
+        <select>
+            <option>10 por página</option>
+            <option>25 por página</option>
+            <option>50 por página</option>
+        </select>
+        <div class="date-range">
+            <input type="date" placeholder="Fecha inicial">
+            <span>-</span>
+            <input type="date" placeholder="Fecha final">
+        </div>
+        <select>
+            <option>Seleccionar cuenta Bancaria</option>
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Entidad Financiera</th>
+                <th>Número de Cuenta Bancaria</th>
+                <th>Fecha de comprobante</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="comprobanteBody">
+
+        </tbody>
+    </table>
+    <div class="pagination">
+    </div>
+</div>
+</div>
+
+<script>
+    function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        submenu.classList.toggle('active');
+        const arrow = document.getElementById(id + '-arrow');
+        arrow.classList.toggle('rotate');
+    }
+</script>
