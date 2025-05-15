@@ -45,6 +45,8 @@ async function getStore() {
 }
 
 const createWindow = async () => {
+    console.log('__dirname:', __dirname);
+    console.log('Ruta preload:', path.join(__dirname, 'preload.js'));
     mainWindow = new BrowserWindow({  // Asignar la ventana creada a mainWindow
         width: 800,
         height: 600,
@@ -1574,7 +1576,7 @@ ipcMain.on('editar-unidad-medicion', async (event, idUnidadMedicion, nuevoNombre
     try {
         const unidadMedicion = new UnidadMedicion();
         unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
-        unidadMedicion.setNombre(nuevoNombre);  
+        unidadMedicion.setNombre(nuevoNombre);
 
         const resultado = await unidadMedicionController.editarUnidadMedicion(unidadMedicion);
         console.log('Resultado de la edición desde index:', resultado);
@@ -1682,5 +1684,30 @@ ipcMain.on('eliminar-cuenta-bancaria', async (event, idCuentaBancaria, estado) =
     } catch (error) {
         console.error('Error al eliminar la cuenta bancaria:', error);
         event.reply('cuenta-bancaria-eliminada', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado, valorBusqueda }) => {
+    const departamentoController = new DepartamentoController();
+    try {
+        const resultado = await departamentoController.listarDepartamentos(pageSize, currentPage, estado, valorBusqueda);
+
+        // Serializar los datos de los departamentos
+        const departamentosCompletos = resultado.departamentos.map(departamento => ({
+            idDepartamento: departamento.getIdDepartamento(),
+            nombreDepartamento: departamento.getNombre(),
+            descripcionDepartamento: departamento.getDescripcion(),
+            estado: departamento.getEstado()
+        }));
+
+        const respuesta = {
+            departamentos: departamentosCompletos,
+            paginacion: resultado.pagination
+        };
+
+        event.reply('cargar-departamentos', respuesta);
+    } catch (error) {
+        console.error('Error al listar los departamentos:', error);
+        event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
     }
 });

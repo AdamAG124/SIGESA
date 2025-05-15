@@ -318,5 +318,11 @@ contextBridge.exposeInMainWorld('api', {
     onRespuestaEditarCuentaBancaria: (callback) => ipcRenderer.once('respuesta-editar-cuenta-bancaria', (event, respuesta) => callback(respuesta)),
     eliminarCuentaBancaria: (cuentaBancariaId, estado) => ipcRenderer.send('eliminar-cuenta-bancaria', cuentaBancariaId, estado),
     onRespuestaEliminarCuentaBancaria: (callback) => ipcRenderer.once('respuesta-eliminar-cuenta-bancaria', (event, respuesta) => callback(respuesta)),
-});
 
+    obtenerDepartamentos: (pageSize, currentPage, estado, valorBusqueda, callback) => {
+        ipcRenderer.send('listar-departamentos', { pageSize, currentPage, estado, valorBusqueda });
+        ipcRenderer.once('cargar-departamentos', (event, departamentos) => {
+            callback(departamentos);
+        });
+    },
+});

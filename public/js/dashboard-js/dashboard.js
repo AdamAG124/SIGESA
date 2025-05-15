@@ -447,6 +447,11 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
       case 10: // Nuevo caso para Puestos de Trabajo
         cargarPuestosTrabajo(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
+
+      case 11: // Caso para Departamentos de Trabajo
+        cargarDepartamentosTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
+        break;
+
       default:
 
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -541,6 +546,9 @@ function filterTable(moduloFiltrar) {
       break;
     case 10:
       cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
+      break;
+      case 11: // Nuevo caso para Departamentos de Trabajo
+      cargarDepartamentosTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
   }
 
@@ -1004,7 +1012,13 @@ window.api.receiveUserData((usuario) => {
 function cerrarModal(idModalCerrar, idFormReset) {
   const modal = document.getElementById(idModalCerrar);
   const form = document.getElementById(idFormReset);
-
+  
+  if(document.getElementById("idSelectProductoDesdeFactura")) {
+    const selectProductoDesdeFactura = document.getElementById(document.getElementById("idSelectProductoDesdeFactura").value);
+    if (selectProductoDesdeFactura) {
+      selectProductoDesdeFactura.value = 0;
+    }
+  }
   // Cerrar el modal
   modal.style.display = "none";
 
@@ -2434,6 +2448,33 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
   });
 }
 
+function cargarUnidadesMedición(idSelect, mensajeQuemado, callback = null) {
+  window.api.obtenerUnidadesMedicion((unidadesMapeadas) => {
+    if (unidadesMapeadas) {
+      idSelect.innerHTML = ""; // Limpiar las opciones existentes
+      const option = document.createElement("option");
+      option.value = "0";
+      option.textContent = mensajeQuemado;
+      option.selected = true;
+      idSelect.appendChild(option);
+
+      unidadesMapeadas.forEach((unidad) => {
+        const option = document.createElement("option");
+        option.value = unidad.idUnidadMedicion;
+        option.textContent = unidad.nombre;
+
+        idSelect.appendChild(option);
+      });
+
+      // ✅ Ejecutar el callback si se proporciona
+      if (typeof callback === "function") {
+        callback();
+      }
+    } else {
+      console.log("No se pudieron cargar las unidades de medición.");
+    }
+  });
+}
 
 function cargarProductosTabla(pageSize = 10, currentPage = 1, estado = 1, idCategoriaFiltro = 0, valorBusqueda = null) {
   // Obtener el select por su id
@@ -2867,6 +2908,28 @@ function getHandlersForType(tipo) {
           window.api.crearEntidadFinanciera(newEntidad);
         }
       };
+    case 3:
+      // Módulo de Productos
+      return {
+        list: (moduleId, callback) => {
+          window.api.obtenerProductos(null, null, 1, null, null, (productos) => {
+            callback(productos);
+          });
+        },
+        create: (moduleId, newProducto, callback) => {
+          window.api.onRespuestaCrearProducto((response) => {
+            if (response.success) {
+              window.api.obtenerProductos(null, null, 1, null, null, (productos) => {
+                callback(productos);
+              });
+            } else {
+              console.error("Error al crear un producto.", response.message);
+              callback(null); // <- enviar null si hay error
+            }
+          });
+          window.api.crearProducto(newProducto);
+        },
+      };
     default:
       console.error(`Tipo de módulo no soportado: ${tipo}`);
       return {}; // Retorna un objeto vacío si el tipo no se reconoce
@@ -3205,4 +3268,66 @@ function cargarVistaCrearSalida() {
     document.getElementById("idUsuario").value = usuario.idUsuario;
   });
 }
+function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+  // Obtener los elementos del DOM
+  const selectPageSize = document.getElementById("selectPageSize");
+  const selectEstado = document.getElementById("estado-filtro");
+  const searchInput = document.getElementById("search-bar");
 
+  // Configurar valores iniciales en los filtros
+  selectPageSize.value = pageSize;
+  selectEstado.value = estado;
+  if (valorBusqueda) {
+    searchInput.value = valorBusqueda;
+  }
+
+  // Llamar a la API para obtener los departamentos de trabajo
+  window.api.obtenerDepartamentos(pageSize, currentPage, estado, valorBusqueda, (respuesta) => {
+    const tbody = document.getElementById("departamentos-body");
+    const paginationDiv = document.querySelector(".pagination");
+    tbody.innerHTML = ""; // Limpiar contenido previo
+    paginationDiv.innerHTML = ""; // Limpiar controles de paginación
+
+    // Mostrar mensaje si no hay departamentos
+    if (!respuesta.departamentos || respuesta.departamentos.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+          <td colspan="4" style="text-align: center; color: gray; font-style: italic;">
+            No hay departamentos registrados.
+          </td>
+        `;
+      tbody.appendChild(row);
+      return;
+    }
+
+    // Llenar la tabla con los datos de los departamentos
+    respuesta.departamentos.forEach((departamento) => {
+      const estadoDepartamento = departamento.estado === 1 ? "Activo" : "Inactivo";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+          <td>${departamento.nombreDepartamento}</td>
+          <td>${departamento.descripcionDepartamento}</td>
+          <td>${estadoDepartamento}</td>
+          <td class="action-icons">
+            <button class="tooltip" value="${departamento.idDepartamento}" onclick="editarDepartamento(this.value, this)">
+              <span class="material-icons">edit</span>
+              <span class="tooltiptext">Editar departamento</span>
+            </button>
+            <button class="tooltip" value="${departamento.idDepartamento}" onclick="${departamento.estado === 1 ? `actualizarEstadoDepartamento(this.value, 0, 'Eliminando departamento', '¿Está seguro que desea eliminar este departamento?')` : `actualizarEstadoDepartamento(this.value, 1, 'Reactivando departamento', '¿Está seguro que desea reactivar este departamento?')`}">
+              <span class="material-icons">${departamento.estado === 1 ? 'delete' : 'restore'}</span>
+              <span class="tooltiptext">${departamento.estado === 1 ? 'Eliminar departamento' : 'Reactivar departamento'}</span>
+            </button>
+          </td>
+        `;
+      tbody.appendChild(row);
+    });
+
+    // Actualizar los controles de paginación
+    if (respuesta.paginacion) {
+      actualizarPaginacion(respuesta.paginacion, ".pagination", 11);
+    } else {
+      console.warn("No se proporcionaron datos de paginación.");
+    }
+  });
+}
