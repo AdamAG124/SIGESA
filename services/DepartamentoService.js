@@ -14,6 +14,17 @@ class DepartamentoService {
         }
         return await this.#departamentoDB.listarDepartamentos(pageSize, currentPage, estado, valorBusqueda);
     }
+    async crearDepartamento(departamento) {
+        return await this.#departamentoDB.insertarDepartamento(departamento);
+    }
+
+    async actualizarDepartamento(departamento) {
+        return await this.#departamentoDB.actualizarDepartamento(departamento);
+    }
+
+    async eliminarDepartamento(departamento) {
+        return await this.#departamentoDB.eliminarDepartamento(departamento);
+    }
 }
 
 module.exports = DepartamentoService;
