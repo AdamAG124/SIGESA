@@ -452,6 +452,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
         cargarDepartamentosTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
 
+      case 12: // Caso para Comprobantes de Pago
+        cargarComprobantesPagoTabla(pagination.pageSize, page, pagination.searchValue, pagination.idEntidadFinanciera, pagination.fechaInicio, pagination.fechaFin, pagination.estado, pagination.idCuentaBancaria);
+        break;
       default:
 
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -2956,7 +2959,7 @@ function cargarPtroveedores(idSelect, mensajeQuemado) {
 }
 
 function cargarComprobantesPago(idSelect, mensajeQuemado) {
-  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
+  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, null, (respuesta) => {
     const comprobantePagoSelect = document.getElementById(idSelect);
     comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
     const option = document.createElement("option");
@@ -3407,6 +3410,71 @@ function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, va
       actualizarPaginacion(respuesta.paginacion, ".pagination", 11);
     } else {
       console.warn("No se proporcionaron datos de paginación.");
+    }
+  });
+}/* --------------------------------                    ------------------------------------------
+   -------------------------------- DEPARTAMENTO DE TRABAJO ------------------------------------------
+   --------------------------------                    ------------------------------------------ */
+function agregarDepartamento() {
+  // Lógica para agregar un nuevo departamento
+  document.getElementById("modalTitle").innerText = "Crear Departamento de Trabajo";
+
+  // Asignar la función de envío al botón del modal
+  document.getElementById("buttonModal").onclick = enviarCreacionDepartamento;
+
+  // Mostrar el modal
+  document.getElementById("crearDepartamentoModal").style.display = "block";
+}
+
+function enviarCreacionDepartamento() {
+  const nombre = document.getElementById("nombreDepartamento").value.trim();
+  const descripcion = document.getElementById("descripcionDepartamento").value.trim();
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Validar campos vacíos
+  const camposVacios = [];
+  if (!nombre) camposVacios.push("Nombre del Departamento");
+  
+
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
+    return;
+  }
+
+  // Crear el objeto con los datos del departamento
+  const departamentoData = {
+    nombre,
+    descripcion,
+    estado: 1, // Estado activo por defecto
+  };
+
+  // Confirmar la creación
+  Swal.fire({
+    title: "Registrar Departamento",
+    text: "¿Está seguro que desea registrar este departamento?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, registrar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para registrar el departamento
+      window.api.crearDepartamento(departamentoData);
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaCrearDepartamento((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion("Departamento registrado exitosamente.");
+          cerrarModal("crearDepartamentoModal", "crearDepartamentoForm");
+          cargarDepartamentosTabla(); // Recargar la tabla de departamentos
+        } else {
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al registrar el departamento.";
+          errorMessage.style.color = "red"; // Mostrar el mensaje en rojo
+        }
+      });
     }
   });
 }
