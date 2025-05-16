@@ -542,6 +542,8 @@ ipcMain.on('actualizar-departamento', async (event, departamentoData) => {
         departamento.setDescripcion(departamentoData.descripcion);
         departamento.setEstado(departamentoData.estado);
 
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
         const resultado = await departamentoController.editarDepartamento(departamento);
 
         event.reply('respuesta-actualizar-departamento', resultado);
@@ -550,13 +552,16 @@ ipcMain.on('actualizar-departamento', async (event, departamentoData) => {
         event.reply('respuesta-actualizar-departamento', { success: false, message: error.message });
     }
 });
-
 ipcMain.on('eliminar-departamento', async (event, { idDepartamento, estado }) => {
     try {
+        const Departamento = require('./domain/Departamento');
+        const DepartamentoController = require('./controllers/DepartamentoController');
         const departamento = new Departamento();
         departamento.setIdDepartamento(idDepartamento);
         departamento.setEstado(estado);
 
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
         const resultado = await departamentoController.eliminarDepartamento(departamento);
 
         event.reply('respuesta-eliminar-departamento', resultado);

@@ -3248,7 +3248,7 @@ function agregarProducto() {
 }
 function actualizarCamposProducto(select) {
   const selectedOption = select.options[select.selectedIndex];
-  console.log("📢 Producto seleccionado:", selectedOption);
+  console.log(" Producto seleccionado:", selectedOption);
 
   const unidad = selectedOption.getAttribute("data-unidad") || "N/A";
   const cantidadAnterior = selectedOption.getAttribute("data-cantidad") || 0;
@@ -3274,38 +3274,29 @@ function cargarVistaCrearSalida() {
 }
 // ...existing code...
 async function editarDepartamento(id, boton) {
-  // Obtener la fila del botón clicado
   const fila = boton.closest('tr');
-
-  // Extraer la información de la fila
   const nombreDepartamento = fila.children[0].textContent;
   const descripcionDepartamento = fila.children[1].textContent;
   const estadoDepartamento = fila.children[2].textContent === "Activo" ? true : false;
 
-  // Asignar valores extraídos a los campos del formulario de edición
   document.getElementById("idDepartamento").value = id;
   document.getElementById("nombreDepartamento").value = nombreDepartamento;
   document.getElementById("descripcionDepartamento").value = descripcionDepartamento;
-  document.getElementById("estadoDepartamento").checked = estadoDepartamento;
+ 
 
-  // Cambiar el título del modal a "Editar Departamento"
   document.getElementById("modalTitle").innerText = "Editar Departamento de Trabajo";
-
-  // Configurar el botón del modal para que utilice el método `enviarEdicionDepartamento`
   document.getElementById("buttonModal").onclick = enviarEdicionDepartamento;
-
-  // Mostrar el modal
   document.getElementById("crearDepartamentoModal").style.display = "block";
 }
 function enviarEdicionDepartamento() {
   const id = document.getElementById("idDepartamento").value;
   const nombre = document.getElementById("nombreDepartamento").value.trim();
   const descripcion = document.getElementById("descripcionDepartamento").value.trim();
-  const estado = document.getElementById("estadoDepartamento").checked ? 1 : 0;
+
   const errorMessage = document.getElementById("errorMessage");
 
   // Validar campos vacíos
-  if (!nombre || !descripcion) {
+  if (!nombre ) {
     errorMessage.textContent = "Por favor complete todos los campos.";
     errorMessage.style.color = "red";
     return;
@@ -3315,8 +3306,7 @@ function enviarEdicionDepartamento() {
   const departamentoData = {
     idDepartamento: id,
     nombre,
-    descripcion,
-    estado,
+    descripcion
   };
 
   // Confirmar la edición
@@ -3349,8 +3339,35 @@ function enviarEdicionDepartamento() {
     }
   });
 }
+function actualizarEstadoDepartamento(id, estado, titulo, mensaje) {
+  Swal.fire({
+    title: titulo,
+    text: mensaje,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para actualizar el estado del departamento
+      window.api.eliminarDepartamento(Number(id), Number(estado));
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaEliminarDepartamento((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          cargarDepartamentosTabla(); // Recargar la tabla de departamentos
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
 // ...existing code...
-function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
   // Obtener los elementos del DOM
   const selectPageSize = document.getElementById("selectPageSize");
   const selectEstado = document.getElementById("estado-filtro");
@@ -3397,9 +3414,9 @@ function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, va
               <span class="tooltiptext">Editar departamento</span>
             </button>
             <button class="tooltip" value="${departamento.idDepartamento}" onclick="${departamento.estado === 1 ? `actualizarEstadoDepartamento(this.value, 0, 'Eliminando departamento', '¿Está seguro que desea eliminar este departamento?')` : `actualizarEstadoDepartamento(this.value, 1, 'Reactivando departamento', '¿Está seguro que desea reactivar este departamento?')`}">
-              <span class="material-icons">${departamento.estado === 1 ? 'delete' : 'restore'}</span>
-              <span class="tooltiptext">${departamento.estado === 1 ? 'Eliminar departamento' : 'Reactivar departamento'}</span>
-            </button>
+            <span class="material-icons">${departamento.estado === 1 ? 'delete' : 'restore'}</span>
+            <span class="tooltiptext">${departamento.estado === 1 ? 'Eliminar departamento' : 'Reactivar departamento'}</span>
+    </button>
           </td>
         `;
       tbody.appendChild(row);
