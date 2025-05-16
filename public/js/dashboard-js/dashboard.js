@@ -452,6 +452,9 @@ function actualizarPaginacion(pagination, idInnerDiv, moduloPaginar) {
         cargarDepartamentosTabla(pagination.pageSize, page, pagination.estado, pagination.valorBusqueda);
         break;
 
+      case 12: // Caso para Comprobantes de Pago
+        cargarComprobantesPagoTabla(pagination.pageSize, page, pagination.searchValue, pagination.idEntidadFinanciera, pagination.fechaInicio, pagination.fechaFin, pagination.estado, pagination.idCuentaBancaria);
+        break;
       default:
 
         console.warn('Módulo de paginación desconocido:', moduloPaginar);
@@ -2955,7 +2958,7 @@ function cargarPtroveedores(idSelect, mensajeQuemado) {
 }
 
 function cargarComprobantesPago(idSelect, mensajeQuemado) {
-  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
+  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, null, (respuesta) => {
     const comprobantePagoSelect = document.getElementById(idSelect);
     comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
     const option = document.createElement("option");
