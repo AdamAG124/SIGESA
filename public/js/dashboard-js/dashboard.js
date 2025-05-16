@@ -3294,6 +3294,58 @@ async function editarDepartamento(id, boton) {
   // Mostrar el modal
   document.getElementById("crearDepartamentoModal").style.display = "block";
 }
+function enviarEdicionDepartamento() {
+  const id = document.getElementById("idDepartamento").value;
+  const nombre = document.getElementById("nombreDepartamento").value.trim();
+  const descripcion = document.getElementById("descripcionDepartamento").value.trim();
+  const estado = document.getElementById("estadoDepartamento").checked ? 1 : 0;
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Validar campos vacíos
+  if (!nombre || !descripcion) {
+    errorMessage.textContent = "Por favor complete todos los campos.";
+    errorMessage.style.color = "red";
+    return;
+  }
+
+  // Crear el objeto con los datos del departamento
+  const departamentoData = {
+    idDepartamento: id,
+    nombre,
+    descripcion,
+    estado,
+  };
+
+  // Confirmar la edición
+  Swal.fire({
+    title: "Guardar Cambios",
+    text: "¿Está seguro que desea guardar los cambios?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, guardar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para editar el departamento
+      window.api.editarDepartamento(departamentoData);
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaActualizarDepartamento((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion("Departamento actualizado exitosamente.");
+          cerrarModal("crearDepartamentoModal", "crearDepartamentoForm"); // Cerrar el modal
+          cargarDepartamentosTabla(); // Recargar la tabla de departamentos
+        } else {
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al actualizar el departamento.";
+          errorMessage.style.color = "red";
+        }
+      });
+    }
+  });
+}
 // ...existing code...
 function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
   // Obtener los elementos del DOM
