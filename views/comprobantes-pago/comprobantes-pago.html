@@ -9,26 +9,31 @@
         <input type="text" placeholder="Buscar comprobantes de pago...">
     </div>
     <div class="filters">
-        <select>
+        <select id="pageFiltro">
             <option>10 por página</option>
             <option>25 por página</option>
             <option>50 por página</option>
         </select>
+        <select id="tipoFiltro">
+            <option value="2">Seleccionar Estado</option>
+            <option value="1">Activos</option>
+            <option value="0">Inactivos</option>
+        </select>
         <div class="date-range">
-            <input type="date" placeholder="Fecha inicial">
+            <input type="date" placeholder="Fecha inicial" id="fechaInicial">
             <span>-</span>
-            <input type="date" placeholder="Fecha final">
+            <input type="date" placeholder="Fecha final" id="fechaFinal">
         </div>
-        <select>
-            <option>Seleccionar cuenta Bancaria</option>
+        <select id="cuentaFiltro">
+            <option value="0">Seleccionar cuenta Bancaria</option>
         </select>
     </div>
     <table>
         <thead>
             <tr>
-                <th>Entidad Financiera</th>
-                <th>Número de Cuenta Bancaria</th>
+                <th>Número de Comprobante</th>
                 <th>Fecha de comprobante</th>
+                <th>Monto de comprobante</th>
                 <th>Acciones</th>
             </tr>
         </thead>

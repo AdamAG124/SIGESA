@@ -1467,12 +1467,12 @@ ipcMain.on('actualizar-salida-y-productos', async (event, data) => {
     }
 });
 
-ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
+ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria }) => {
     const comprobantePagoController = new ComprobantePagoController();
 
     try {
         // Llamar al método del controlador
-        const resultado = await comprobantePagoController.obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado);
+        const resultado = await comprobantePagoController.obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria);
 
         // Mapear los objetos ComprobantePago a un formato plano para enviar al frontend
         const comprobantesCompletos = resultado.comprobantes.map(comprobante => {
@@ -1496,7 +1496,9 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
                 total: resultado.total,
                 pageSize: resultado.pageSize,
                 currentPage: resultado.currentPage,
-                totalPages: resultado.totalPages
+                totalPages: resultado.totalPages,
+                searchValue: resultado.searchValue,
+                idCuentaBancaria: resultado.idCuentaBancaria
             }
         };
 

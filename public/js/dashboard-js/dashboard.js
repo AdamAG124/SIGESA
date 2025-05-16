@@ -2955,7 +2955,7 @@ function cargarPtroveedores(idSelect, mensajeQuemado) {
 }
 
 function cargarComprobantesPago(idSelect, mensajeQuemado) {
-  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
+  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, null, (respuesta) => {
     const comprobantePagoSelect = document.getElementById(idSelect);
     comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
     const option = document.createElement("option");
