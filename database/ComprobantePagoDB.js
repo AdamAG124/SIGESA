@@ -37,9 +37,9 @@ class ComprobantePagoDB {
                 cb.NUM_CUENTA_BANCARIA AS numeroCuentaBancaria
             FROM 
                 ${this.#table} cp
-            INNER JOIN 
+            LEFT JOIN 
                 sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
-            INNER JOIN 
+            LEFT JOIN 
                 sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
         `;
 
@@ -89,7 +89,6 @@ class ComprobantePagoDB {
             }
 
             if (pageSize !== null && currentPage !== null) {
-                // Agregar ordenamiento y paginación
                 query += ` ORDER BY cp.ID_COMPROBANTE_PAGO ASC LIMIT ${pageSize} OFFSET ${offset}`;
             }
 
@@ -97,8 +96,8 @@ class ComprobantePagoDB {
             let countQuery = `
             SELECT COUNT(*) as total
             FROM ${this.#table} cp
-            INNER JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
-            INNER JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
+            LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
+            LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
         `;
 
             // Aplicar los mismos filtros al conteo
@@ -153,7 +152,6 @@ class ComprobantePagoDB {
             // Mapear los resultados a objetos ComprobantePago
             const comprobantesPago = rows.map(row => {
                 const comprobantePago = new ComprobantePago();
-                const cuentaBancaria = new CuentaBancaria();
 
                 comprobantePago.setIdComprobantePago(row.idComprobantePago);
                 comprobantePago.setFechaPago(row.fechaPago);
@@ -161,10 +159,10 @@ class ComprobantePagoDB {
                 comprobantePago.setMonto(row.montoComprobantePago);
                 comprobantePago.setEstado(row.estadoComprobantePago);
 
-                comprobantePago.getIdEntidadFinanciera().setIdEntidadFinanciera(row.idEntidadFinanciera);
-                comprobantePago.getIdEntidadFinanciera().setNombre(row.nombreEntidadFinanciera);
-                comprobantePago.getIdEntidadFinanciera().setTipo(row.tipoEntidadFinanciera);
-                comprobantePago.getIdEntidadFinanciera().setEstado(row.estadoEntidadFinanciera);
+                comprobantePago.getIdEntidadFinanciera().setIdEntidadFinanciera(row.idEntidadFinanciera || 0);
+                comprobantePago.getIdEntidadFinanciera().setNombre(row.nombreEntidadFinanciera || 'Sin entidad');
+                comprobantePago.getIdEntidadFinanciera().setTipo(row.tipoEntidadFinanciera || '');
+                comprobantePago.getIdEntidadFinanciera().setEstado(row.estadoEntidadFinanciera !== null ? row.estadoEntidadFinanciera : false);
 
                 return comprobantePago;
             });
@@ -178,12 +176,7 @@ class ComprobantePagoDB {
                 total: totalRecords,
                 pageSize: pageSize,
                 currentPage: currentPage,
-                totalPages: totalPages,
-                searchValue: searchValue,
-                idCuentaBancaria: idCuentaBancaria,
-                fechaInicio: fechaInicio,
-                fechaFin: fechaFin,
-                estado: estado
+                totalPages: totalPages
             };
 
         } catch (error) {
@@ -191,7 +184,7 @@ class ComprobantePagoDB {
             throw new Error('Error al listar los comprobantes de pago: ' + error.message);
         } finally {
             if (connection) {
-                await connection.end(); // Cerrar la conexión
+                await connection.end();
             }
         }
     }

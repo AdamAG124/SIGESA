@@ -1,24 +1,32 @@
-function cargarComprobantesPagoTabla(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria) {
-    document.getElementById("pageFilter").value = pageSize;
-    document.getElementById("page").value = currentPage;
-    document.getElementById("fechaInicial").value = fechaInicio;
-    document.getElementById("fechaFinal").value = fechaFin;
-    document.getElementById("estadoFiltro").value = estado;
-    document.getElementById("searchBar").value = searchValue;
+function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue = null, idEntidadFinanciera = null, fechaInicio = null, fechaFin = null, estado = 1, idCuentaBancaria = null) {
+    const searchBar = document.getElementById("searchBar");
+    if (searchValue !== null && searchBar) searchBar.value = searchValue;
+
+    const tipoFiltro = document.getElementById("tipoFiltro");
+    if (estado !== null && tipoFiltro) tipoFiltro.value = estado;
+
+    const fechaInicial = document.getElementById("fechaInicial");
+    if (fechaInicio && fechaInicial) fechaInicial.value = fechaInicio;
+
+    const fechaFinal = document.getElementById("fechaFinal");
+    if (fechaFin && fechaFinal) fechaFinal.value = fechaFin;
+
+    const pageFiltro = document.getElementById("pageFiltro");
+    if (pageSize && pageFiltro) pageFiltro.value = pageSize;
 
     setTimeout(() => {
         // Establecer el valor del select de cuenta bancaria si se proporciona
-        document.getElementById("cuentaFiltro").value = idCuentaBancaria;
+        if(idCuentaBancaria) document.getElementById("cuentaFiltro").value = idCuentaBancaria;
 
         // Llamar al método del API para obtener los comprobantes de pago
         window.api.obtenerComprobantesPago(
             pageSize,
-            pageNumber,
+            currentPage,
             searchValue,
             null, // idEntidadFinanciera (no se usa en los filtros del HTML, pero se incluye por compatibilidad)
             fechaInicio,
             fechaFin,
-            Number(estadoComprobante) === 2 ? null : estadoComprobante, // Si es 2, pasamos null para obtener todos
+            Number(estado) === 2 ? null : estado, // Si es 2, pasamos null para obtener todos
             idCuentaBancaria,
             (respuesta) => {
                 const tbody = document.getElementById("comprobanteBody");
