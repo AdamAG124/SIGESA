@@ -170,63 +170,53 @@ class DepartamentoDB {
         }
     }
 
-    async actualizarDepartamento(departamento) {
-        const db = new ConectarDB();
-        let connection;
+   
+async actualizarDepartamento(departamento) {
+    const db = new ConectarDB();
+    let connection;
 
-        try {
-            connection = await db.conectar();
+    try {
+        connection = await db.conectar();
 
-            const idDepartamento = departamento.getIdDepartamento();
-            const nombre = departamento.getNombre();
-            const descripcion = departamento.getDescripcion();
-            const estado = departamento.getEstado();
+        const idDepartamento = departamento.getIdDepartamento();
+        const nombre = departamento.getNombre();
+        const descripcion = departamento.getDescripcion();
 
-            const existingQuery = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE_DEPARTAMENTO = ? AND ID_DEPARTAMENTO <> ?`;
-            const [existingRows] = await connection.query(existingQuery, [nombre, idDepartamento]);
+        // NO incluyas el campo estado aquí
+        const query = `
+            UPDATE ${this.#table}
+            SET 
+                DSC_NOMBRE_DEPARTAMENTO = ?, 
+                DSC_DEPARTAMENTO = ?
+            WHERE 
+                ID_DEPARTAMENTO = ?
+        `;
+        const params = [nombre, descripcion, idDepartamento];
 
-            if (existingRows[0].count > 0) {
-                return {
-                    success: false,
-                    message: 'El nombre del departamento ya existe.'
-                };
-            }
+        const [result] = await connection.query(query, params);
 
-            const query = `
-                UPDATE ${this.#table}
-                SET 
-                    DSC_NOMBRE_DEPARTAMENTO = ?, 
-                    DSC_DEPARTAMENTO = ?, 
-                    ESTADO = ? 
-                WHERE 
-                    ID_DEPARTAMENTO = ?
-            `;
-            const params = [nombre, descripcion, estado, idDepartamento];
-
-            const [result] = await connection.query(query, params);
-
-            if (result.affectedRows > 0) {
-                return {
-                    success: true,
-                    message: 'Departamento actualizado exitosamente.'
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'No se encontró el departamento o no se realizaron cambios.'
-                };
-            }
-        } catch (error) {
+        if (result.affectedRows > 0) {
+            return {
+                success: true,
+                message: 'Departamento actualizado exitosamente.'
+            };
+        } else {
             return {
                 success: false,
-                message: 'Error al actualizar el departamento: ' + error.message
+                message: 'No se encontró el departamento o no se realizaron cambios.'
             };
-        } finally {
-            if (connection) {
-                await connection.end();
-            }
+        }
+    } catch (error) {
+        return {
+            success: false,
+            message: 'Error al actualizar el departamento: ' + error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.end();
         }
     }
+}
 
     async eliminarDepartamento(departamento) {
         const db = new ConectarDB();

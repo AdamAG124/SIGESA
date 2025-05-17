@@ -43,14 +43,17 @@
         <span class="close" onclick="cerrarModal('crearDepartamentoModal', 'crearDepartamentoForm')">&times;</span>
         <h2 id="modalTitle">Crear Departamento</h2>
         <form id="crearDepartamentoForm">
-            <label for="nombreDepartamento">Nombre del Departamento:</label>
-            <input type="text" id="nombreDepartamento" name="nombreDepartamento" placeholder="Ingrese el nombre del departamento" required>
-    
-            <label for="descripcionDepartamento">Descripción:</label>
-            <textarea id="descripcionDepartamento" name="descripcionDepartamento" placeholder="Ingrese una descripción del departamento" required></textarea>
-            <p id="errorMessage" style="color: red;"></p>
-    
-            <button type="button" class="close-btn" id="buttonModal" onclick="enviarCreacionDepartamento()">Registrar</button>
-        </form>
+    <input type="hidden" id="idDepartamento" name="idDepartamento">
+    <label for="nombreDepartamento">Nombre del Departamento:</label>
+    <input type="text" id="nombreDepartamento" name="nombreDepartamento" placeholder="Ingrese el nombre del departamento" required>
+
+    <label for="descripcionDepartamento">Descripción:</label>
+    <textarea id="descripcionDepartamento" name="descripcionDepartamento" placeholder="Ingrese una descripción del departamento" required></textarea>
+
+   
+    <p id="errorMessage" style="color: red;"></p>
+
+    <button type="button" class="close-btn" id="buttonModal">Registrar</button>
+</form>
     </div>
 </div>
