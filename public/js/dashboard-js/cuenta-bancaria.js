@@ -1,5 +1,5 @@
 function cargarCuentasTabla(pageSize = 10, pageNumber = 1, searchValue = null, idEntidadFinanciera = null, tipoDivisa = null, estado = 1) {
-    cargarEntidadesFinancierasEnSelect()
+    cargarEntidadesFinancierasEnSelect();
     setTimeout(() => {
         if (idEntidadFinanciera !== null) {
             document.getElementById("entidad-financiera-filtro").value = idEntidadFinanciera;
@@ -70,7 +70,11 @@ function mostrarFormCrearCuentaBancaria() {
 
 function cargarEntidadesFinancierasEnSelect() {
     const selectEntidadFinanciera = document.getElementById('entidad-financiera-filtro');
-    //cargarEntidadesFinancierasEnSelect();
+    selectEntidadFinanciera.innerHTML = ''; // Limpiar opciones previas
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '0';
+    defaultOption.textContent = 'Seleccione una entidad financiera';
+    selectEntidadFinanciera.appendChild(defaultOption);
 
     window.api.obtenerEntidadesFinancieras(null, null, null, null, (respuesta) => {
         if (respuesta.error) {

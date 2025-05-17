@@ -2,7 +2,7 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
     const searchBar = document.getElementById("searchBar");
     if (searchValue !== null && searchBar) searchBar.value = searchValue;
 
-    const tipoFiltro = document.getElementById("tipoFiltro");
+    const tipoFiltro = document.getElementById("estadoFiltro");
     if (estado !== null && tipoFiltro) tipoFiltro.value = estado;
 
     const fechaInicial = document.getElementById("fechaInicial");
@@ -11,9 +11,9 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
     const fechaFinal = document.getElementById("fechaFinal");
     if (fechaFin && fechaFinal) fechaFinal.value = fechaFin;
 
-    const pageFiltro = document.getElementById("pageFiltro");
+    const pageFiltro = document.getElementById("selectPageSize");
     if (pageSize && pageFiltro) pageFiltro.value = pageSize;
-
+    cargarCuentasBancariasEnSelect();
     setTimeout(() => {
         // Establecer el valor del select de cuenta bancaria si se proporciona
         if(idCuentaBancaria) document.getElementById("cuentaFiltro").value = idCuentaBancaria;
@@ -27,7 +27,7 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
             fechaInicio,
             fechaFin,
             Number(estado) === 2 ? null : estado, // Si es 2, pasamos null para obtener todos
-            idCuentaBancaria,
+            idCuentaBancaria === 0 ? null : idCuentaBancaria, // Si es 0, pasamos null para obtener todos
             (respuesta) => {
                 const tbody = document.getElementById("comprobanteBody");
                 tbody.innerHTML = ""; // Limpiar contenido previo
@@ -57,10 +57,6 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
                                     <span class="material-icons">edit</span>
                                     <span class="tooltiptext">Editar comprobante</span>
                                 </button>
-                                <button class="tooltip" value="${comprobante.idComprobantePago}" onclick="verDetallesComprobante(this.value, '/comprobante-view/detalles-comprobante.html', 1)">
-                                    <span class="material-icons">info</span>
-                                    <span class="tooltiptext">Ver detalles</span>
-                                </button>
                                 <button class="tooltip" value="${comprobante.idComprobantePago}" onclick="${comprobante.estadoComprobantePago === 1 ? `actualizarEstadoComprobante(this.value, 0, 'Eliminando comprobante', '¿Está seguro que desea eliminar este comprobante?', 1)` : `actualizarEstadoComprobante(this.value, 1, 'Reactivando comprobante', '¿Está seguro que desea reactivar este comprobante?', 1)`}">
                                     <span class="material-icons">
                                         ${comprobante.estadoComprobantePago === 1 ? 'delete' : 'restore'}
@@ -80,4 +76,28 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
             }
         );
     }, 100);
+}
+
+function cargarCuentasBancariasEnSelect() {
+    const selectCuentasBancarias = document.getElementById('cuentaFiltro');
+    selectCuentasBancarias.innerHTML = ""; // Limpiar opciones previas
+    const option = document.createElement('option');
+    option.value = 0;
+    option.textContent = 'Seleccionar cuenta bancaria';
+    selectCuentasBancarias.appendChild(option);
+
+    window.api.obtenerCuentasBancarias(null, null, null, null, null, 1, (respuesta) => {
+        if (!respuesta.success) {
+            console.error('Error al cargar las cuentas financieras.');
+            return;
+        }
+
+        // No eliminamos las opciones existentes, solo agregamos las nuevas
+        respuesta.data.forEach(cuenta => {
+            const option = document.createElement('option');
+            option.value = cuenta.idCuentaBancaria;
+            option.textContent = cuenta.estado ? cuenta.dscBanco + ': ' + cuenta.numCuentaBancaria : `${cuenta.dscBanco + ': ' + cuenta.numCuentaBancaria} (Inactiva)`;
+            selectCuentasBancarias.appendChild(option);
+        });
+    });
 }

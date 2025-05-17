@@ -6,25 +6,26 @@
         </button>
     </div>
     <div class="search-bar">
-        <input type="text" placeholder="Buscar comprobantes de pago..." id="searchBar">
+        <input type="text" placeholder="Buscar comprobantes de pago..." id="searchBar" onkeypress="filterTable(12)">
     </div>
     <div class="filters">
-        <select id="pageFiltro">
+        <select id="selectPageSize" onchange="filterTable(12)">
+            <option value="5">5 por página</option>
             <option value="10">10 por página</option>
             <option value="25">25 por página</option>
             <option value="50">50 por página</option>
         </select>
-        <select id="tipoFiltro">
+        <select id="estadoFiltro" onchange="filterTable(12)">
             <option value="2">Seleccionar Estado</option>
             <option value="1">Activos</option>
             <option value="0">Inactivos</option>
         </select>
         <div class="date-range">
-            <input type="date" placeholder="Fecha inicial" id="fechaInicial">
+            <input type="date" placeholder="Fecha inicial" id="fechaInicial" onchange="filterTable(12)">
             <span>-</span>
-            <input type="date" placeholder="Fecha final" id="fechaFinal">
+            <input type="date" placeholder="Fecha final" id="fechaFinal" onchange="filterTable(12)">
         </div>
-        <select id="cuentaFiltro">
+        <select id="cuentaFiltro" onchange="filterTable(12)">
             <option value="0">Seleccionar cuenta Bancaria</option>
         </select>
     </div>
