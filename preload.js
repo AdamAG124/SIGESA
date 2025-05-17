@@ -80,10 +80,16 @@ contextBridge.exposeInMainWorld('api', {
     obtenerDepartamentos: (pageSize, currentPage, estado, valorBusqueda, callback) => {
         ipcRenderer.send('listar-departamentos', { pageSize, currentPage, estado, valorBusqueda });
         ipcRenderer.once('cargar-departamentos', (event, departamentos) => {
-            // Asegúrate de que departamentos es un objeto válido y serializable
             callback(departamentos);
         });
     },
+    crearDepartamento: (departamentoData) => ipcRenderer.send('crear-departamento', departamentoData),
+    onRespuestaCrearDepartamento: (callback) => ipcRenderer.on('respuesta-crear-departamento', (event, respuesta) => callback(respuesta)),
+    editarDepartamento: (departamentoData) => ipcRenderer.send('actualizar-departamento', departamentoData),
+    onRespuestaActualizarDepartamento: (callback) => ipcRenderer.on('respuesta-actualizar-departamento', (event, respuesta) => callback(respuesta)),
+    eliminarDepartamento: (idDepartamento, estado) => ipcRenderer.send('eliminar-departamento', { idDepartamento, estado }),
+    onRespuestaEliminarDepartamento: (callback) => ipcRenderer.on('respuesta-eliminar-departamento', (event, respuesta) => callback(respuesta)),
+
 
     obtenerPuestosTrabajo: (pageSize, currentPage, estado, valorBusqueda, callback) => {
         ipcRenderer.send('listar-puestos-trabajo', { pageSize, currentPage, estado, valorBusqueda });
@@ -237,8 +243,8 @@ contextBridge.exposeInMainWorld('api', {
     printToPDF: () => ipcRenderer.invoke('print-to-pdf'),
     printPDF: (pdfPath) => ipcRenderer.invoke('print-pdf', pdfPath),
 
-    obtenerComprobantesPago: (pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, callback) => {
-        ipcRenderer.send('listar-comprobantes-pago', { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado });
+    obtenerComprobantesPago: (pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria, callback) => {
+        ipcRenderer.send('listar-comprobantes-pago', { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria });
         ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
     },
 

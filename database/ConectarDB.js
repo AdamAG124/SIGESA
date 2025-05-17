@@ -9,8 +9,8 @@ class ConectarDB {
 
   constructor() {
     this.#host = "localhost";
-    this.#user = "root";
-    this.#password = "";
+    this.#user = "AdamAG";
+    this.#password = "adam124";
     this.#database = "dbsigesa";
   }
 
