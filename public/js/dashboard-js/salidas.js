@@ -119,8 +119,9 @@ function addProductSalida() {
     row.className = 'product-row';
     row.innerHTML = `
         <td>
-            <select class="form-select product-select" id=${idSelect} onchange="actualizarCantidadPrevia(this)">
-                <option value="0">Seleccione un producto</option>
+          <select class="form-select product-select product-name" id="${idSelect}" onchange="selectProductosOptionValidationSalida(this)">      <option value="0">Seleccione un producto</option>
+                <option value="crear">+ Agregar Nuevo</option>
+       
             </select>
         </td>
         <td><input type="text" class="form-control product-unit" readonly></td>
@@ -525,4 +526,86 @@ function validarYRecolectarDatosNuevaSalidaProducto() {
             }
         });
     }
+}
+
+
+function selectProductosOptionValidationSalida(select) {
+    if (select.value === 'crear') {
+        const form = document.getElementById("editarProductoForm");
+        form.reset();
+
+        // Llenar selects de categorías y unidades de medición
+        const categoriaSelect = document.getElementById("categorias");
+        cargarCategorias(categoriaSelect, "Seleccionar categoría");
+        const unidadMedicionSelect = document.getElementById("unidadMedicion");
+        cargarUnidadesMedición(unidadMedicionSelect, "Seleccionar");
+
+        var selectIdInput = document.createElement("input");
+        selectIdInput.setAttribute("type", "hidden");
+        selectIdInput.setAttribute("id", "idSelectProductoDesdeSalida");
+        selectIdInput.value = select.id;
+
+        form.appendChild(selectIdInput);
+
+        document.getElementById("idProducto").value = "";
+        document.getElementById("errorMessage").textContent = "";
+
+        document.getElementById("modalTitle").innerText = "Crear Producto";
+        document.getElementById("buttonModal").onclick = enviarCreacionProductoDesdeSalida;
+
+        document.getElementById("editarProductoModal").style.display = "block";
+    } else {
+        actualizarCantidadPreviaSalida(select);
+    }
+}
+
+function enviarCreacionProductoDesdeSalida() {
+    const nombre = document.getElementById("nombre").value;
+    const descripcion = document.getElementById("descripcion").value || "N/A";
+    const cantidad = document.getElementById("cantidad").value;
+    const unidadMedicion = document.getElementById("unidadMedicion").value;
+    const categoria = document.getElementById("categorias").value;
+    const errorMessage = document.getElementById("errorMessage");
+
+    // Validación básica
+    if (!nombre || !unidadMedicion || !categoria) {
+        errorMessage.textContent = "Por favor, llene todos los campos obligatorios.";
+        return;
+    } else {
+        errorMessage.textContent = "";
+    }
+
+    const productoData = {
+        nombre,
+        descripcion,
+        cantidad,
+        unidadMedicion,
+        categoria
+    };
+
+    Swal.fire({
+        title: "Creando producto",
+        text: "¿Está seguro que desea crear este nuevo producto?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#4a4af4",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.api.crearProducto(productoData);
+            window.api.onRespuestaCrearProducto((respuesta) => {
+                if (respuesta.success) {
+                    mostrarToastConfirmacion(respuesta.message);
+                    setTimeout(() => {
+                        llenarProductosSelectByClass(".product-name", 1);
+                        cerrarModal("editarProductoModal", "editarProductoForm");
+                    }, 2000);
+                } else {
+                    mostrarToastError(respuesta.message);
+                }
+            });
+        }
+    });
 }
