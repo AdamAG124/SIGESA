@@ -553,6 +553,9 @@ function filterTable(moduloFiltrar) {
       case 11: // Nuevo caso para Departamentos de Trabajo
       cargarDepartamentosTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
+    case 12:
+      cargarComprobantesPagoTabla(pageSize, 1, document.getElementById("searchBar").value, null, document.getElementById("fechaInicial").value, document.getElementById("fechaFinal").value, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("cuentaFiltro").value));
+      break;
   }
 
 }

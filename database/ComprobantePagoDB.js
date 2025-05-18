@@ -47,97 +47,97 @@ class ComprobantePagoDB {
             let whereClauseAdded = false;
 
             // Aplicar filtros dinámicamente
-            if (idEntidadFinanciera !== null) {
+            if (idEntidadFinanciera !== null && idEntidadFinanciera !== "") {
                 query += ` WHERE cp.ID_ENTIDAD_FINANCIERA = ${idEntidadFinanciera}`;
                 whereClauseAdded = true;
             }
 
-            if (fechaInicio !== null && fechaFin !== null) {
+            if (fechaInicio !== null && fechaInicio !== "" && fechaFin !== null && fechaFin !== "") {
                 const fechaCondition = `cp.FEC_PAGO BETWEEN '${fechaInicio}' AND '${fechaFin}'`;
                 query += whereClauseAdded ? ` AND ${fechaCondition}` : ` WHERE ${fechaCondition}`;
                 whereClauseAdded = true;
-            } else if (fechaInicio !== null) {
+            } else if (fechaInicio !== null && fechaInicio !== "") {
                 query += whereClauseAdded ?
                     ` AND cp.FEC_PAGO >= '${fechaInicio}'` :
                     ` WHERE cp.FEC_PAGO >= '${fechaInicio}'`;
                 whereClauseAdded = true;
-            } else if (fechaFin !== null) {
+            } else if (fechaFin !== null && fechaFin !== "") {
                 query += whereClauseAdded ?
                     ` AND cp.FEC_PAGO <= '${fechaFin}'` :
                     ` WHERE cp.FEC_PAGO <= '${fechaFin}'`;
                 whereClauseAdded = true;
             }
 
-            if (estado !== null) {
+            if (estado !== null && estado !== "") {
                 query += whereClauseAdded ?
                     ` AND cp.ESTADO = ${estado}` :
                     ` WHERE cp.ESTADO = ${estado}`;
                 whereClauseAdded = true;
             }
 
-            if (searchValue !== null) {
+            if (searchValue !== null && searchValue !== "") {
                 const searchCondition = `cp.NUM_COMPROBANTE_PAGO LIKE '%${searchValue}%'`;
                 query += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
                 whereClauseAdded = true;
             }
 
-            if (idCuentaBancaria !== null) {
+            if (idCuentaBancaria !== null && idCuentaBancaria !== "") {
                 query += whereClauseAdded ?
                     ` AND cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}` :
                     ` WHERE cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}`;
                 whereClauseAdded = true;
             }
 
-            if (pageSize !== null && currentPage !== null) {
+            if (pageSize !== null && pageSize !== "" && currentPage !== null && currentPage !== "") {
                 query += ` ORDER BY cp.ID_COMPROBANTE_PAGO ASC LIMIT ${pageSize} OFFSET ${offset}`;
             }
 
             // Consulta para contar el total de registros
             let countQuery = `
-            SELECT COUNT(*) as total
-            FROM ${this.#table} cp
-            LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
-            LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
-        `;
+    SELECT COUNT(*) as total
+    FROM ${this.#table} cp
+    LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
+    LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
+`;
 
             // Aplicar los mismos filtros al conteo
             whereClauseAdded = false;
 
-            if (idEntidadFinanciera !== null) {
+            if (idEntidadFinanciera !== null && idEntidadFinanciera !== "") {
                 countQuery += ` WHERE cp.ID_ENTIDAD_FINANCIERA = ${idEntidadFinanciera}`;
                 whereClauseAdded = true;
             }
 
-            if (fechaInicio !== null && fechaFin !== null) {
+            if (fechaInicio !== null && fechaInicio !== "" && fechaFin !== null && fechaFin !== "") {
                 const fechaCondition = `cp.FEC_PAGO BETWEEN '${fechaInicio}' AND '${fechaFin}'`;
                 countQuery += whereClauseAdded ? ` AND ${fechaCondition}` : ` WHERE ${fechaCondition}`;
                 whereClauseAdded = true;
-            } else if (fechaInicio !== null) {
+            } else if (fechaInicio !== null && fechaInicio !== "") {
                 countQuery += whereClauseAdded ?
                     ` AND cp.FEC_PAGO >= '${fechaInicio}'` :
                     ` WHERE cp.FEC_PAGO >= '${fechaInicio}'`;
                 whereClauseAdded = true;
-            } else if (fechaFin !== null) {
+            } else if (fechaFin !== null && fechaFin !== "") {
                 countQuery += whereClauseAdded ?
                     ` AND cp.FEC_PAGO <= '${fechaFin}'` :
                     ` WHERE cp.FEC_PAGO <= '${fechaFin}'`;
                 whereClauseAdded = true;
             }
 
-            if (estado !== null) {
+            if (estado !== null && estado !== "") {
                 countQuery += whereClauseAdded ?
                     ` AND cp.ESTADO = ${estado}` :
                     ` WHERE cp.ESTADO = ${estado}`;
                 whereClauseAdded = true;
             }
 
-            if (searchValue !== null) {
+            if (searchValue !== null && searchValue !== "") {
                 const searchCondition = `cp.NUM_COMPROBANTE_PAGO LIKE '%${searchValue}%'`;
                 countQuery += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
                 whereClauseAdded = true;
             }
 
-            if (idCuentaBancaria !== null) {
+            if (idCuentaBancaria !== null && idCuentaBancaria !== "") {
                 countQuery += whereClauseAdded ?
                     ` AND cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}` :
                     ` WHERE cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}`;
@@ -176,7 +176,12 @@ class ComprobantePagoDB {
                 total: totalRecords,
                 pageSize: pageSize,
                 currentPage: currentPage,
-                totalPages: totalPages
+                totalPages: totalPages,
+                searchValue: searchValue,
+                idEntidadFinanciera: idEntidadFinanciera,
+                fechaInicio: fechaInicio,
+                fechaFin: fechaFin,
+                estado: estado
             };
 
         } catch (error) {

@@ -1553,7 +1553,10 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
                 currentPage: resultado.currentPage,
                 totalPages: resultado.totalPages,
                 searchValue: resultado.searchValue,
-                idCuentaBancaria: resultado.idCuentaBancaria
+                idEntidadFinanciera: resultado.idEntidadFinanciera,
+                fechaInicio: resultado.fechaInicio,
+                fechaFin: resultado.fechaFin,
+                estado: resultado.estado
             }
         };
 
