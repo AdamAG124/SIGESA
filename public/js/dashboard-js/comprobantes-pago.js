@@ -16,7 +16,7 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
     cargarCuentasBancariasEnSelect();
     setTimeout(() => {
         // Establecer el valor del select de cuenta bancaria si se proporciona
-        if(idCuentaBancaria) document.getElementById("cuentaFiltro").value = idCuentaBancaria;
+        if (idCuentaBancaria) document.getElementById("cuentaFiltro").value = idCuentaBancaria;
 
         // Llamar al método del API para obtener los comprobantes de pago
         window.api.obtenerComprobantesPago(
@@ -100,4 +100,123 @@ function cargarCuentasBancariasEnSelect() {
             selectCuentasBancarias.appendChild(option);
         });
     });
+}
+
+function desplegarFormCrearComprobante() {
+    const form = document.getElementById("crearComprobanteForm");
+    form.reset()
+
+    const selectCuentasBancarias = document.getElementById("cuenta");
+    selectCuentasBancarias.innerHTML = ""; // Limpiar opciones previas
+    const option = document.createElement('option');
+    option.value = 0;
+    option.textContent = 'Seleccionar cuenta bancaria';
+    selectCuentasBancarias.appendChild(option);
+
+    window.api.obtenerCuentasBancarias(null, null, null, null, null, 1, (respuesta) => {
+        if (!respuesta.success) {
+            console.error('Error al cargar las cuentas financieras.');
+            return;
+        }
+
+        // No eliminamos las opciones existentes, solo agregamos las nuevas
+        respuesta.data.forEach(cuenta => {
+            const option = document.createElement('option');
+            option.value = cuenta.idCuentaBancaria;
+            option.textContent = cuenta.estado ? cuenta.dscBanco + ': ' + cuenta.numCuentaBancaria : `${cuenta.dscBanco + ': ' + cuenta.numCuentaBancaria} (Inactiva)`;
+            selectCuentasBancarias.appendChild(option);
+        });
+    });
+
+    document.getElementById("crearComprobanteModal").style.display = "block";
+}
+
+function validarFormularioComprobante() {
+    // Obtener los elementos del formulario
+    const cuenta = document.getElementById("cuenta");
+    const fechaPago = document.getElementById("fechaPago");
+    const numero = document.getElementById("numero");
+    const montoComprobante = document.getElementById("montoComprobante");
+    const errorMessage = document.getElementById("errorMessage");
+
+    // Bandera para rastrear si hay campos vacíos
+    let hayErrores = false;
+
+    // Limpiar estilos de error previos
+    cuenta.style.border = "";
+    fechaPago.style.border = "";
+    numero.style.border = "";
+    montoComprobante.style.border = "";
+    errorMessage.textContent = "";
+
+    // Validar el select de cuenta bancaria
+    if (cuenta.value === "0") {
+        cuenta.style.border = "2px solid red";
+        hayErrores = true;
+    }
+
+    // Validar fecha de pago
+    if (!fechaPago.value) {
+        fechaPago.style.border = "2px solid red";
+        hayErrores = true;
+    }
+
+    // Validar número de comprobante
+    if (!numero.value.trim()) {
+        numero.style.border = "2px solid red";
+        hayErrores = true;
+    }
+
+    // Validar monto del comprobante
+    if (!montoComprobante.value || montoComprobante.value <= 0) {
+        montoComprobante.style.border = "2px solid red";
+        hayErrores = true;
+    }
+
+    // Mostrar mensaje de error si hay campos vacíos
+    if (hayErrores) {
+        errorMessage.textContent = "Por favor, complete todos los campos.";
+        return false;
+    }
+
+
+
+    if (hayErrores === false) {
+        Swal.fire({
+            title: "Creando Comprobante de Pago",
+            text: "¿Realmente desea crear este Comprobante de Pago?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4a4af4",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const comprobantePagoData = {
+                    cuentaBancaria: cuenta.value.trim(),
+                    fechaPago: fechaPago.value.trim(),
+                    numero: numero.value.trim(),
+                    montoComprobante: montoComprobante.value.trim()
+                };
+                console.log(comprobantePagoData);
+                errorMessage.textContent = '';
+                window.api.crearComprobantePago(comprobantePagoData);
+                window.api.onRespuestaCrearComprobantePago((respuesta) => {
+                    if (respuesta.success) {
+                        mostrarToastConfirmacion(respuesta.message);
+                        setTimeout(() => {
+                            adjuntarHTML('/comprobantes-pago/comprobantes-pago.html', cargarComprobantesPagoTabla);
+                        }, 2000);
+                    } else {
+                        mostrarToastError(respuesta.message);
+                    }
+                }
+                );
+            }
+        }).catch((error) => {
+            mostrarToastError("A ocurrido un erro mientras se enviaba el formulario.");
+            console.error("Error:", error);
+        });
+    }
 }

@@ -248,6 +248,9 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
     },
 
+    crearComprobantePago: (comprobantePagoData) => ipcRenderer.send('crear-comprobante-pago', comprobantePagoData),
+    onRespuestaCrearComprobantePago: (callback) => ipcRenderer.once('respuesta-crear-comprobante-pago', (event, respuesta) => callback(respuesta)),
+
     /* --------------------------------           ------------------------------------------
       --------------------------------  Salida Producto  ------------------------------------------
       --------------------------------           ------------------------------------------ */
