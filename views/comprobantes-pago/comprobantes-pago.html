@@ -1,0 +1,57 @@
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Comprobantes de Pago</h1>
+        <button class="add-receipt-btn" title="Agregar Nuevo Comprobante de Pago">
+            <span class="material-icons">add_box</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input type="text" placeholder="Buscar comprobantes de pago..." id="searchBar" onkeypress="filterTable(12)">
+    </div>
+    <div class="filters">
+        <select id="selectPageSize" onchange="filterTable(12)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estadoFiltro" onchange="filterTable(12)">
+            <option value="2">Seleccionar Estado</option>
+            <option value="1">Activos</option>
+            <option value="0">Inactivos</option>
+        </select>
+        <div class="date-range">
+            <input type="date" placeholder="Fecha inicial" id="fechaInicial" onchange="filterTable(12)">
+            <span>-</span>
+            <input type="date" placeholder="Fecha final" id="fechaFinal" onchange="filterTable(12)">
+        </div>
+        <select id="cuentaFiltro" onchange="filterTable(12)">
+            <option value="0">Seleccionar cuenta Bancaria</option>
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Número de Comprobante</th>
+                <th>Fecha de comprobante</th>
+                <th>Monto de comprobante</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="comprobanteBody">
+
+        </tbody>
+    </table>
+    <div class="pagination">
+    </div>
+</div>
+</div>
+
+<script>
+    function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        submenu.classList.toggle('active');
+        const arrow = document.getElementById(id + '-arrow');
+        arrow.classList.toggle('rotate');
+    }
+</script>

@@ -120,6 +120,148 @@ class DepartamentoDB {
             }
         }
     }
+    
+    async insertarDepartamento(departamento) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            const nombre = departamento.getNombre();
+            const descripcion = departamento.getDescripcion();
+            const estado = departamento.getEstado();
+
+            const existingQuery = `SELECT COUNT(*) AS count FROM ${this.#table} WHERE DSC_NOMBRE_DEPARTAMENTO = ?`;
+            const [existingRows] = await connection.query(existingQuery, [nombre]);
+
+            if (existingRows[0].count > 0) {
+                return {
+                    success: false,
+                    message: 'El nombre del departamento ya existe.'
+                };
+            }
+
+            const query = `INSERT INTO ${this.#table} (DSC_NOMBRE_DEPARTAMENTO, DSC_DEPARTAMENTO, ESTADO) VALUES (?, ?, ?)`;
+            const params = [nombre, descripcion, estado];
+
+            const [result] = await connection.query(query, params);
+
+            if (result.affectedRows > 0) {
+                return {
+                    success: true,
+                    message: 'Departamento creado exitosamente.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No se pudo crear el departamento.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al crear el departamento: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
+   
+async actualizarDepartamento(departamento) {
+    const db = new ConectarDB();
+    let connection;
+
+    try {
+        connection = await db.conectar();
+
+        const idDepartamento = departamento.getIdDepartamento();
+        const nombre = departamento.getNombre();
+        const descripcion = departamento.getDescripcion();
+
+        // NO incluyas el campo estado aquí
+        const query = `
+            UPDATE ${this.#table}
+            SET 
+                DSC_NOMBRE_DEPARTAMENTO = ?, 
+                DSC_DEPARTAMENTO = ?
+            WHERE 
+                ID_DEPARTAMENTO = ?
+        `;
+        const params = [nombre, descripcion, idDepartamento];
+
+        const [result] = await connection.query(query, params);
+
+        if (result.affectedRows > 0) {
+            return {
+                success: true,
+                message: 'Departamento actualizado exitosamente.'
+            };
+        } else {
+            return {
+                success: false,
+                message: 'No se encontró el departamento o no se realizaron cambios.'
+            };
+        }
+    } catch (error) {
+        return {
+            success: false,
+            message: 'Error al actualizar el departamento: ' + error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
+    }
+}
+
+    async eliminarDepartamento(departamento) {
+        const db = new ConectarDB();
+        let connection;
+
+        try {
+            connection = await db.conectar();
+
+            const idDepartamento = departamento.getIdDepartamento();
+            const estado = departamento.getEstado();
+
+            const query = `UPDATE ${this.#table} SET ESTADO = ? WHERE ID_DEPARTAMENTO = ?`;
+            const params = [estado, idDepartamento];
+
+            const [result] = await connection.query(query, params);
+
+            if (result.affectedRows > 0) {
+                if (estado === 0) {
+                    return {
+                        success: true,
+                        message: 'Departamento eliminado exitosamente.'
+                    };
+                } else {
+                    return {
+                        success: true,
+                        message: 'Departamento reactivado exitosamente.'
+                    };
+                }
+            } else {
+                return {
+                    success: false,
+                    message: 'No se encontró el departamento o no se realizaron cambios.'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Error al eliminar el departamento: ' + error.message
+            };
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
 }
 
 module.exports = DepartamentoDB;

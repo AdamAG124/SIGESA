@@ -28,7 +28,7 @@ const FacturaProducto = require('./domain/FacturaProducto');
 const Salida = require('./domain/Salida');
 const SalidaProducto = require('./domain/SalidaProducto');
 const UnidadMedicion = require('./domain/UnidadMedicion');
-
+const Departamento = require('./domain/Departamento');
 const PuestoTrabajo = require('./domain/PuestoTrabajo');
 
 const os = require('os')
@@ -45,6 +45,8 @@ async function getStore() {
 }
 
 const createWindow = async () => {
+    console.log('__dirname:', __dirname);
+    console.log('Ruta preload:', path.join(__dirname, 'preload.js'));
     mainWindow = new BrowserWindow({  // Asignar la ventana creada a mainWindow
         width: 800,
         height: 600,
@@ -434,6 +436,61 @@ ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado
     } catch (error) {
         console.error('Error al listar los departamentos:', error);
         event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
+    }
+});
+
+ipcMain.on('crear-departamento', async (event, departamentoData) => {
+    try {
+        const departamento = new Departamento();
+        departamento.setNombre(departamentoData.nombre);
+        departamento.setDescripcion(departamentoData.descripcion);
+        departamento.setEstado(1); // Activo por defecto
+
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
+        const resultado = await departamentoController.insertarDepartamento(departamento);
+
+        event.reply('respuesta-crear-departamento', resultado);
+    } catch (error) {
+        console.error('Error al crear departamento:', error);
+        event.reply('respuesta-crear-departamento', { success: false, message: error.message });
+    }
+});
+
+ipcMain.on('actualizar-departamento', async (event, departamentoData) => {
+    try {
+        const departamento = new Departamento();
+        departamento.setIdDepartamento(departamentoData.idDepartamento);
+        departamento.setNombre(departamentoData.nombre);
+        departamento.setDescripcion(departamentoData.descripcion);
+        departamento.setEstado(departamentoData.estado);
+
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
+        const resultado = await departamentoController.editarDepartamento(departamento);
+
+        event.reply('respuesta-actualizar-departamento', resultado);
+    } catch (error) {
+        console.error('Error al actualizar departamento:', error);
+        event.reply('respuesta-actualizar-departamento', { success: false, message: error.message });
+    }
+});
+ipcMain.on('eliminar-departamento', async (event, { idDepartamento, estado }) => {
+    try {
+        const Departamento = require('./domain/Departamento');
+        const DepartamentoController = require('./controllers/DepartamentoController');
+        const departamento = new Departamento();
+        departamento.setIdDepartamento(idDepartamento);
+        departamento.setEstado(estado);
+
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
+        const resultado = await departamentoController.eliminarDepartamento(departamento);
+
+        event.reply('respuesta-eliminar-departamento', resultado);
+    } catch (error) {
+        console.error('Error al eliminar departamento:', error);
+        event.reply('respuesta-eliminar-departamento', { success: false, message: error.message });
     }
 });
 
@@ -1388,6 +1445,55 @@ ipcMain.on('actualizar-salida-y-productos', async (event, data) => {
     }
 });
 
+ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria }) => {
+    const comprobantePagoController = new ComprobantePagoController();
+
+    try {
+        // Llamar al método del controlador
+        const resultado = await comprobantePagoController.obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria);
+
+        // Mapear los objetos ComprobantePago a un formato plano para enviar al frontend
+        const comprobantesCompletos = resultado.comprobantes.map(comprobante => {
+            return {
+                idComprobantePago: comprobante.getIdComprobantePago(),
+                fechaPago: comprobante.getFechaPago(),
+                numeroComprobantePago: comprobante.getNumero(),
+                monto: comprobante.getMonto(),
+                estadoComprobantePago: comprobante.getEstado(),
+                idEntidadFinanciera: comprobante.getIdEntidadFinanciera().getIdEntidadFinanciera(),
+                nombreEntidadFinanciera: comprobante.getIdEntidadFinanciera().getNombre(),
+                tipoEntidadFinanciera: comprobante.getIdEntidadFinanciera().getTipo(),
+                estadoEntidadFinanciera: comprobante.getIdEntidadFinanciera().getEstado()
+            };
+        });
+
+        // Construir la respuesta con metadatos de paginación
+        const respuesta = {
+            comprobantes: comprobantesCompletos,
+            paginacion: {
+                total: resultado.total,
+                pageSize: resultado.pageSize,
+                currentPage: resultado.currentPage,
+                totalPages: resultado.totalPages,
+                searchValue: resultado.searchValue,
+                idEntidadFinanciera: resultado.idEntidadFinanciera,
+                fechaInicio: resultado.fechaInicio,
+                fechaFin: resultado.fechaFin,
+                estado: resultado.estado
+            }
+        };
+
+        // Enviar la respuesta al proceso de renderizado
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-comprobantes-pago', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar los comprobantes de pago:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-comprobantes-pago', 'Hubo un error al cargar los comprobantes de pago.');
+        }
+    }
+});
 ipcMain.on('crear-salida-y-productos', async (event, data) => {
     const { nuevosSalidaProducto, salidaData } = data;
     const controllerSalidaProducto = new SalidaProductoController();
@@ -1453,7 +1559,7 @@ ipcMain.on('editar-unidad-medicion', async (event, idUnidadMedicion, nuevoNombre
     try {
         const unidadMedicion = new UnidadMedicion();
         unidadMedicion.setIdUnidadMedicion(idUnidadMedicion);
-        unidadMedicion.setNombre(nuevoNombre);  
+        unidadMedicion.setNombre(nuevoNombre);
 
         const resultado = await unidadMedicionController.editarUnidadMedicion(unidadMedicion);
         console.log('Resultado de la edición desde index:', resultado);

@@ -1,5 +1,6 @@
 const ConectarDB = require('./ConectarDB');
 const ComprobantePago = require('../domain/ComprobantePago');
+const CuentaBancaria = require('../domain/CuentaBancaria');
 
 class ComprobantePagoDB {
     #table;
@@ -10,7 +11,7 @@ class ComprobantePagoDB {
         this.#db = new ConectarDB();
     }
 
-    async listarComprobantesPago(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado) {
+    async listarComprobantesPago(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria) {
         let connection;
 
         try {
@@ -21,107 +22,126 @@ class ComprobantePagoDB {
 
             // Construir la consulta base
             let query = `
-                SELECT 
-                    cp.ID_COMPROBANTE_PAGO AS idComprobantePago,
-                    cp.ID_ENTIDAD_FINANCIERA AS idEntidadFinanciera,
-                    cp.FEC_PAGO AS fechaPago,
-                    cp.NUM_COMPROBANTE_PAGO AS numeroComprobantePago,
-                    cp.MONTO_COMPROBANTE_PAGO AS montoComprobantePago,
-                    cp.ESTADO AS estadoComprobantePago,
-                    -- Información de la entidad financiera
-                    ef.DSC_NOMBRE_ENTIDAD_FINANCIERA AS nombreEntidadFinanciera,
-                    ef.TIPO_ENTIDAD_FINANCIERA AS tipoEntidadFinanciera,
-                    ef.ESTADO AS estadoEntidadFinanciera
-                FROM 
-                    ${this.#table} cp
-                INNER JOIN 
-                    sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
-            `;
+            SELECT 
+                cp.ID_COMPROBANTE_PAGO AS idComprobantePago,
+                cp.ID_ENTIDAD_FINANCIERA AS idEntidadFinanciera,
+                cp.FEC_PAGO AS fechaPago,
+                cp.NUM_COMPROBANTE_PAGO AS numeroComprobantePago,
+                cp.MONTO_COMPROBANTE_PAGO AS montoComprobantePago,
+                cp.ESTADO AS estadoComprobantePago,
+                -- Información de la entidad financiera
+                ef.DSC_NOMBRE_ENTIDAD_FINANCIERA AS nombreEntidadFinanciera,
+                ef.TIPO_ENTIDAD_FINANCIERA AS tipoEntidadFinanciera,
+                ef.ESTADO AS estadoEntidadFinanciera,
+                -- Información de la cuenta bancaria
+                cb.NUM_CUENTA_BANCARIA AS numeroCuentaBancaria
+            FROM 
+                ${this.#table} cp
+            LEFT JOIN 
+                sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
+            LEFT JOIN 
+                sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
+        `;
 
             // Bandera para rastrear si ya se agregó WHERE
             let whereClauseAdded = false;
 
             // Aplicar filtros dinámicamente
-            if (idEntidadFinanciera !== null) {
+            if (idEntidadFinanciera !== null && idEntidadFinanciera !== "") {
                 query += ` WHERE cp.ID_ENTIDAD_FINANCIERA = ${idEntidadFinanciera}`;
                 whereClauseAdded = true;
             }
 
-            if (fechaInicio !== null && fechaFin !== null) {
+            if (fechaInicio !== null && fechaInicio !== "" && fechaFin !== null && fechaFin !== "") {
                 const fechaCondition = `cp.FEC_PAGO BETWEEN '${fechaInicio}' AND '${fechaFin}'`;
                 query += whereClauseAdded ? ` AND ${fechaCondition}` : ` WHERE ${fechaCondition}`;
                 whereClauseAdded = true;
-            } else if (fechaInicio !== null) {
+            } else if (fechaInicio !== null && fechaInicio !== "") {
                 query += whereClauseAdded ?
                     ` AND cp.FEC_PAGO >= '${fechaInicio}'` :
                     ` WHERE cp.FEC_PAGO >= '${fechaInicio}'`;
                 whereClauseAdded = true;
-            } else if (fechaFin !== null) {
+            } else if (fechaFin !== null && fechaFin !== "") {
                 query += whereClauseAdded ?
                     ` AND cp.FEC_PAGO <= '${fechaFin}'` :
                     ` WHERE cp.FEC_PAGO <= '${fechaFin}'`;
                 whereClauseAdded = true;
             }
 
-            if (estado !== null) {
+            if (estado !== null && estado !== "") {
                 query += whereClauseAdded ?
                     ` AND cp.ESTADO = ${estado}` :
                     ` WHERE cp.ESTADO = ${estado}`;
                 whereClauseAdded = true;
             }
 
-            if (searchValue !== null) {
+            if (searchValue !== null && searchValue !== "") {
                 const searchCondition = `cp.NUM_COMPROBANTE_PAGO LIKE '%${searchValue}%'`;
                 query += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
                 whereClauseAdded = true;
             }
 
-            if (pageSize !== null && currentPage !== null) {
-                // Agregar ordenamiento y paginación
+            if (idCuentaBancaria !== null && idCuentaBancaria !== "") {
+                query += whereClauseAdded ?
+                    ` AND cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}` :
+                    ` WHERE cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}`;
+                whereClauseAdded = true;
+            }
+
+            if (pageSize !== null && pageSize !== "" && currentPage !== null && currentPage !== "") {
                 query += ` ORDER BY cp.ID_COMPROBANTE_PAGO ASC LIMIT ${pageSize} OFFSET ${offset}`;
             }
 
             // Consulta para contar el total de registros
             let countQuery = `
-                SELECT COUNT(*) as total
-                FROM ${this.#table} cp
-                INNER JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
-            `;
+    SELECT COUNT(*) as total
+    FROM ${this.#table} cp
+    LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
+    LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
+`;
 
             // Aplicar los mismos filtros al conteo
             whereClauseAdded = false;
 
-            if (idEntidadFinanciera !== null) {
+            if (idEntidadFinanciera !== null && idEntidadFinanciera !== "") {
                 countQuery += ` WHERE cp.ID_ENTIDAD_FINANCIERA = ${idEntidadFinanciera}`;
                 whereClauseAdded = true;
             }
 
-            if (fechaInicio !== null && fechaFin !== null) {
+            if (fechaInicio !== null && fechaInicio !== "" && fechaFin !== null && fechaFin !== "") {
                 const fechaCondition = `cp.FEC_PAGO BETWEEN '${fechaInicio}' AND '${fechaFin}'`;
                 countQuery += whereClauseAdded ? ` AND ${fechaCondition}` : ` WHERE ${fechaCondition}`;
                 whereClauseAdded = true;
-            } else if (fechaInicio !== null) {
+            } else if (fechaInicio !== null && fechaInicio !== "") {
                 countQuery += whereClauseAdded ?
                     ` AND cp.FEC_PAGO >= '${fechaInicio}'` :
                     ` WHERE cp.FEC_PAGO >= '${fechaInicio}'`;
                 whereClauseAdded = true;
-            } else if (fechaFin !== null) {
+            } else if (fechaFin !== null && fechaFin !== "") {
                 countQuery += whereClauseAdded ?
                     ` AND cp.FEC_PAGO <= '${fechaFin}'` :
                     ` WHERE cp.FEC_PAGO <= '${fechaFin}'`;
                 whereClauseAdded = true;
             }
 
-            if (estado !== null) {
+            if (estado !== null && estado !== "") {
                 countQuery += whereClauseAdded ?
                     ` AND cp.ESTADO = ${estado}` :
                     ` WHERE cp.ESTADO = ${estado}`;
                 whereClauseAdded = true;
             }
 
-            if (searchValue !== null) {
+            if (searchValue !== null && searchValue !== "") {
                 const searchCondition = `cp.NUM_COMPROBANTE_PAGO LIKE '%${searchValue}%'`;
                 countQuery += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
+                whereClauseAdded = true;
+            }
+
+            if (idCuentaBancaria !== null && idCuentaBancaria !== "") {
+                countQuery += whereClauseAdded ?
+                    ` AND cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}` :
+                    ` WHERE cb.ID_CUENTA_BANCARIA = ${idCuentaBancaria}`;
+                whereClauseAdded = true;
             }
 
             // Ejecutar ambas consultas
@@ -139,10 +159,10 @@ class ComprobantePagoDB {
                 comprobantePago.setMonto(row.montoComprobantePago);
                 comprobantePago.setEstado(row.estadoComprobantePago);
 
-                comprobantePago.getIdEntidadFinanciera().setIdEntidadFinanciera(row.idEntidadFinanciera);
-                comprobantePago.getIdEntidadFinanciera().setNombre(row.nombreEntidadFinanciera);
-                comprobantePago.getIdEntidadFinanciera().setTipo(row.tipoEntidadFinanciera);
-                comprobantePago.getIdEntidadFinanciera().setEstado(row.estadoEntidadFinanciera);
+                comprobantePago.getIdEntidadFinanciera().setIdEntidadFinanciera(row.idEntidadFinanciera || 0);
+                comprobantePago.getIdEntidadFinanciera().setNombre(row.nombreEntidadFinanciera || 'Sin entidad');
+                comprobantePago.getIdEntidadFinanciera().setTipo(row.tipoEntidadFinanciera || '');
+                comprobantePago.getIdEntidadFinanciera().setEstado(row.estadoEntidadFinanciera !== null ? row.estadoEntidadFinanciera : false);
 
                 return comprobantePago;
             });
@@ -156,7 +176,12 @@ class ComprobantePagoDB {
                 total: totalRecords,
                 pageSize: pageSize,
                 currentPage: currentPage,
-                totalPages: totalPages
+                totalPages: totalPages,
+                searchValue: searchValue,
+                idEntidadFinanciera: idEntidadFinanciera,
+                fechaInicio: fechaInicio,
+                fechaFin: fechaFin,
+                estado: estado
             };
 
         } catch (error) {
@@ -164,7 +189,7 @@ class ComprobantePagoDB {
             throw new Error('Error al listar los comprobantes de pago: ' + error.message);
         } finally {
             if (connection) {
-                await connection.end(); // Cerrar la conexión
+                await connection.end();
             }
         }
     }
