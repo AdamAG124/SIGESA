@@ -1,5 +1,5 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
 <style>
 
     .card {
@@ -341,5 +341,35 @@
         </div>
     </div>
 </form>
+
+<div id="editarProductoModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('editarProductoModal', 'editarProductoForm')">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <form id="editarProductoForm" class="editar-producto-form">
+            <input type="hidden" id="idProducto">
+
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+
+            <label for="descripcion">Descripción:</label>
+            <input type="text" id="descripcion" name="descripcion" required>
+
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" name="cantidad" min="0" value="0" required>
+
+            <label for="unidadMedicion">Unidad medición:</label>
+            <select id="unidadMedicion" name="unidadMedicion" required></select>
+
+            <label for="categorias">Categoría:</label>
+            <select id="categorias" name="categorias" required>
+                <!-- Opciones de categoria se llenarán aquí -->
+            </select>
+            <p id="errorMessage" style="color: red;"></p>
+
+            <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
