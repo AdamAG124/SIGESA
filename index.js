@@ -542,6 +542,8 @@ ipcMain.on('actualizar-departamento', async (event, departamentoData) => {
         departamento.setDescripcion(departamentoData.descripcion);
         departamento.setEstado(departamentoData.estado);
 
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
         const resultado = await departamentoController.editarDepartamento(departamento);
 
         event.reply('respuesta-actualizar-departamento', resultado);
@@ -550,13 +552,16 @@ ipcMain.on('actualizar-departamento', async (event, departamentoData) => {
         event.reply('respuesta-actualizar-departamento', { success: false, message: error.message });
     }
 });
-
 ipcMain.on('eliminar-departamento', async (event, { idDepartamento, estado }) => {
     try {
+        const Departamento = require('./domain/Departamento');
+        const DepartamentoController = require('./controllers/DepartamentoController');
         const departamento = new Departamento();
         departamento.setIdDepartamento(idDepartamento);
         departamento.setEstado(estado);
 
+        // Instanciar el controlador aquí
+        const departamentoController = new DepartamentoController();
         const resultado = await departamentoController.eliminarDepartamento(departamento);
 
         event.reply('respuesta-eliminar-departamento', resultado);
@@ -1548,7 +1553,10 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
                 currentPage: resultado.currentPage,
                 totalPages: resultado.totalPages,
                 searchValue: resultado.searchValue,
-                idCuentaBancaria: resultado.idCuentaBancaria
+                idEntidadFinanciera: resultado.idEntidadFinanciera,
+                fechaInicio: resultado.fechaInicio,
+                fechaFin: resultado.fechaFin,
+                estado: resultado.estado
             }
         };
 
@@ -1563,6 +1571,18 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
         }
     }
 });
+
+ipcMain.on('crear-comprobante-pago', async (event, comprobantePagoData) => {
+    const comprobantePagoController = new ComprobantePagoController();
+    try {
+        const resultado = await comprobantePagoController.crearComprobantePagoController(comprobantePagoData);
+        event.reply('respuesta-crear-comprobante-pago', resultado);
+    } catch (error) {
+        console.error('Error al crear el comprobante de pago:', error);
+        event.reply('cuenta-bancaria-creada', { success: false, message: error.message });
+    }
+});
+
 ipcMain.on('crear-salida-y-productos', async (event, data) => {
     const { nuevosSalidaProducto, salidaData } = data;
     const controllerSalidaProducto = new SalidaProductoController();

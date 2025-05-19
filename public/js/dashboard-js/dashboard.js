@@ -553,6 +553,9 @@ function filterTable(moduloFiltrar) {
       case 11: // Nuevo caso para Departamentos de Trabajo
       cargarDepartamentosTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
+    case 12:
+      cargarComprobantesPagoTabla(pageSize, 1, document.getElementById("searchBar").value, null, document.getElementById("fechaInicial").value, document.getElementById("fechaFinal").value, Number(document.getElementById("estadoFiltro").value), Number(document.getElementById("cuentaFiltro").value));
+      break;
   }
 
 }
@@ -1980,6 +1983,7 @@ function enviarCreacionPuesto() {
     }
   });
 }
+
 async function editarPuesto(id, boton) {
   // Obtener la fila del botón clicado
   const fila = boton.closest('tr');
@@ -3247,7 +3251,7 @@ function agregarProducto() {
 }
 function actualizarCamposProducto(select) {
   const selectedOption = select.options[select.selectedIndex];
-  console.log("📢 Producto seleccionado:", selectedOption);
+  console.log(" Producto seleccionado:", selectedOption);
 
   const unidad = selectedOption.getAttribute("data-unidad") || "N/A";
   const cantidadAnterior = selectedOption.getAttribute("data-cantidad") || 0;
@@ -3271,7 +3275,102 @@ function cargarVistaCrearSalida() {
     document.getElementById("idUsuario").value = usuario.idUsuario;
   });
 }
-function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, valorBusqueda = null) {
+// ...existing code...
+async function editarDepartamento(id, boton) {
+  const fila = boton.closest('tr');
+  const nombreDepartamento = fila.children[0].textContent;
+  const descripcionDepartamento = fila.children[1].textContent;
+  const estadoDepartamento = fila.children[2].textContent === "Activo" ? true : false;
+
+  document.getElementById("idDepartamento").value = id;
+  document.getElementById("nombreDepartamento").value = nombreDepartamento;
+  document.getElementById("descripcionDepartamento").value = descripcionDepartamento;
+ 
+
+  document.getElementById("modalTitle").innerText = "Editar Departamento de Trabajo";
+  document.getElementById("buttonModal").onclick = enviarEdicionDepartamento;
+  document.getElementById("crearDepartamentoModal").style.display = "block";
+}
+function enviarEdicionDepartamento() {
+  const id = document.getElementById("idDepartamento").value;
+  const nombre = document.getElementById("nombreDepartamento").value.trim();
+  const descripcion = document.getElementById("descripcionDepartamento").value.trim();
+
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Validar campos vacíos
+  if (!nombre ) {
+    errorMessage.textContent = "Por favor complete todos los campos.";
+    errorMessage.style.color = "red";
+    return;
+  }
+
+  // Crear el objeto con los datos del departamento
+  const departamentoData = {
+    idDepartamento: id,
+    nombre,
+    descripcion
+  };
+
+  // Confirmar la edición
+  Swal.fire({
+    title: "Guardar Cambios",
+    text: "¿Está seguro que desea guardar los cambios?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, guardar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para editar el departamento
+      window.api.editarDepartamento(departamentoData);
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaActualizarDepartamento((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion("Departamento actualizado exitosamente.");
+          cerrarModal("crearDepartamentoModal", "crearDepartamentoForm"); // Cerrar el modal
+          cargarDepartamentosTabla(); // Recargar la tabla de departamentos
+        } else {
+          // Mostrar el mensaje de error del backend
+          errorMessage.textContent = respuesta.message || "Error al actualizar el departamento.";
+          errorMessage.style.color = "red";
+        }
+      });
+    }
+  });
+}
+function actualizarEstadoDepartamento(id, estado, titulo, mensaje) {
+  Swal.fire({
+    title: titulo,
+    text: mensaje,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamar a la API para actualizar el estado del departamento
+      window.api.eliminarDepartamento(Number(id), Number(estado));
+
+      // Manejar la respuesta del backend
+      window.api.onRespuestaEliminarDepartamento((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          cargarDepartamentosTabla(); // Recargar la tabla de departamentos
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
+}
+// ...existing code...
+function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 2, valorBusqueda = null) {
   // Obtener los elementos del DOM
   const selectPageSize = document.getElementById("selectPageSize");
   const selectEstado = document.getElementById("estado-filtro");
@@ -3318,9 +3417,9 @@ function cargarDepartamentosTabla(pageSize = 10, currentPage = 1, estado = 1, va
               <span class="tooltiptext">Editar departamento</span>
             </button>
             <button class="tooltip" value="${departamento.idDepartamento}" onclick="${departamento.estado === 1 ? `actualizarEstadoDepartamento(this.value, 0, 'Eliminando departamento', '¿Está seguro que desea eliminar este departamento?')` : `actualizarEstadoDepartamento(this.value, 1, 'Reactivando departamento', '¿Está seguro que desea reactivar este departamento?')`}">
-              <span class="material-icons">${departamento.estado === 1 ? 'delete' : 'restore'}</span>
-              <span class="tooltiptext">${departamento.estado === 1 ? 'Eliminar departamento' : 'Reactivar departamento'}</span>
-            </button>
+            <span class="material-icons">${departamento.estado === 1 ? 'delete' : 'restore'}</span>
+            <span class="tooltiptext">${departamento.estado === 1 ? 'Eliminar departamento' : 'Reactivar departamento'}</span>
+    </button>
           </td>
         `;
       tbody.appendChild(row);

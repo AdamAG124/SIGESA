@@ -1,30 +1,31 @@
 <div class="main-content">
     <div class="content-header">
         <h1 class="content-title">Administrar Comprobantes de Pago</h1>
-        <button class="add-receipt-btn" title="Agregar Nuevo Comprobante de Pago">
+        <button class="add-receipt-btn" title="Agregar Nuevo Comprobante de Pago" onclick="desplegarFormCrearComprobante()">
             <span class="material-icons">add_box</span>
         </button>
     </div>
     <div class="search-bar">
-        <input type="text" placeholder="Buscar comprobantes de pago..." id="searchBar">
+        <input type="text" placeholder="Buscar comprobantes de pago..." id="searchBar" onkeypress="filterTable(12)">
     </div>
     <div class="filters">
-        <select id="pageFiltro">
+        <select id="selectPageSize" onchange="filterTable(12)">
+            <option value="5">5 por página</option>
             <option value="10">10 por página</option>
             <option value="25">25 por página</option>
             <option value="50">50 por página</option>
         </select>
-        <select id="tipoFiltro">
+        <select id="estadoFiltro" onchange="filterTable(12)">
             <option value="2">Seleccionar Estado</option>
             <option value="1">Activos</option>
             <option value="0">Inactivos</option>
         </select>
         <div class="date-range">
-            <input type="date" placeholder="Fecha inicial" id="fechaInicial">
+            <input type="date" placeholder="Fecha inicial" id="fechaInicial" onchange="filterTable(12)">
             <span>-</span>
-            <input type="date" placeholder="Fecha final" id="fechaFinal">
+            <input type="date" placeholder="Fecha final" id="fechaFinal" onchange="filterTable(12)">
         </div>
-        <select id="cuentaFiltro">
+        <select id="cuentaFiltro" onchange="filterTable(12)">
             <option value="0">Seleccionar cuenta Bancaria</option>
         </select>
     </div>
@@ -44,6 +45,35 @@
     <div class="pagination">
     </div>
 </div>
+</div>
+
+
+<div id="crearComprobanteModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('crearComprobanteModal', 'crearComprobanteForm')">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <form id="crearComprobanteForm" class="editar-producto-form">
+            <input type="hidden" id="idProducto">
+
+            <label for="nombre">Cuenta Bancaria:</label>
+            <select id="cuenta">
+                <option value="0">Seleccionar cuenta Bancaria</option>
+            </select>
+
+            <label for="descripcion">Fecha del comprobante de pago:</label>
+            <input type="date" id="fechaPago" required>
+
+            <label for="numero">Número de comprobante:</label>
+            <input type="text" id="numero" min="0" required>
+
+            <label for="montoComprobante">Monto del comprobante:</label>
+            <input type="number" id="montoComprobante" required>
+
+            <p id="errorMessage" style="color: red;"></p>
+
+            <button type="button" class="close-btn" id="buttonModal" onclick="validarFormularioComprobante()">Guardar Cambios</button>
+        </form>
+    </div>
 </div>
 
 <script>
