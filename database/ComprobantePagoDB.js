@@ -74,7 +74,7 @@ class ComprobantePagoDB {
                     ` WHERE cp.ESTADO = ${estado}`;
                 whereClauseAdded = true;
             }
-
+            
             if (searchValue !== null && searchValue !== "") {
                 const searchCondition = `cp.NUM_COMPROBANTE_PAGO LIKE '%${searchValue}%'`;
                 query += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
@@ -145,6 +145,7 @@ class ComprobantePagoDB {
             }
 
             // Ejecutar ambas consultas
+            console.log("Consulta generada:", query);
             const [rows] = await connection.query(query);
             const [countResult] = await connection.query(countQuery);
             const totalRecords = countResult[0].total;
@@ -194,6 +195,88 @@ class ComprobantePagoDB {
         }
     }
 
+    async crearComprobantePago(comprobantePago) {
+        let connection;
+
+        try {
+            // Conectar a la base de datos
+            connection = await this.#db.conectar();
+
+            // Paso 1: Obtener el ID_ENTIDAD_FINANCIERA de la tabla sigm_cuenta_bancaria
+            const idCuentaBancaria = comprobantePago.getIdEntidadFinanciera().getIdEntidadFinanciera(); // Asumimos que esto devuelve el ID_CUENTA_BANCARIA
+            const queryCuentaBancaria = `
+            SELECT ID_ENTIDAD_FINANCIERA
+            FROM sigm_cuenta_bancaria
+            WHERE ID_CUENTA_BANCARIA = ?
+        `;
+            const [cuentaResult] = await connection.query(queryCuentaBancaria, [idCuentaBancaria]);
+
+            // Verificar si se encontró la cuenta bancaria
+            if (!cuentaResult || cuentaResult.length === 0) {
+                return {
+                    success: false,
+                    message: "No se encontró una cuenta bancaria con el ID proporcionado."
+                }
+            }
+
+            const idEntidadFinanciera = cuentaResult[0].ID_ENTIDAD_FINANCIERA;
+
+            // Verificar que ID_ENTIDAD_FINANCIERA no sea null
+            if (idEntidadFinanciera === null || idEntidadFinanciera === undefined) {
+                return {
+                    success: false,
+                    message: "La cuenta bancaria no tiene una entidad financiera asociada."
+                };
+            }
+
+            // Paso 2: Insertar el nuevo comprobante de pago en sigm_comprobante_pago
+            const queryInsertComprobante = `
+            INSERT INTO sigm_comprobante_pago (
+                ID_ENTIDAD_FINANCIERA,
+                FEC_PAGO,
+                NUM_COMPROBANTE_PAGO,
+                MONTO_COMPROBANTE_PAGO,
+                ESTADO
+            ) VALUES (?, ?, ?, ?, ?)
+        `;
+            const estadoDefault = 1; // Estado por defecto (activo)
+            const params = [
+                idEntidadFinanciera,
+                comprobantePago.getFechaPago(),
+                comprobantePago.getNumero(),
+                comprobantePago.getMonto(),
+                estadoDefault
+            ];
+
+            const [insertResult] = await connection.query(queryInsertComprobante, params);
+
+            // Verificar si el comprobante fue insertado correctamente
+            if (insertResult.affectedRows === 0) {
+                return {
+                    success: false,
+                    message: "No se pudo insertar el comprobante de pago."
+                };
+            }
+
+            // Retornar el ID del nuevo comprobante y un mensaje de éxito
+            return {
+                success: true,
+                message: "Comprobante de pago creado exitosamente."
+            };
+
+        } catch (error) {
+            console.error("Error al crear el comprobante de pago:", error.message);
+            return {
+                success: false,
+                message: error.message
+            }
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
     async actualizarComprobantePago(comprobantePago) {
 
         let connection;
@@ -222,10 +305,26 @@ class ComprobantePagoDB {
                 comprobantePago.getIdComprobantePago()
             ];
 
-            await connection.query(query, params);
+            const [updateResult] = await connection.query(query, params);
+
+            if (updateResult.affectedRows === 0) {
+                return {
+                    success: false,
+                    message: "No se pudo actualizar el comprobante de pago."
+                };
+            }
+
+            return {
+                success: true,
+                message: "Comprobante de pago actualizado exitosamente."
+            };
+
         } catch (error) {
-            console.error('Error al actualizar el comprobante de pago:', error.message);
-            throw new Error('Error al actualizar el comprobante de pago: ' + error.message);
+            console.error("Error al actualizar el comprobante de pago:", error.message);
+            return {
+                success: false,
+                message: error.message
+            }
         } finally {
             if (connection) {
                 await connection.end();

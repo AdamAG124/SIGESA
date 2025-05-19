@@ -1559,15 +1559,25 @@ async function obtenerNombrePorCedula() {
     return null; // Retornar null en caso de error
   }
 }
-// Función para formatear las fechas en yyyy-MM-dd
-function formatearFecha(fecha) {                                     // Autor Adam
-  if (!fecha) return 'N/A'; // Maneja el caso de fecha vacía o nula
-  const date = new Date(fecha);
-  const year = date.getFullYear();
-  const month = ('0' + (date.getMonth() + 1)).slice(-2); // Añadir ceros iniciales
-  const day = ('0' + date.getDate()).slice(-2); // Añadir ceros iniciales
-  return `${year}-${month}-${day}`;
+
+function formatearFecha(fecha) {
+  if (!fecha || typeof fecha !== 'string') return 'N/A';
+
+  // Detectar si es formato dd/mm/yyyy
+  if (fecha.includes('/')) {
+    const [dia, mes, anio] = fecha.split('/');
+    if (!dia || !mes || !anio) return 'N/A';
+    return `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+  }
+
+  // Si es yyyy-mm-dd o similar
+  const [year, month, day] = fecha.split('-');
+  if (!year || !month || !day) return 'N/A';
+
+  // Retornar la fecha formateada sin crear un objeto Date
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
+
 
 function formatearFechaParaInput(fecha) {                             // Autor Jeycob
   const dia = fecha.getDate().toString().padStart(2, '0');

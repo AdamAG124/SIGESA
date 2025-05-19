@@ -30,6 +30,7 @@ const SalidaProducto = require('./domain/SalidaProducto');
 const UnidadMedicion = require('./domain/UnidadMedicion');
 const Departamento = require('./domain/Departamento');
 const PuestoTrabajo = require('./domain/PuestoTrabajo');
+const ComprobantePago = require('./domain/ComprobantePago');
 
 const os = require('os')
 const { shell } = require('electron')
@@ -1494,6 +1495,18 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
         }
     }
 });
+
+ipcMain.on('crear-comprobante-pago', async (event, comprobantePagoData) => {
+    const comprobantePagoController = new ComprobantePagoController();
+    try {
+        const resultado = await comprobantePagoController.crearComprobantePagoController(comprobantePagoData);
+        event.reply('respuesta-crear-comprobante-pago', resultado);
+    } catch (error) {
+        console.error('Error al crear el comprobante de pago:', error);
+        event.reply('cuenta-bancaria-creada', { success: false, message: error.message });
+    }
+});
+
 ipcMain.on('crear-salida-y-productos', async (event, data) => {
     const { nuevosSalidaProducto, salidaData } = data;
     const controllerSalidaProducto = new SalidaProductoController();
@@ -1754,11 +1767,11 @@ ipcMain.on('actualizar-comprobante-pago', async (event, comprobantePagoData) => 
         comprobantePago.setIdComprobantePago(comprobantePagoData.idComprobantePago);
         comprobantePago.setFechaPago(comprobantePagoData.fechaPago);
         comprobantePago.setNumero(comprobantePagoData.numeroComprobantePago);
-        comprobantePago.setMonto(comprobantePagoData.monto);
-        comprobantePago.setEstado(comprobantePagoData.estadoComprobantePago);
+        comprobantePago.setMonto(comprobantePagoData.montoComprobantePago);
+        comprobantePago.setEstado(1);
 
         const entidadFinanciera = new EntidadFinanciera();
-        entidadFinanciera.setIdEntidadFinanciera(comprobantePagoData.idEntidadFinanciera);
+        entidadFinanciera.setIdEntidadFinanciera(comprobantePagoData.idCuentaBancaria);
         comprobantePago.setIdEntidadFinanciera(entidadFinanciera);
 
         const resultado = await comprobantePagoController.actualizarComprobantePago(comprobantePago);
