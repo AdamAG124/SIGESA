@@ -2425,8 +2425,6 @@ function enviarEdicionEntidadFinanciera() {
   });
 }
 
-
-
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
@@ -2434,12 +2432,23 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
   window.api.obtenerCategorias(null, null, estado, null, (respuesta) => {
     if (respuesta && respuesta.categorias) {
       idSelect.innerHTML = ""; // Limpiar las opciones existentes
-      const option = document.createElement("option");
-      option.value = "0";
-      option.textContent = mensajeQuemado;
-      option.selected = true;
-      idSelect.appendChild(option);
 
+
+      // Opción por defecto
+      const optionDefault = document.createElement("option");
+      optionDefault.value = "0";
+      optionDefault.textContent = mensajeQuemado;
+      optionDefault.selected = true;
+      idSelect.appendChild(optionDefault);
+
+      // ➕ Opción para agregar nueva categoría
+      const optionAgregar = document.createElement("option");
+      optionAgregar.value = "__agregar__";
+      optionAgregar.textContent = "+ Agregar nueva categoría";
+      optionAgregar.classList.add("opcion-agregar");
+      idSelect.appendChild(optionAgregar);
+
+      // Agregar categorías al select
       respuesta.categorias.forEach((categoria) => {
         const option = document.createElement("option");
         option.value = categoria.idCategoria;
@@ -2455,12 +2464,95 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
         idSelect.appendChild(option);
       });
 
-      // ✅ Ejecutar el callback si se proporciona
+      // Evento al seleccionar "+ Agregar"
+      idSelect.addEventListener("change", function handler() {
+        if (idSelect.value === "__agregar__") {
+          agregarCategoriaModal(); // Llamar a tu método del core
+          idSelect.value = "0"; // Volver a la opción por defecto después
+        }
+      }, { once: true }); // Solo una vez para evitar duplicaciones
+
+      // ✅ Ejecutar callback si existe
       if (typeof callback === "function") {
         callback();
       }
     } else {
       console.log("No se pudieron cargar las categorías.");
+    }
+  });
+}
+
+function agregarCategoriaModal() {
+  document.getElementById("modalTitleCategoria").innerText = "Crear Categoría";
+  document.getElementById("buttonModalCategoria").onclick = enviarCreacionCategoriaModal;
+  // Mostrar el modal
+  document.getElementById("editarCategoriaModal").style.display = "block";
+}
+
+function enviarCreacionCategoriaModal() {
+  const nombre = document.getElementById("nombreCategoria").value;
+  const descripcion = document.getElementById("Descripcion").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreCategoria") },
+    { value: descripcion, element: document.getElementById("Descripcion") }
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessageCategoria");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const categoriaData = {
+    nombre: nombre,
+    descripcion: descripcion
+  };
+
+  Swal.fire({
+    title: "Creando categoría",
+    text: "¿Está seguro que desea crear esta nueva categoría?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearCategoria(categoriaData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearCategoria((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarCategorias(document.getElementById("categorias"), "Seleccionar categoría", 1, 0, () => {
+              cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+            });
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
     }
   });
 }
@@ -3295,7 +3387,7 @@ async function editarDepartamento(id, boton) {
   document.getElementById("idDepartamento").value = id;
   document.getElementById("nombreDepartamento").value = nombreDepartamento;
   document.getElementById("descripcionDepartamento").value = descripcionDepartamento;
- 
+
 
   document.getElementById("modalTitle").innerText = "Editar Departamento de Trabajo";
   document.getElementById("buttonModal").onclick = enviarEdicionDepartamento;
@@ -3309,7 +3401,7 @@ function enviarEdicionDepartamento() {
   const errorMessage = document.getElementById("errorMessage");
 
   // Validar campos vacíos
-  if (!nombre ) {
+  if (!nombre) {
     errorMessage.textContent = "Por favor complete todos los campos.";
     errorMessage.style.color = "red";
     return;
@@ -3464,7 +3556,7 @@ function enviarCreacionDepartamento() {
   // Validar campos vacíos
   const camposVacios = [];
   if (!nombre) camposVacios.push("Nombre del Departamento");
-  
+
 
   if (camposVacios.length > 0) {
     errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
