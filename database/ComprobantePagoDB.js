@@ -94,11 +94,11 @@ class ComprobantePagoDB {
 
             // Consulta para contar el total de registros
             let countQuery = `
-    SELECT COUNT(*) as total
-    FROM ${this.#table} cp
-    LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
-    LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
-`;
+                SELECT COUNT(*) as total
+                FROM ${this.#table} cp
+                LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
+                LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
+            `;
 
             // Aplicar los mismos filtros al conteo
             whereClauseAdded = false;
@@ -194,7 +194,7 @@ class ComprobantePagoDB {
         }
     }
 
-    async actualizarComprobantePago(comprobantePago) { 
+    async actualizarComprobantePago(comprobantePago) {
 
         let connection;
 

@@ -44,6 +44,34 @@
     </table>
     <div class="pagination">
     </div>
+
+    <!-- Modal para editar producto -->
+    <div id="editarComprobanteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarComprobanteModal', 'editarComprobanteForm')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <form id="editarComprobanteForm" class="editar-comprobante-form">
+                <input type="hidden" id="idComprobante">
+
+                <label for="numeroComprobante"># Comprobante:</label>
+                <input type="text" id="numeroComprobante" name="numeroComprobante" required>
+
+                <label for="fecha">Fecha:</label>
+                <input type="text" id="fecha" name="fecha" required>
+
+                <label for="monto">Monto comprobante:</label>
+                <input type="number" id="monto" name="monto" min="0" value="0" required>
+
+                <label for="entidades">Entidades financieras:</label>
+                <select id="entidades" name="entidades" required>
+                    <!-- Opciones de entidades se llenarán aquí -->
+                </select>
+                <p id="errorMessage" style="color: red;"></p>
+
+                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
 </div>
 </div>
 

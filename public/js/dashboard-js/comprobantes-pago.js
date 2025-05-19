@@ -49,11 +49,12 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
 
                         const row = document.createElement("tr");
                         row.innerHTML = `
+                            <td class="hidden-info" style="display:none;">${comprobante.idEntidadFinanciera}</td>
                             <td>${comprobante.numeroComprobantePago || 'Sin número'}</td>
                             <td>${fechaPago}</td>
                             <td>₡${comprobante.monto.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
                             <td class="action-icons">
-                                <button class="tooltip" value="${comprobante.idComprobantePago}" onclick="verDetallesComprobante(this.value, '/comprobante-view/editar-comprobante.html', 2)">
+                                <button class="tooltip" value="${comprobante.idComprobantePago}" onclick="desplegarModalEditarComprobantePago(this.value, this)">
                                     <span class="material-icons">edit</span>
                                     <span class="tooltiptext">Editar comprobante</span>
                                 </button>
@@ -100,4 +101,110 @@ function cargarCuentasBancariasEnSelect() {
             selectCuentasBancarias.appendChild(option);
         });
     });
+}
+
+function desplegarModalEditarComprobantePago(idComprobantePago, boton) {
+  const fila = boton.closest("tr");
+
+  const idEntidadFinanciera = fila.querySelector("td:nth-child(1)").textContent;
+  const numeroComprobantePago = fila.querySelector("td:nth-child(2)").textContent;
+  const fechaPago = fila.querySelector("td:nth-child(3)").textContent;
+  const montoComprobantePago = fila.querySelector("td:nth-child(4)").textContent;
+
+  // Asignar valores extraídos a los campos del formulario de edición
+  document.getElementById("idComprobantePago").value = idComprobantePago;
+  document.getElementById("idEntidadFinanciera").value = idEntidadFinanciera;
+  document.getElementById("fechaPago").value = fechaPago;
+  document.getElementById("numeroComprobantePago").value = numeroComprobantePago;
+  document.getElementById("montoComprobantePago").value = montoComprobantePago;
+
+  // Cambiar el título del modal a "Detalles del Comprobante de Pago"
+  document.getElementById("modalTitle").innerText = "Detalles del Comprobante de Pago";
+
+  document.getElementById("buttonModal").onclick = enviarEdicionComprobante;
+
+  // Mostrar el modal
+  document.getElementById("editarProductoModal").style.display = "block";
+}
+
+function enviarEdicionComprobante() {
+  const idComprobantePago = document.getElementById("idComprobantePago").value;
+  const idEntidadFinanciera = document.getElementById("idEntidadFinanciera").value;
+  const fechaPago = document.getElementById("fechaPago").value;
+  const numeroComprobantePago = document.getElementById("numeroComprobantePago").value;
+  const montoComprobantePago = document.getElementById("montoComprobantePago").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: idEntidadFinanciera, element: document.getElementById("idEntidadFinanciera") },
+    { value: fechaPago, element: document.getElementById("fechaPago") },
+    { value: numeroComprobantePago, element: document.getElementById("numeroComprobantePago") },
+    { value: montoComprobantePago, element: document.getElementById("montoComprobantePago") }
+  ];
+
+  inputs.forEach(input => {
+    if (!input.value || (input.value == 0 && input.element.id === "categorias")) {
+      // Si el valor es nulo o cero y el campo es 'categorias', marcar el borde en rojo
+      input.element.style.border = "2px solid red";
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde si no está vacío o es válido
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessage");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error si no hay campos vacíos
+  }
+
+  if (inputs.element.id === "montoComprobantePago" && parseFloat(inputs.value) < 0) {
+    inputs.element.style.border = "2px solid red";
+    camposVacios.push(input.element);
+    errorMessage.textContent = "El monto no puede ser negativo.";
+    return; // Salir de la función si el monto es negativo
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const comprobantePagoData = {
+    idComprobantePago: idComprobantePago,
+    idEntidadFinanciera: idEntidadFinanciera,
+    fechaPago: fechaPago,
+    numeroComprobantePago: numeroComprobantePago,
+    montoComprobantePago: montoComprobantePago
+  };
+
+  Swal.fire({
+    title: "Editando comprobante de pago",
+    text: "¿Está seguro que desea actualizar este comprobante de pago?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.actualizarComprobantePago(comprobantePagoData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaActualizarComprobantePago((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => { 
+            filterTable(12);  
+            cerrarModal("editarProductoModal", "editarProductoForm");
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
+    }
+  });
 }
