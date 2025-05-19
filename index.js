@@ -1571,6 +1571,18 @@ ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, se
         }
     }
 });
+
+ipcMain.on('crear-comprobante-pago', async (event, comprobantePagoData) => {
+    const comprobantePagoController = new ComprobantePagoController();
+    try {
+        const resultado = await comprobantePagoController.crearComprobantePagoController(comprobantePagoData);
+        event.reply('respuesta-crear-comprobante-pago', resultado);
+    } catch (error) {
+        console.error('Error al crear el comprobante de pago:', error);
+        event.reply('cuenta-bancaria-creada', { success: false, message: error.message });
+    }
+});
+
 ipcMain.on('crear-salida-y-productos', async (event, data) => {
     const { nuevosSalidaProducto, salidaData } = data;
     const controllerSalidaProducto = new SalidaProductoController();
