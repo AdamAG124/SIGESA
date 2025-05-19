@@ -243,6 +243,10 @@ contextBridge.exposeInMainWorld('api', {
     printToPDF: () => ipcRenderer.invoke('print-to-pdf'),
     printPDF: (pdfPath) => ipcRenderer.invoke('print-pdf', pdfPath),
 
+    /* --------------------------------                       ----------------------------------
+      --------------------------------  COMPROBANTES DE PAGO  ----------------------------------
+      --------------------------------                        ---------------------------------- */
+
     obtenerComprobantesPago: (pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria, callback) => {
         ipcRenderer.send('listar-comprobantes-pago', { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado, idCuentaBancaria });
         ipcRenderer.once('cargar-comprobantes-pago', (event, respuesta) => callback(respuesta));
@@ -250,6 +254,10 @@ contextBridge.exposeInMainWorld('api', {
 
     crearComprobantePago: (comprobantePagoData) => ipcRenderer.send('crear-comprobante-pago', comprobantePagoData),
     onRespuestaCrearComprobantePago: (callback) => ipcRenderer.once('respuesta-crear-comprobante-pago', (event, respuesta) => callback(respuesta)),
+
+    actualizarComprobantePago: (comprobantePagoData) => ipcRenderer.send('actualizar-comprobante-pago', comprobantePagoData),
+    onRespuestaActualizarComprobantePago: (callback) => ipcRenderer.once('respuesta-actualizar-comprobante-pago', (event, respuesta) => callback(respuesta)),
+
 
     /* --------------------------------           ------------------------------------------
       --------------------------------  Salida Producto  ------------------------------------------

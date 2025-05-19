@@ -14,6 +14,10 @@ class ComprobantePagoService {
     async crearComprobantePago(comprobantePago){
         return await this.#comprobantePagoDB.crearComprobantePago(comprobantePago);
     }
+
+    async actualizarComprobantePago(comprobantePago) {
+        return await this.#comprobantePagoDB.actualizarComprobantePago(comprobantePago);
+    }
 }
 
 module.exports = ComprobantePagoService;

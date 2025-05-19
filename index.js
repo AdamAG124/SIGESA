@@ -30,6 +30,7 @@ const SalidaProducto = require('./domain/SalidaProducto');
 const UnidadMedicion = require('./domain/UnidadMedicion');
 const Departamento = require('./domain/Departamento');
 const PuestoTrabajo = require('./domain/PuestoTrabajo');
+const ComprobantePago = require('./domain/ComprobantePago');
 
 const os = require('os')
 const { shell } = require('electron')
@@ -411,83 +412,6 @@ ipcMain.on('editar-colaborador', async (event, colaboradorData) => {
     }
 });
 
-// ipcMain.on('crear-producto', async (event, productoData) => {
-//     try {
-//         // Crear un objetoproducto y setear los datos
-//         constproducto = newproducto();
-//         producto.getIdDepartamento().setIdDepartamento(productoData.idDepartamento); // Asegúrate de que el constructor de Departamento acepte el ID
-//         producto.getIdPuesto().setIdPuestoTrabajo(productoData.idPuesto); // Asegúrate de que el constructor de PuestoTrabajo acepte el ID
-//         producto.setNombre(productoData.nombre);
-//         producto.setPrimerApellido(productoData.primerApellido);
-//         producto.setSegundoApellido(productoData.segundoApellido);
-//         producto.setFechaNacimiento(productoData.fechaNacimiento); // Debe ser una fecha válida
-//         producto.setNumTelefono(productoData.numTelefono);
-//         producto.setFechaIngreso(productoData.fechaIngreso); // Debe ser una fecha válida
-//         producto.setFechaSalida(productoData.fechaSalida); // Debe ser una fecha válida
-//         producto.setEstado(1); // Debe ser booleano o compatible
-//         producto.setCorreo(productoData.correo);
-//         producto.setCedula(productoData.cedula);
-
-//         // Llamar al método insertarproducto en elproductoController
-//         const productoController = newproductoController();
-//         const resultado = awaitproductoController.insertarproducto(producto);
-
-//         // Enviar respuesta al frontend
-//         event.reply('respuesta-crear-producto', resultado); // Pasar el resultado que viene desdeproductoController
-//     } catch (error) {
-//         console.error('Error al crearproducto:', error);
-//         event.reply('respuesta-crear-producto', { success: false, message: error.message });
-//     }
-// });
-
-// ipcMain.on('eliminar-producto', async (event, productoId, estado) => {
-//     try {
-//         // Crear un objeto Usuario y setear los datos
-//         constproducto = newproducto();
-//         producto.setIdproducto(productoId);
-//         producto.setEstado(estado);  // Guarda el estado que viene desde el select con id estado
-
-//         // Llamar al método de actualizar en el UsuarioController
-//         constproductoController = newproductoController();
-//         const resultado = awaitproductoController.eliminarproducto(producto);
-
-//         // Enviar respuesta al frontend
-//         event.reply('respuesta-eliminar-producto', resultado); // Pasar el resultado que viene desde UsuarioController
-//     } catch (error) {
-//         console.error('Error al eliminar usuario:', error);
-//         event.reply('respuesta-eliminar-usuario', { success: false, message: error.message });
-//     }
-// });
-
-// ipcMain.on('editar-producto', async (event, productoData) => {
-//     try {
-//         // Crear un objetoproducto y setear los datos
-//         constproducto = newproducto();
-//         producto.setIdproducto(productoData.idproducto);
-//         producto.setNombre(productoData.nombre);
-//         producto.setPrimerApellido(productoData.primerApellido);
-//         producto.setSegundoApellido(productoData.segundoApellido);
-//         producto.setFechaNacimiento(productoData.fechaNacimiento);
-//         producto.setNumTelefono(productoData.numTelefono);
-//         producto.setFechaIngreso(productoData.fechaIngreso);
-//         producto.setFechaSalida(productoData.fechaSalida);
-//         producto.setEstado(1);
-//         producto.setCorreo(productoData.correo);
-//         producto.setCedula(productoData.cedula);
-//         producto.setIdDepartamento(productoData.idDepartamento);
-//         producto.setIdPuesto(productoData.idPuesto);
-
-//         // Llamar al método de editarproducto en elproductoController
-//         constproductoController = newproductoController();
-//         const resultado = awaitproductoController.editarproducto(producto);
-
-//         // Enviar respuesta al frontend
-//         event.reply('respuesta-actualizar-producto', resultado); // Pasar el resultado que viene desdeproductoController
-//     } catch (error) {
-//         console.error('Error al editarproducto:', error);
-//         event.reply('respuesta-editar-producto', { success: false, message: error.message });
-//     }
-// });
 /* --------------------------------              ------------------------------------------
    -------------------------------- DEPARTAMENTO ------------------------------------------
    --------------------------------              ------------------------------------------ */
@@ -1781,5 +1705,80 @@ ipcMain.on('listar-departamentos', async (event, { pageSize, currentPage, estado
     } catch (error) {
         console.error('Error al listar los departamentos:', error);
         event.reply('error-cargar-departamentos', 'Hubo un error al cargar los departamentos.');
+    }
+});
+
+/**
+ * -----------------------------------------------------------------
+ * --------------------- COMPROBANTES DE PAGO ----------------------
+ * -----------------------------------------------------------------
+ */
+
+ipcMain.on('listar-comprobantes-pago', async (event, { pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado }) => {
+    const comprobantePagoController = new ComprobantePagoController();
+
+    try {
+        // Llamar al método del controlador
+        const resultado = await comprobantePagoController.obtenerComprobantesPagos(pageSize, currentPage, searchValue, idEntidadFinanciera, fechaInicio, fechaFin, estado);
+
+        // Mapear los objetos ComprobantePago a un formato plano para enviar al frontend
+        const comprobantesCompletos = resultado.comprobantes.map(comprobante => {
+            return {
+                idComprobantePago: comprobante.getIdComprobantePago(),
+                fechaPago: comprobante.getFechaPago(),
+                numeroComprobantePago: comprobante.getNumero(),
+                monto: comprobante.getMonto(),
+                estadoComprobantePago: comprobante.getEstado(),
+                idEntidadFinanciera: comprobante.getIdEntidadFinanciera().getIdEntidadFinanciera(),
+                nombreEntidadFinanciera: comprobante.getIdEntidadFinanciera().getNombre(),
+                tipoEntidadFinanciera: comprobante.getIdEntidadFinanciera().getTipo(),
+                estadoEntidadFinanciera: comprobante.getIdEntidadFinanciera().getEstado()
+            };
+        });
+
+        // Construir la respuesta con metadatos de paginación
+        const respuesta = {
+            comprobantes: comprobantesCompletos,
+            paginacion: {
+                total: resultado.total,
+                pageSize: resultado.pageSize,
+                currentPage: resultado.currentPage,
+                totalPages: resultado.totalPages
+            }
+        };
+
+        // Enviar la respuesta al proceso de renderizado
+        if (mainWindow) {
+            mainWindow.webContents.send('cargar-comprobantes-pago', respuesta);
+        }
+    } catch (error) {
+        console.error('Error al listar los comprobantes de pago:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('error-cargar-comprobantes-pago', 'Hubo un error al cargar los comprobantes de pago.');
+        }
+    }
+});
+
+ipcMain.on('actualizar-comprobante-pago', async (event, comprobantePagoData) => {
+    const comprobantePagoController = new ComprobantePagoController();
+
+    try {
+        const comprobantePago = new ComprobantePago();
+        comprobantePago.setIdComprobantePago(comprobantePagoData.idComprobantePago);
+        comprobantePago.setFechaPago(comprobantePagoData.fechaPago);
+        comprobantePago.setNumero(comprobantePagoData.numeroComprobantePago);
+        comprobantePago.setMonto(comprobantePagoData.montoComprobantePago);
+        comprobantePago.setEstado(1);
+
+        const entidadFinanciera = new EntidadFinanciera();
+        entidadFinanciera.setIdEntidadFinanciera(comprobantePagoData.idCuentaBancaria);
+        comprobantePago.setIdEntidadFinanciera(entidadFinanciera);
+
+        const resultado = await comprobantePagoController.actualizarComprobantePago(comprobantePago);
+
+        event.reply('respuesta-actualizar-comprobante-pago', resultado);
+    } catch (error) {
+        console.error('Error al actualizar el comprobante de pago:', error);
+        event.reply('respuesta-actualizar-comprobante-pago', { success: false, message: error.message });
     }
 });

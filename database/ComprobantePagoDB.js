@@ -74,7 +74,7 @@ class ComprobantePagoDB {
                     ` WHERE cp.ESTADO = ${estado}`;
                 whereClauseAdded = true;
             }
-
+            
             if (searchValue !== null && searchValue !== "") {
                 const searchCondition = `cp.NUM_COMPROBANTE_PAGO LIKE '%${searchValue}%'`;
                 query += whereClauseAdded ? ` AND ${searchCondition}` : ` WHERE ${searchCondition}`;
@@ -94,11 +94,11 @@ class ComprobantePagoDB {
 
             // Consulta para contar el total de registros
             let countQuery = `
-    SELECT COUNT(*) as total
-    FROM ${this.#table} cp
-    LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
-    LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
-`;
+                SELECT COUNT(*) as total
+                FROM ${this.#table} cp
+                LEFT JOIN sigm_entidad_financiera ef ON cp.ID_ENTIDAD_FINANCIERA = ef.ID_ENTIDAD_FINANCIERA
+                LEFT JOIN sigm_cuenta_bancaria cb ON cp.ID_ENTIDAD_FINANCIERA = cb.ID_ENTIDAD_FINANCIERA
+            `;
 
             // Aplicar los mismos filtros al conteo
             whereClauseAdded = false;
@@ -145,6 +145,7 @@ class ComprobantePagoDB {
             }
 
             // Ejecutar ambas consultas
+            console.log("Consulta generada:", query);
             const [rows] = await connection.query(query);
             const [countResult] = await connection.query(countQuery);
             const totalRecords = countResult[0].total;
@@ -212,7 +213,7 @@ class ComprobantePagoDB {
 
             // Verificar si se encontró la cuenta bancaria
             if (!cuentaResult || cuentaResult.length === 0) {
-                return{
+                return {
                     success: false,
                     message: "No se encontró una cuenta bancaria con el ID proporcionado."
                 }
@@ -265,7 +266,62 @@ class ComprobantePagoDB {
 
         } catch (error) {
             console.error("Error al crear el comprobante de pago:", error.message);
-            return{
+            return {
+                success: false,
+                message: error.message
+            }
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
+    async actualizarComprobantePago(comprobantePago) {
+
+        let connection;
+
+        try {
+            connection = await this.#db.conectar();
+
+            const query = `
+                UPDATE ${this.#table}
+                SET 
+                    ID_ENTIDAD_FINANCIERA = ?,
+                    FEC_PAGO = ?,
+                    NUM_COMPROBANTE_PAGO = ?,
+                    MONTO_COMPROBANTE_PAGO = ?,
+                    ESTADO = ?
+                WHERE 
+                    ID_COMPROBANTE_PAGO = ?
+            `;
+
+            const params = [
+                comprobantePago.getIdEntidadFinanciera().getIdEntidadFinanciera(),
+                comprobantePago.getFechaPago(),
+                comprobantePago.getNumero(),
+                comprobantePago.getMonto(),
+                comprobantePago.getEstado(),
+                comprobantePago.getIdComprobantePago()
+            ];
+
+            const [updateResult] = await connection.query(query, params);
+
+            if (updateResult.affectedRows === 0) {
+                return {
+                    success: false,
+                    message: "No se pudo actualizar el comprobante de pago."
+                };
+            }
+
+            return {
+                success: true,
+                message: "Comprobante de pago actualizado exitosamente."
+            };
+
+        } catch (error) {
+            console.error("Error al actualizar el comprobante de pago:", error.message);
+            return {
                 success: false,
                 message: error.message
             }

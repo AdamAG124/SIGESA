@@ -35,6 +35,10 @@ class ComprobantePagoController {
             throw new Error("Error en el controlador al crear el comprobante de pago: " + error.message);
         }
     }
+
+    async actualizarComprobantePago(comprobantePago) {
+        return await this.#comprobanteDePagoService.actualizarComprobantePago(comprobantePago);
+    }
 }
 
 module.exports = ComprobantePagoController;
