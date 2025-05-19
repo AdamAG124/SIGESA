@@ -58,7 +58,7 @@ function adjuntarHTML(filePath, cargarTabla) {
       // Detectar si estamos en el configuration panel
       if (filePath.includes("configuration-panel")) {
         ocultarElementosConfigPanel(); // Ejecutar lógica de ocultar si corresponde
-    }
+      }
 
       if (cargarTabla) {
         cargarTabla(); // Ejecuta cargarTabla solo después de cargar el HTML
@@ -75,23 +75,23 @@ function ocultarElementosConfigPanel() {
   const rol = usuarioActual.roleName.toLowerCase();
 
   if (rol === 'asistente') {
-      // Buscamos la tarjeta de "Administrar empleados"
-      const tarjetas = document.querySelectorAll('.config-card');
-      tarjetas.forEach((tarjeta) => {
-          const titulo = tarjeta.querySelector('.config-title');
-          if (titulo && titulo.innerText.trim() === "Administrar empleados") {
-              tarjeta.style.display = 'none';
-          }
-          if (titulo && titulo.innerText.trim() === "Administrar roles de usuario") {
-            tarjeta.style.display = 'none';
-          }
-          if (titulo && titulo.innerText.trim() === "Administrar puestos de trabajo") {
-            tarjeta.style.display = 'none';
-          }
-          if (titulo && titulo.innerText.trim() === "Administrar departamentos de trabajo") {
-            tarjeta.style.display = 'none';
-          }
-      });
+    // Buscamos la tarjeta de "Administrar empleados"
+    const tarjetas = document.querySelectorAll('.config-card');
+    tarjetas.forEach((tarjeta) => {
+      const titulo = tarjeta.querySelector('.config-title');
+      if (titulo && titulo.innerText.trim() === "Administrar empleados") {
+        tarjeta.style.display = 'none';
+      }
+      if (titulo && titulo.innerText.trim() === "Administrar roles de usuario") {
+        tarjeta.style.display = 'none';
+      }
+      if (titulo && titulo.innerText.trim() === "Administrar puestos de trabajo") {
+        tarjeta.style.display = 'none';
+      }
+      if (titulo && titulo.innerText.trim() === "Administrar departamentos de trabajo") {
+        tarjeta.style.display = 'none';
+      }
+    });
   }
 }
 
@@ -550,7 +550,7 @@ function filterTable(moduloFiltrar) {
     case 10:
       cargarPuestosTrabajo(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
-      case 11: // Nuevo caso para Departamentos de Trabajo
+    case 11: // Nuevo caso para Departamentos de Trabajo
       cargarDepartamentosTabla(pageSize, 1, Number(document.getElementById("estado-filtro").value), document.getElementById("search-bar").value);
       break;
     case 12:
@@ -997,12 +997,12 @@ function procesarDatosUsuario(usuario) {
 
   // Si no es administrador, ocultar ciertos elementos
   if (rol.toLowerCase() === 'asistente') {
-      const adminUsuariosBtn = document.getElementById('admin-usuarios');
-      if (adminUsuariosBtn) {
-          adminUsuariosBtn.style.display = 'none';
-      }
-      console.log("Usuario no administrador, ocultando elementos del DOM.");
-      // Aquí podrías ocultar más cosas si lo deseas
+    const adminUsuariosBtn = document.getElementById('admin-usuarios');
+    if (adminUsuariosBtn) {
+      adminUsuariosBtn.style.display = 'none';
+    }
+    console.log("Usuario no administrador, ocultando elementos del DOM.");
+    // Aquí podrías ocultar más cosas si lo deseas
   }
 }
 
@@ -1018,8 +1018,8 @@ window.api.receiveUserData((usuario) => {
 function cerrarModal(idModalCerrar, idFormReset) {
   const modal = document.getElementById(idModalCerrar);
   const form = document.getElementById(idFormReset);
-  
-  if(document.getElementById("idSelectProductoDesdeFactura")) {
+
+  if (document.getElementById("idSelectProductoDesdeFactura")) {
     const selectProductoDesdeFactura = document.getElementById(document.getElementById("idSelectProductoDesdeFactura").value);
     if (selectProductoDesdeFactura) {
       selectProductoDesdeFactura.value = 0;
@@ -1559,15 +1559,25 @@ async function obtenerNombrePorCedula() {
     return null; // Retornar null en caso de error
   }
 }
-// Función para formatear las fechas en yyyy-MM-dd
-function formatearFecha(fecha) {                                     // Autor Adam
-  if (!fecha) return 'N/A'; // Maneja el caso de fecha vacía o nula
-  const date = new Date(fecha);
-  const year = date.getFullYear();
-  const month = ('0' + (date.getMonth() + 1)).slice(-2); // Añadir ceros iniciales
-  const day = ('0' + date.getDate()).slice(-2); // Añadir ceros iniciales
-  return `${year}-${month}-${day}`;
+
+function formatearFecha(fecha) {
+  if (!fecha || typeof fecha !== 'string') return 'N/A';
+
+  // Detectar si es formato dd/mm/yyyy
+  if (fecha.includes('/')) {
+    const [dia, mes, anio] = fecha.split('/');
+    if (!dia || !mes || !anio) return 'N/A';
+    return `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+  }
+
+  // Si es yyyy-mm-dd o similar
+  const [year, month, day] = fecha.split('-');
+  if (!year || !month || !day) return 'N/A';
+
+  // Retornar la fecha formateada sin crear un objeto Date
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
+
 
 function formatearFechaParaInput(fecha) {                             // Autor Jeycob
   const dia = fecha.getDate().toString().padStart(2, '0');
@@ -2415,8 +2425,6 @@ function enviarEdicionEntidadFinanciera() {
   });
 }
 
-
-
 /* --------------------------------          ------------------------------------------
    -------------------------------- PRODUCTO ------------------------------------------
    --------------------------------          ------------------------------------------ */
@@ -2424,12 +2432,23 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
   window.api.obtenerCategorias(null, null, estado, null, (respuesta) => {
     if (respuesta && respuesta.categorias) {
       idSelect.innerHTML = ""; // Limpiar las opciones existentes
-      const option = document.createElement("option");
-      option.value = "0";
-      option.textContent = mensajeQuemado;
-      option.selected = true;
-      idSelect.appendChild(option);
 
+
+      // Opción por defecto
+      const optionDefault = document.createElement("option");
+      optionDefault.value = "0";
+      optionDefault.textContent = mensajeQuemado;
+      optionDefault.selected = true;
+      idSelect.appendChild(optionDefault);
+
+      // ➕ Opción para agregar nueva categoría
+      const optionAgregar = document.createElement("option");
+      optionAgregar.value = "__agregar__";
+      optionAgregar.textContent = "+ Agregar nueva categoría";
+      optionAgregar.classList.add("opcion-agregar");
+      idSelect.appendChild(optionAgregar);
+
+      // Agregar categorías al select
       respuesta.categorias.forEach((categoria) => {
         const option = document.createElement("option");
         option.value = categoria.idCategoria;
@@ -2445,12 +2464,95 @@ function cargarCategorias(idSelect, mensajeQuemado, estado = 1, validarCategoria
         idSelect.appendChild(option);
       });
 
-      // ✅ Ejecutar el callback si se proporciona
+      // Evento al seleccionar "+ Agregar"
+      idSelect.addEventListener("change", function handler() {
+        if (idSelect.value === "__agregar__") {
+          agregarCategoriaModal(); // Llamar a tu método del core
+          idSelect.value = "0"; // Volver a la opción por defecto después
+        }
+      }, { once: true }); // Solo una vez para evitar duplicaciones
+
+      // ✅ Ejecutar callback si existe
       if (typeof callback === "function") {
         callback();
       }
     } else {
       console.log("No se pudieron cargar las categorías.");
+    }
+  });
+}
+
+function agregarCategoriaModal() {
+  document.getElementById("modalTitleCategoria").innerText = "Crear Categoría";
+  document.getElementById("buttonModalCategoria").onclick = enviarCreacionCategoriaModal;
+  // Mostrar el modal
+  document.getElementById("editarCategoriaModal").style.display = "block";
+}
+
+function enviarCreacionCategoriaModal() {
+  const nombre = document.getElementById("nombreCategoria").value;
+  const descripcion = document.getElementById("Descripcion").value;
+
+  // Array para almacenar los campos vacíos
+  const camposVacios = [];
+
+  const inputs = [
+    { value: nombre, element: document.getElementById("nombreCategoria") },
+    { value: descripcion, element: document.getElementById("Descripcion") }
+  ];
+
+  // Marcar los campos vacíos y llenar el array camposVacios
+  inputs.forEach(input => {
+    if (!input.value) {
+      input.element.style.border = "2px solid red"; // Marcar el borde en rojo
+      camposVacios.push(input.element);
+    } else {
+      input.element.style.border = ""; // Resetear el borde
+    }
+  });
+
+  // Mostrar mensaje de error si hay campos vacíos
+  const errorMessage = document.getElementById("errorMessageCategoria");
+  if (camposVacios.length > 0) {
+    errorMessage.textContent = "Por favor, llene todos los campos.";
+    return; // Salir de la función si hay campos vacíos
+  } else {
+    errorMessage.textContent = ""; // Resetear mensaje de error
+  }
+
+  // Crear el objeto categoría con los datos del formulario
+  const categoriaData = {
+    nombre: nombre,
+    descripcion: descripcion
+  };
+
+  Swal.fire({
+    title: "Creando categoría",
+    text: "¿Está seguro que desea crear esta nueva categoría?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4a4af4",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, continuar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Usar el preload para enviar los datos al proceso principal
+      window.api.crearCategoria(categoriaData);
+
+      // Manejar la respuesta del proceso principal
+      window.api.onRespuestaCrearCategoria((respuesta) => {
+        if (respuesta.success) {
+          mostrarToastConfirmacion(respuesta.message);
+          setTimeout(() => {
+            cargarCategorias(document.getElementById("categorias"), "Seleccionar categoría", 1, 0, () => {
+              cerrarModal("editarCategoriaModal", "editarCategoriaForm");
+            });
+          }, 2000);
+        } else {
+          mostrarToastError(respuesta.message);
+        }
+      });
     }
   });
 }
@@ -3285,7 +3387,7 @@ async function editarDepartamento(id, boton) {
   document.getElementById("idDepartamento").value = id;
   document.getElementById("nombreDepartamento").value = nombreDepartamento;
   document.getElementById("descripcionDepartamento").value = descripcionDepartamento;
- 
+
 
   document.getElementById("modalTitle").innerText = "Editar Departamento de Trabajo";
   document.getElementById("buttonModal").onclick = enviarEdicionDepartamento;
@@ -3299,7 +3401,7 @@ function enviarEdicionDepartamento() {
   const errorMessage = document.getElementById("errorMessage");
 
   // Validar campos vacíos
-  if (!nombre ) {
+  if (!nombre) {
     errorMessage.textContent = "Por favor complete todos los campos.";
     errorMessage.style.color = "red";
     return;
@@ -3454,7 +3556,7 @@ function enviarCreacionDepartamento() {
   // Validar campos vacíos
   const camposVacios = [];
   if (!nombre) camposVacios.push("Nombre del Departamento");
-  
+
 
   if (camposVacios.length > 0) {
     errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
@@ -3496,5 +3598,29 @@ function enviarCreacionDepartamento() {
         }
       });
     }
+  });
+}
+
+/**
+ * ------------------------------------------------------------------
+ * ---------------------- COMPROBANTES DE PAGO ----------------------
+ * ------------------------------------------------------------------
+ */
+
+function cargarComprobantesPago(idSelect, mensajeQuemado) { // Carga para un select
+  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
+    const comprobantePagoSelect = document.getElementById(idSelect);
+    comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
+    const option = document.createElement("option");
+    option.value = "0";
+    option.textContent = mensajeQuemado;
+    comprobantePagoSelect.appendChild(option);
+
+    respuesta.comprobantes.forEach((comprobante) => {
+      const option = document.createElement("option");
+      option.value = comprobante.idComprobantePago;
+      option.textContent = comprobante.numeroComprobantePago;
+      comprobantePagoSelect.appendChild(option);
+    });
   });
 }

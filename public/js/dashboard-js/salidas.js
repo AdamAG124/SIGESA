@@ -119,8 +119,9 @@ function addProductSalida() {
     row.className = 'product-row';
     row.innerHTML = `
         <td>
-            <select class="form-select product-select" id=${idSelect} onchange="actualizarCantidadPrevia(this)">
-                <option value="0">Seleccione un producto</option>
+          <select class="form-select product-select product-name" id="${idSelect}" onchange="selectProductosOptionValidationSalida(this)">      <option value="0">Seleccione un producto</option>
+                <option value="crear">+ Agregar Nuevo</option>
+       
             </select>
         </td>
         <td><input type="text" class="form-control product-unit" readonly></td>
@@ -205,6 +206,7 @@ function actualizarDatosColaborador(select) {
     }
 }
 
+
 function validarYRecolectarDatosSalidaProducto() {
     // Limpiar mensajes de error previos y estilos
     const existingErrors = document.querySelectorAll('.error-message');
@@ -250,10 +252,11 @@ function validarYRecolectarDatosSalidaProducto() {
     productRows.forEach(row => {
         const selectProducto = row.querySelector('.product-select');
         const inputCantidadAnterior = row.querySelector('.product-prev-qty');
-        const inputCantidadSaliendo = row.querySelector('.product-out-qty'); // Cambiado a product-out-qty según tu estructura
+        const inputCantidadSaliendo = row.querySelector('.product-out-qty');
         const inputCantidadNueva = row.querySelector('.product-new-qty');
 
         const idProducto = selectProducto.value;
+        const cantidadAnterior = Number(inputCantidadAnterior.value);
         const cantidadSaliendo = inputCantidadSaliendo.value.trim();
         const cantidadSaliendoNum = Number(cantidadSaliendo);
 
@@ -281,7 +284,7 @@ function validarYRecolectarDatosSalidaProducto() {
                 errorMessage.style.fontSize = '12px';
                 errorMessage.textContent = 'Ingrese la cantidad saliente';
                 inputCantidadSaliendo.parentElement.appendChild(errorMessage);
-            } else if (cantidadSaliendoNum <= 0) { // Cambiado a <= 0 ya que min="1" en el HTML
+            } else if (cantidadSaliendoNum <= 0) {
                 isValid = false;
                 inputCantidadSaliendo.style.border = '2px solid red';
                 const errorMessage = document.createElement('span');
@@ -290,14 +293,28 @@ function validarYRecolectarDatosSalidaProducto() {
                 errorMessage.style.fontSize = '12px';
                 errorMessage.textContent = 'La cantidad saliente debe ser mayor a 0';
                 inputCantidadSaliendo.parentElement.appendChild(errorMessage);
+            } else if (cantidadSaliendoNum > cantidadAnterior) {
+                isValid = false;
+                inputCantidadSaliendo.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = `No puede salir más de lo disponible (${cantidadAnterior})`;
+                inputCantidadSaliendo.parentElement.appendChild(errorMessage);
             }
         }
 
         // Recolectar datos si es válido
-        if (idProducto !== '0' && cantidadSaliendo !== '' && cantidadSaliendoNum > 0) {
+        if (
+            idProducto !== '0' &&
+            cantidadSaliendo !== '' &&
+            cantidadSaliendoNum > 0 &&
+            cantidadSaliendoNum <= cantidadAnterior
+        ) {
             const productoData = {
                 idProducto: Number(idProducto),
-                cantidadAnterior: Number(inputCantidadAnterior.value),
+                cantidadAnterior: cantidadAnterior,
                 cantidadSaliendo: cantidadSaliendoNum,
                 cantidadNueva: Number(inputCantidadNueva.value),
                 idUsuario: Number(document.getElementById('idUsuario').value)
@@ -423,6 +440,7 @@ function validarYRecolectarDatosNuevaSalidaProducto() {
         const inputCantidadNueva = row.querySelector('.product-new-qty');
 
         const idProducto = selectProducto.value;
+        const cantidadAnterior = Number(inputCantidadAnterior.value);
         const cantidadSaliendo = inputCantidadSaliendo.value.trim();
         const cantidadSaliendoNum = Number(cantidadSaliendo);
 
@@ -459,14 +477,28 @@ function validarYRecolectarDatosNuevaSalidaProducto() {
                 errorMessage.style.fontSize = '12px';
                 errorMessage.textContent = 'La cantidad saliente debe ser mayor a 0';
                 inputCantidadSaliendo.parentElement.appendChild(errorMessage);
+            } else if (cantidadSaliendoNum > cantidadAnterior) {
+                isValid = false;
+                inputCantidadSaliendo.style.border = '2px solid red';
+                const errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '12px';
+                errorMessage.textContent = `No puede salir más de lo disponible (${cantidadAnterior})`;
+                inputCantidadSaliendo.parentElement.appendChild(errorMessage);
             }
         }
 
         // Recolectar datos si es válido
-        if (idProducto !== '0' && cantidadSaliendo !== '' && cantidadSaliendoNum > 0) {
+        if (
+            idProducto !== '0' &&
+            cantidadSaliendo !== '' &&
+            cantidadSaliendoNum > 0 &&
+            cantidadSaliendoNum <= cantidadAnterior
+        ) {
             const productoData = {
                 idProducto: Number(idProducto),
-                cantidadAnterior: Number(inputCantidadAnterior.value),
+                cantidadAnterior: cantidadAnterior,
                 cantidadSaliendo: cantidadSaliendoNum,
                 cantidadNueva: Number(inputCantidadNueva.value),
                 idUsuario: Number(document.getElementById('idUsuario').value)
@@ -525,4 +557,104 @@ function validarYRecolectarDatosNuevaSalidaProducto() {
             }
         });
     }
+}
+
+function selectProductosOptionValidationSalida(select) {
+    if (select.value === 'crear') {
+        const form = document.getElementById("editarProductoForm");
+        form.reset();
+
+        // Llenar selects de categorías y unidades de medición
+        const categoriaSelect = document.getElementById("categorias");
+        cargarCategorias(categoriaSelect, "Seleccionar categoría");
+        const unidadMedicionSelect = document.getElementById("unidadMedicion");
+        cargarUnidadesMedición(unidadMedicionSelect, "Seleccionar");
+
+        var selectIdInput = document.createElement("input");
+        selectIdInput.setAttribute("type", "hidden");
+        selectIdInput.setAttribute("id", "idSelectProductoDesdeSalida");
+        selectIdInput.value = select.id;
+
+        form.appendChild(selectIdInput);
+
+        document.getElementById("idProducto").value = "";
+        document.getElementById("errorMessage").textContent = "";
+
+        document.getElementById("modalTitle").innerText = "Crear Producto";
+        document.getElementById("buttonModal").onclick = enviarCreacionProductoDesdeSalida;
+
+        document.getElementById("editarProductoModal").style.display = "block";
+    } else {
+        actualizarCantidadPreviaSalida(select);
+    }
+}
+function actualizarCantidadPreviaSalida(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const cantidad = selectedOption.getAttribute('data-cantidad') || 0;
+    const unidadMedicion = selectedOption.getAttribute('data-unidad-medicion') || 'Unidad';
+    const row = select.closest('tr');
+    const prevQtyInput = row.querySelector('.product-prev-qty');
+    const unitInput = row.querySelector('.product-unit');
+    prevQtyInput.value = cantidad;
+    unitInput.value = unidadMedicion;
+}function enviarCreacionProductoDesdeSalida() {
+    const nombre = document.getElementById("nombre").value.trim();
+    const descripcion = document.getElementById("descripcion").value.trim() || "N/A";
+    const cantidad = document.getElementById("cantidad").value;
+    const unidadMedicion = document.getElementById("unidadMedicion").value;
+    const categoria = document.getElementById("categorias").value;
+    const errorMessage = document.getElementById("errorMessage");
+
+    // Validación estricta
+    if (!nombre) {
+        errorMessage.textContent = "El nombre es obligatorio.";
+        return;
+    }
+    if (!cantidad || isNaN(cantidad) || Number(cantidad) < 0) {
+        errorMessage.textContent = "La cantidad debe ser un número mayor o igual a 0.";
+        return;
+    }
+    if (!unidadMedicion || unidadMedicion === "0") {
+        errorMessage.textContent = "Debe seleccionar una unidad de medición.";
+        return;
+    }
+    if (!categoria || categoria === "0") {
+        errorMessage.textContent = "Debe seleccionar una categoría.";
+        return;
+    }
+    errorMessage.textContent = "";
+
+    const productoData = {
+        nombre,
+        descripcion,
+        cantidad,
+        unidadMedicion,
+        categoria
+    };
+
+    Swal.fire({
+        title: "Creando producto",
+        text: "¿Está seguro que desea crear este nuevo producto?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#4a4af4",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.api.crearProducto(productoData);
+            window.api.onRespuestaCrearProducto((respuesta) => {
+                if (respuesta.success) {
+                    mostrarToastConfirmacion(respuesta.message);
+                    setTimeout(() => {
+                        llenarProductosSelectByClass(".product-name", 1);
+                        cerrarModal("editarProductoModal", "editarProductoForm");
+                    }, 2000);
+                } else {
+                    mostrarToastError(respuesta.message);
+                }
+            });
+        }
+    });
 }
