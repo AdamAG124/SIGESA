@@ -597,22 +597,32 @@ function actualizarCantidadPreviaSalida(select) {
     const unitInput = row.querySelector('.product-unit');
     prevQtyInput.value = cantidad;
     unitInput.value = unidadMedicion;
-}
-function enviarCreacionProductoDesdeSalida() {
-    const nombre = document.getElementById("nombre").value;
-    const descripcion = document.getElementById("descripcion").value || "N/A";
+}function enviarCreacionProductoDesdeSalida() {
+    const nombre = document.getElementById("nombre").value.trim();
+    const descripcion = document.getElementById("descripcion").value.trim() || "N/A";
     const cantidad = document.getElementById("cantidad").value;
     const unidadMedicion = document.getElementById("unidadMedicion").value;
     const categoria = document.getElementById("categorias").value;
     const errorMessage = document.getElementById("errorMessage");
 
-    // Validación básica
-    if (!nombre || !unidadMedicion || !categoria) {
-        errorMessage.textContent = "Por favor, llene todos los campos obligatorios.";
+    // Validación estricta
+    if (!nombre) {
+        errorMessage.textContent = "El nombre es obligatorio.";
         return;
-    } else {
-        errorMessage.textContent = "";
     }
+    if (!cantidad || isNaN(cantidad) || Number(cantidad) < 0) {
+        errorMessage.textContent = "La cantidad debe ser un número mayor o igual a 0.";
+        return;
+    }
+    if (!unidadMedicion || unidadMedicion === "0") {
+        errorMessage.textContent = "Debe seleccionar una unidad de medición.";
+        return;
+    }
+    if (!categoria || categoria === "0") {
+        errorMessage.textContent = "Debe seleccionar una categoría.";
+        return;
+    }
+    errorMessage.textContent = "";
 
     const productoData = {
         nombre,
