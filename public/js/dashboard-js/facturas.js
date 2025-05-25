@@ -98,8 +98,9 @@ function cargarFacturasTabla(pageSize = 10, pageNumber = 1, estadoFactura = 1, i
 
     if (searchValue) searchInput.value = searchValue;
     cargarPtroveedores("proveedorFiltro", "Filtrar por proveedor");
-    cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
-
+    setTimeout(() => {
+        cargarComprobantesPago("comprobanteFiltro", "Filtrar por Comprobante");
+    }, 100);
     setTimeout(function () {
         if (idProveedor) selectProveedor.value = idProveedor;
         if (idComprobantePago) selectComprobante.value = idComprobantePago;
