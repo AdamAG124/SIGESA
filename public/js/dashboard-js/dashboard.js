@@ -3062,7 +3062,7 @@ function cargarPtroveedores(idSelect, mensajeQuemado) {
 function cargarComprobantesPago(idSelect, mensajeQuemado) {
   window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, null, (respuesta) => {
     const comprobantePagoSelect = document.getElementById(idSelect);
-    comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
+    comprobantePagoSelect.innerHTML = "";
     const option = document.createElement("option");
     option.value = "0";
     option.textContent = mensajeQuemado;
@@ -3594,29 +3594,5 @@ function enviarCreacionDepartamento() {
         }
       });
     }
-  });
-}
-
-/**
- * ------------------------------------------------------------------
- * ---------------------- COMPROBANTES DE PAGO ----------------------
- * ------------------------------------------------------------------
- */
-
-function cargarComprobantesPago(idSelect, mensajeQuemado) { // Carga para un select
-  window.api.obtenerComprobantesPago(null, null, null, null, null, null, 1, (respuesta) => {
-    const comprobantePagoSelect = document.getElementById(idSelect);
-    comprobantePagoSelect.innerHTML = ""; // Limpiar las opciones existentes
-    const option = document.createElement("option");
-    option.value = "0";
-    option.textContent = mensajeQuemado;
-    comprobantePagoSelect.appendChild(option);
-
-    respuesta.comprobantes.forEach((comprobante) => {
-      const option = document.createElement("option");
-      option.value = comprobante.idComprobantePago;
-      option.textContent = comprobante.numeroComprobantePago;
-      comprobantePagoSelect.appendChild(option);
-    });
   });
 }
