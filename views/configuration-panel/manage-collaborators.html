@@ -55,7 +55,12 @@
                 <input type="hidden" id="idColaborador">
 
                 <label for="cedulaColaborador">Cédula:</label>
-                <input type="text" onkeypress="obtenerNombrePorCedula()" id="cedulaColaborador" name="cedulaColaborador" required>
+
+                <div style="display: flex;">
+                    <input type="text" id="cedulaColaborador" name="cedulaColaborador" required>
+                    <button class="close-btn" type="button" id="" onclick="obtenerNombrePorCedula()">Cargar Datos</button>
+                </div>
+                
 
                 <label for="nombreColaborador">Nombre:</label>
                 <input type="text" id="nombreColaborador" name="nombreColaborador" required>
