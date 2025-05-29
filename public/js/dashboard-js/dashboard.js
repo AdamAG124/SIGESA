@@ -1220,9 +1220,8 @@ function agregarColaborador() {
     departamentoDestinoSelect.appendChild(option);
   }
 
-  document.getElementById("nombreColaborador").disabled = true;
-  document.getElementById("primerApellidoColaborador").disabled = true;
-  document.getElementById("segundoApellidoColaborador").disabled = true;
+
+
 
   // Cambiar el título del modal a "Editar Colaborador"
   document.getElementById("modalTitle").innerText = "Crear Colaborador";
@@ -1332,9 +1331,6 @@ async function editarColaborador(id, boton) {
   const puestoDestinoSelect = document.getElementById("nombrePuesto");
   const departamentoDestinoSelect = document.getElementById("nombreDepartamento");
 
-  document.getElementById("nombreColaborador").disabled = true;
-  document.getElementById("primerApellidoColaborador").disabled = true;
-  document.getElementById("segundoApellidoColaborador").disabled = true;
 
   // Obtener la fila del botón clicado
   const fila = boton.closest('tr');
