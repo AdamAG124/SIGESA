@@ -57,14 +57,6 @@ function cargarComprobantesPagoTabla(pageSize = 10, currentPage = 1, searchValue
                                     <span class="material-icons">edit</span>
                                     <span class="tooltiptext">Editar comprobante</span>
                                 </button>
-                                <button class="tooltip" value="${comprobante.idComprobantePago}" onclick="${comprobante.estadoComprobantePago === 1 ? `actualizarEstadoComprobante(this.value, 0, 'Eliminando comprobante', '¿Está seguro que desea eliminar este comprobante?', 1)` : `actualizarEstadoComprobante(this.value, 1, 'Reactivando comprobante', '¿Está seguro que desea reactivar este comprobante?', 1)`}">
-                                    <span class="material-icons">
-                                        ${comprobante.estadoComprobantePago === 1 ? 'delete' : 'restore'}
-                                    </span>
-                                    <span class="tooltiptext">
-                                        ${comprobante.estadoComprobantePago === 1 ? 'Eliminar comprobante' : 'Reactivar comprobante'}
-                                    </span>
-                                </button>
                             </td>
 
                             <td class="hidden-info" style="display:none;">${comprobante.idEntidadFinanciera}</td>
