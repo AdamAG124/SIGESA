@@ -1343,13 +1343,13 @@ async function editarColaborador(id, boton) {
   const primerApellidoColaborador = nombreDesglosado.primerApellido;
   const segundoApellidoColaborador = nombreDesglosado.segundoApellido;
   const fechaNacimiento = fila.children[6].textContent;
-  const fechaNacimientoFormateada = formatearFecha(fechaNacimiento);
+  const fechaNacimientoFormateada = formatDateForInput(fechaNacimiento);
   const numTelefono = fila.children[1].textContent;
   const correoColaborador = fila.children[2].textContent;
   const puestoColaborador = fila.children[10].textContent;
   const departamentoColaborador = fila.children[9].textContent;
   const fechaIngreso = fila.children[7].textContent;
-  const fechaIngresoFormateada = formatearFecha(fechaIngreso);
+  const fechaIngresoFormateada = formatDateForInput(fechaIngreso);
 
   // Asignar valores extraídos a los campos del formulario de edición
   document.getElementById("idColaborador").value = id;
@@ -1574,6 +1574,13 @@ function formatearFecha(fecha) {
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
 
+function formatDateForInput(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Sumar 1 porque los meses van de 0 a 11
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 function formatearFechaParaInput(fecha) {                             // Autor Jeycob
   const dia = fecha.getDate().toString().padStart(2, '0');

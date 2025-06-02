@@ -4,13 +4,15 @@
   "main": "index.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-builder"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "electron": "^32.3.3",
+    "electron-builder": "^26.0.12",
     "standard": "^17.1.2"
   },
   "eslintConfig": {
@@ -27,5 +29,59 @@
     "pdfkit-table": "^0.1.99",
     "sweetalert2": "^11.14.1"
   },
-  "description": ""
+  "description": "",
+  "build": {
+    "appId": "com.sigesa.app",
+    "productName": "Sigesa",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "public/assets/img/logo.icns",
+      "category": "public.app-category.productivity",
+      "entitlements": "build/entitlements.mac.plist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        "portable"
+      ],
+      "icon": "public/assets/img/logo.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "icon": "public/assets/img/logo.png",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sigesa",
+      "installerIcon": "public/assets/img/logo.ico",
+      "license": "LICENSE"
+    },
+    "dmg": {
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    }
+  }
 }
