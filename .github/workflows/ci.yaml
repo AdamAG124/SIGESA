@@ -1,0 +1,54 @@
+```yaml
+name: CI Pipeline for SIGESA
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Clona el repositorio
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Configura Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Instala dependencias
+      - name: Install dependencies
+        run: npm install
+
+      # Ejecuta pruebas de Jest
+      - name: Run Jest tests
+        run: npm test
+        env:
+          CI: true
+
+      # Guarda los resultados de las pruebas
+      - name: Archive test results
+        if: always()
+        run: |
+          mkdir -p test-results
+          npm test -- --json --outputFile=test-results/jest-results.json
+        continue-on-error: true
+
+      # Sube los resultados como artefacto
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-test-results
+          path: test-results/jest-results.json
+```
