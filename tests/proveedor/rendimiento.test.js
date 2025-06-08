@@ -30,7 +30,7 @@ global.mostrarToastError = jest.fn();
 global.filterTable = jest.fn();
 global.cerrarModal = jest.fn();
 
-const { enviarCreacionProveedor } = require('C:/SIGESA/public/js/dashboard-js/dashboard.js');
+const { enviarCreacionProveedor } = require('../../../public/js/dashboard-js/dashboard.js');
 
 beforeEach(() => {
   // Reiniciar DOM

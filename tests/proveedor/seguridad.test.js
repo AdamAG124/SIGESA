@@ -24,7 +24,7 @@ global.window.api = {
   }),
 };
 
-const { enviarCreacionProveedor } = require('C:/SIGESA/public/js/dashboard-js/dashboard.js');
+const { enviarCreacionProveedor } = require('../../../public/js/dashboard-js/dashboard.js');
 
 beforeEach(() => {
   // Reiniciar DOM
