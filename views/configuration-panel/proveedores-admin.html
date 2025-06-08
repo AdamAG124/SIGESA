@@ -1,72 +1,72 @@
-    <link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
-    <div class="main-content">
-        <div class="content-header">
-            <h1 class="content-title">Administrar Proveedores</h1>
-            <button onclick="agregarProveedor()" class="add-proveedor-btn" title="Agregar Nuevo Proveedor">
-                <span class="material-icons">add_business</span>
-            </button>
-        </div>
-        <div class="search-bar">
-            <input id="search-bar" type="text" placeholder="Buscar colaboradores..." onkeydown="checkEmpty(event, 3)" oninput="checkEmpty(event, 3)">
-            <button onclick="filterTable(3)" class="search-btn">Buscar</button>
-        </div>
+<link rel="stylesheet" href="../../public/CSS/dashboard-css/dashboard.css">
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">Administrar Proveedores</h1>
+        <button onclick="agregarProveedor()" class="add-proveedor-btn" title="Agregar Nuevo Proveedor">
+            <span class="material-icons">add_business</span>
+        </button>
+    </div>
+    <div class="search-bar">
+        <input id="search-bar" type="text" placeholder="Buscar colaboradores..." onkeydown="checkEmpty(event, 3)" oninput="checkEmpty(event, 3)">
+        <button onclick="filterTable(3)" class="search-btn">Buscar</button>
+    </div>
+    
+    <div class="filters">
+        <select id="selectPageSize" onchange="filterTable(3)">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <select id="estado-filtro" onchange="filterTable(3)">
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+        </select>
+        <button class="close-btn" style="float: right;" onclick="adjuntarHTML('/configuration-panel/configuration-panel.html', 0)">Regresar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="proveedores-body">
+
+        </tbody>
+    </table>
+    <div class="pagination">
         
-        <div class="filters">
-            <select id="selectPageSize" onchange="filterTable(3)">
-                <option value="5">5 por página</option>
-                <option value="10">10 por página</option>
-                <option value="25">25 por página</option>
-                <option value="50">50 por página</option>
-            </select>
-            <select id="estado-filtro" onchange="filterTable(3)">
-                <option value="1">Activo</option>
-                <option value="0">Inactivo</option>
-            </select>
-            <button class="close-btn" style="float: right;" onclick="adjuntarHTML('/configuration-panel/configuration-panel.html', 0)">Regresar</button>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="proveedores-body">
+    </div>
 
-            </tbody>
-        </table>
-        <div class="pagination">
-            
-        </div>
+    <div id="editarProveedorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('editarProveedorModal', 'editarProveedorForm')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <form id="editarProveedorForm" class="editar-proveedor-form">
+                <input type="hidden" id="idProveedor">
 
-        <div id="editarProveedorModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="cerrarModal('editarProveedorModal', 'editarProveedorForm')">&times;</span>
-                <h2 id="modalTitle"></h2>
-                <form id="editarProveedorForm" class="editar-proveedor-form">
-                    <input type="hidden" id="idProveedor">
+                <label for="nombreProveedor">Nombre:</label>
+                <input type="text" id="nombreProveedor" name="nombreProveedor">
 
-                    <label for="nombreProveedor">Nombre:</label>
-                    <input type="text" id="nombreProveedor" name="nombreProveedor">
+                <label for="provincia">Provincia:</label>
+                <input type="text" id="provincia" name="provincia" required>
 
-                    <label for="provincia">Provincia:</label>
-                    <input type="text" id="provincia" name="provincia" required>
+                <label for="canton">Canton:</label>
+                <input type="text" id="canton" name="canton" required>
 
-                    <label for="canton">Canton:</label>
-                    <input type="text" id="canton" name="canton" required>
+                <label for="distrito">Distrito:</label>
+                <input type="text" id="distrito" name="distrito" required>
+                
+                <label for="direccion">Direccion:</label>
+                <input type="text" id="direccion" name="direccion" required>
 
-                    <label for="distrito">Distrito:</label>
-                    <input type="text" id="distrito" name="distrito" required>
-                    
-                    <label for="direccion">Direccion:</label>
-                    <input type="text" id="direccion" name="direccion" required>
+                <p id="errorMessage" style="color: red;"></p>
 
-                    <p id="errorMessage" style="color: red;"></p>
-
-                    <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
-                </form>
-            </div>
+                <button type="button" class="close-btn" id="buttonModal">Guardar Cambios</button>
+            </form>
         </div>
     </div>
-    </div>
+</div>
+</div>

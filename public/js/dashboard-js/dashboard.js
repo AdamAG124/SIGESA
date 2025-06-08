@@ -1007,19 +1007,10 @@ function procesarDatosUsuario(usuario) {
 }
 
 let usuarioActual = null; // Variable global para almacenar el usuario actual
-function inicializarUsuarioActual() {
-  if (window.api && typeof window.api.receiveUserData === 'function') {
-    window.api.receiveUserData((usuario) => {
-      usuarioActual = usuario;
-      procesarDatosUsuario(usuario);
-    });
-  }
-}
-
-// Llama esta función solo si no estás en entorno de test
-if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
-  inicializarUsuarioActual();
-}
+window.api.receiveUserData((usuario) => {
+  usuarioActual = usuario; // Guardar el usuario actual en una variable global
+  procesarDatosUsuario(usuario);
+});
 
 // =============================================================
 
@@ -3612,11 +3603,3 @@ function enviarCreacionDepartamento() {
     }
   });
 }
-
-/* 
---------------------------------                          ------------------------------------
--------------------------------- EXPORTACION DE FUNCIONES ------------------------------------
---------------------------------                          -----------------------------------
-*/
-
-module.exports = { enviarCreacionProveedor };
