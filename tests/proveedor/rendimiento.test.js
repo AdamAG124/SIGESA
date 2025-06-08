@@ -74,8 +74,15 @@ beforeEach(() => {
   });
 });
 
+// Función para calcular el percentil
+function calculatePercentile(arr, percentile) {
+  const sorted = arr.slice().sort((a, b) => a - b);
+  const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+  return sorted[index] || 0;
+}
+
 describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
-  test('debería manejar 150 solicitudes sin errores y en tiempo razonable', async () => {
+  test('debería manejar 150 solicitudes con reportes de tiempo y tasa de error < 1%', async () => {
     // Configura datos iniciales
     const proveedorData = {
       nombre: 'Proveedor Test',
@@ -87,29 +94,56 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
 
     // Número de solicitudes
     const numRequests = 150;
+    const times = []; // Almacena tiempos de cada solicitud
+    let errorCount = 0; // Contador de errores
 
-    // Inicia medición de tiempo
+    // Inicia medición de tiempo total
     const startTime = performance.now();
 
     // Ejecuta 150 solicitudes
     for (let i = 0; i < numRequests; i++) {
-      // Actualiza los valores de los inputs con un identificador único para simular variación
+      // Actualiza los valores de los inputs
       document.getElementById('nombreProveedor').value = `Proveedor Test ${i}`;
       document.getElementById('provincia').value = proveedorData.provincia;
       document.getElementById('canton').value = proveedorData.canton;
       document.getElementById('distrito').value = proveedorData.distrito;
       document.getElementById('direccion').value = proveedorData.direccion;
 
-      // Ejecuta la función
-      enviarCreacionProveedor();
-      // Espera la resolución del .then() de Swal.fire
-      await Promise.resolve();
+      // Mide el tiempo de la solicitud individual
+      const requestStart = performance.now();
+      try {
+        enviarCreacionProveedor();
+        await Promise.resolve(); // Espera el .then() de Swal.fire
+        if (!window.api.crearProveedor.mock.calls[i]) {
+          errorCount++;
+        }
+      } catch (error) {
+        errorCount++;
+        console.error(`Error en solicitud ${i}:`, error);
+      }
+      const requestEnd = performance.now();
+      times.push(requestEnd - requestStart);
     }
 
-    // Finaliza medición de tiempo
+    // Finaliza medición de tiempo total
     const endTime = performance.now();
     const totalTime = endTime - startTime;
 
+    // Árbol de resultados: Tiempos de respuesta por transacción
+    console.log('Árbol de resultados: Tiempos de respuesta por transacción (ms)');
+    times.forEach((time, index) => {
+      console.log(`Solicitud ${index + 1}: ${time.toFixed(2)} ms`);
+    });
+
+    // Tabla agregada: Promedios y percentiles
+    const averageTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+    const percentile95 = calculatePercentile(times, 95);
+    console.log('\nTabla agregada:');
+    console.log(`- Promedio: ${averageTime.toFixed(2)} ms`);
+    console.log(`- Percentil 95: ${percentile95.toFixed(2)} ms`);
+    console.log(`- Tiempo total: ${totalTime.toFixed(2)} ms`);
+
+    // Aserciones
     // Verifica que crearProveedor fue llamado 150 veces
     expect(window.api.crearProveedor).toHaveBeenCalledTimes(numRequests);
 
@@ -125,13 +159,16 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
     // Verifica que no se mostraron mensajes de error
     expect(document.getElementById('errorMessage').textContent).toBe('');
 
-    // Verifica que el tiempo total es razonable (por ejemplo, menos de 5 segundos)
-    const maxAllowedTime = 5000; // 5 segundos
-    expect(totalTime).toBeLessThan(maxAllowedTime);
-    console.log(`Tiempo total para ${numRequests} solicitudes: ${totalTime.toFixed(2)} ms`);
+    // Verifica que el percentil 95 es menor a 2 segundos (2000 ms)
+    expect(percentile95).toBeLessThan(2000);
+
+    // Verifica que la tasa de error es menor al 1%
+    const errorRate = (errorCount / numRequests) * 100;
+    console.log(`- Tasa de error: ${errorRate.toFixed(2)}% (${errorCount} errores)`);
+    expect(errorRate).toBeLessThan(1);
   });
 
-  test('debería manejar 150 solicitudes con cadenas largas sin errores', async () => {
+  test('debería manejar 150 solicitudes con cadenas largas y reportes', async () => {
     // Configura una cadena larga
     const longString = 'A'.repeat(10000);
     const proveedorData = {
@@ -144,8 +181,10 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
 
     // Número de solicitudes
     const numRequests = 150;
+    const times = [];
+    let errorCount = 0;
 
-    // Inicia medición de tiempo
+    // Inicia medición de tiempo total
     const startTime = performance.now();
 
     // Ejecuta 150 solicitudes
@@ -157,20 +196,42 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
       document.getElementById('distrito').value = proveedorData.distrito;
       document.getElementById('direccion').value = proveedorData.direccion;
 
-      // Ejecuta la función
-      enviarCreacionProveedor();
-      // Espera la resolución del .then() de Swal.fire
-      await Promise.resolve();
+      // Mide el tiempo de la solicitud individual
+      const requestStart = performance.now();
+      try {
+        enviarCreacionProveedor();
+        await Promise.resolve();
+        if (!window.api.crearProveedor.mock.calls[i]) {
+          errorCount++;
+        }
+      } catch (error) {
+        errorCount++;
+        console.error(`Error en solicitud ${i}:`, error);
+      }
+      const requestEnd = performance.now();
+      times.push(requestEnd - requestStart);
     }
 
-    // Finaliza medición de tiempo
+    // Finaliza medición de tiempo total
     const endTime = performance.now();
     const totalTime = endTime - startTime;
 
-    // Verifica que crearProveedor fue llamado 150 veces
-    expect(window.api.crearProveedor).toHaveBeenCalledTimes(numRequests);
+    // Árbol de resultados: Tiempos de respuesta por transacción
+    console.log('Árbol de resultados: Tiempos de respuesta por transacción (ms) - Cadenas largas');
+    times.forEach((time, index) => {
+      console.log(`Solicitud ${index + 1}: ${time.toFixed(2)} ms`);
+    });
 
-    // Verifica que los datos enviados en la última solicitud son correctos
+    // Tabla agregada: Promedios y percentiles
+    const averageTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+    const percentile95 = calculatePercentile(times, 95);
+    console.log('\nTabla agregada (cadenas largas):');
+    console.log(`- Promedio: ${averageTime.toFixed(2)} ms`);
+    console.log(`- Percentil 95: ${percentile95.toFixed(2)} ms`);
+    console.log(`- Tiempo total: ${totalTime.toFixed(2)} ms`);
+
+    // Aserciones
+    expect(window.api.crearProveedor).toHaveBeenCalledTimes(numRequests);
     expect(window.api.crearProveedor).toHaveBeenLastCalledWith({
       nombre: `${longString}_${numRequests - 1}`,
       provincia: proveedorData.provincia,
@@ -178,13 +239,11 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
       distrito: proveedorData.distrito,
       direccion: proveedorData.direccion,
     });
-
-    // Verifica que no se mostraron mensajes de error
     expect(document.getElementById('errorMessage').textContent).toBe('');
+    expect(percentile95).toBeLessThan(2000);
 
-    // Verifica que el tiempo total es razonable (por ejemplo, menos de 10 segundos para cadenas largas)
-    const maxAllowedTime = 10000; // 10 segundos
-    expect(totalTime).toBeLessThan(maxAllowedTime);
-    console.log(`Tiempo total para ${numRequests} solicitudes con cadenas largas: ${totalTime.toFixed(2)} ms`);
+    const errorRate = (errorCount / numRequests) * 100;
+    console.log(`- Tasa de error: ${errorRate.toFixed(2)}% (${errorCount} errores)`);
+    expect(errorRate).toBeLessThan(1);
   });
 });
