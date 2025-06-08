@@ -4,12 +4,10 @@ name: CI Pipeline for SIGESA
 on:
   push:
     branches:
-      - main
-      - dev
+      - DEV-QA
   pull_request:
     branches:
-      - main
-      - dev
+      - DEV-QA
 
 jobs:
   test:
@@ -24,7 +22,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20' # Ajusta según la versión de Node.js que uses
 
       # Instala dependencias
       - name: Install dependencies
@@ -34,11 +32,11 @@ jobs:
       - name: Run Jest tests
         run: npm test
         env:
-          CI: true
+          CI: true # Habilita el modo CI para Jest
 
       # Guarda los resultados de las pruebas
       - name: Archive test results
-        if: always()
+        if: always() # Ejecuta incluso si las pruebas fallan
         run: |
           mkdir -p test-results
           npm test -- --json --outputFile=test-results/jest-results.json
