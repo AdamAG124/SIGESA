@@ -3,5 +3,6 @@ module.exports = {
   roots: ['<rootDir>/tests'], // Donde están tus archivos .test.js
   moduleFileExtensions: ['js'],
   transform: {},
-  testMatch: ['<rootDir>/tests/**/*.test.js']
+  testMatch: ['<rootDir>/tests/**/*.test.js'],
+   "maxWorkers": "50%"
 };
