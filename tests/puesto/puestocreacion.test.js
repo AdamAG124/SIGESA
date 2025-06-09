@@ -24,7 +24,7 @@ global.window.api = {
   }),
 };
 
-const { enviarCreacionPuesto } = require('C:/xampp/htdocs/SIGESA/public/js/dashboard-js/dashboard.js');
+const { enviarCreacionPuesto } = require('../../public/js/dashboard-js/dashboard.js');
 
 beforeEach(() => {
   // Reiniciar DOM
