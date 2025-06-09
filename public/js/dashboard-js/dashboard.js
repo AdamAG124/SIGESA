@@ -3632,4 +3632,4 @@ function enviarCreacionDepartamento() {
 --------------------------------                          -----------------------------------
 */
 
-module.exports = { enviarCreacionProveedor,  enviarCreacionPuesto };
+module.exports = { enviarCreacionProveedor,  enviarCreacionPuesto, enviarCreacionUsuario };
