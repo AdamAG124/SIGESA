@@ -61,7 +61,7 @@ describe('Pruebas unitarias para enviarCreacionUsuario', () => {
     document.getElementById('nombreUsuario').value = '';
 
     // Importa la función a probar
-    const { enviarCreacionUsuario } = require('C:/Users/pucho/Documents/Ingeniera en Sistemas/Proyecto Hogar de Ancianos/SIGESA/public/js/dashboard-js/dashboard.js');
+    const { enviarCreacionUsuario } = require('../../public/js/dashboard-js/dashboard.js');
 
     // Ejecuta la función
     const event = { preventDefault: jest.fn() };
@@ -89,7 +89,7 @@ describe('Pruebas unitarias para enviarCreacionUsuario', () => {
     document.getElementById('roleName').value = '';
 
     // Importa la función a probar
-    const { enviarCreacionUsuario } = require('C:/Users/pucho/Documents/Ingeniera en Sistemas/Proyecto Hogar de Ancianos/SIGESA/public/js/dashboard-js/dashboard.js');
+    const { enviarCreacionUsuario } = require('../../public/js/dashboard-js/dashboard.js');
 
     // Ejecuta la función
     const event = { preventDefault: jest.fn() };
@@ -119,7 +119,7 @@ describe('Pruebas unitarias para enviarCreacionUsuario', () => {
     document.getElementById('roleName').value = '1';
 
     // Importa la función a probar
-    const { enviarCreacionUsuario } = require('C:/Users/pucho/Documents/Ingeniera en Sistemas/Proyecto Hogar de Ancianos/SIGESA/public/js/dashboard-js/dashboard.js');
+    const { enviarCreacionUsuario } = require('../../public/js/dashboard-js/dashboard.js');
 
     // Ejecuta la función
     const event = { preventDefault: jest.fn() };
@@ -152,7 +152,7 @@ describe('Pruebas unitarias para enviarCreacionUsuario', () => {
     document.getElementById('roleName').value = '1';
 
     // Importa la función a probar
-    const { enviarCreacionUsuario } = require('C:/Users/pucho/Documents/Ingeniera en Sistemas/Proyecto Hogar de Ancianos/SIGESA/public/js/dashboard-js/dashboard.js');
+    const { enviarCreacionUsuario } = require('../../public/js/dashboard-js/dashboard.js');
 
     // Ejecuta la función
     const event = { preventDefault: jest.fn() };
