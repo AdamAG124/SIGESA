@@ -14,13 +14,13 @@ jest.mock('sweetalert2', () => ({
 const Swal = require('sweetalert2');
 global.Swal = Swal;
 
-// Mocks globales
+// Mocks globales para Electron API
 global.window = Object.create(window);
 global.window.api = {
-  crearProveedor: jest.fn(),
-  onRespuestaCrearProveedor: jest.fn(),
-  obtenerProveedores: jest.fn((pageSize, currentPage, estado, valorBusqueda, callback) => {
-    callback({ success: true, data: [] });
+  crearUsuario: jest.fn(),
+  onRespuestaCrearUsuario: jest.fn(),
+  obtenerColaboradores: jest.fn((pageSize, currentPage, estadoColaborador, idPuestoFiltro, idDepartamentoFiltro, valorBusqueda, callback) => {
+    callback({ colaboradores: [{ idColaborador: 1, nombreColaborador: 'Juan', primerApellidoColaborador: 'Pérez', segundoApellidoColaborador: 'Gómez' }] });
   }),
 };
 
@@ -28,48 +28,43 @@ global.window.api = {
 global.mostrarToastConfirmacion = jest.fn();
 global.mostrarToastError = jest.fn();
 global.filterTable = jest.fn();
-global.cerrarModal = jest.fn();
 
-const { enviarCreacionProveedor } = require('../../public/js/dashboard-js/dashboard.js');
+const { enviarCreacionUsuario } = require('../../public/js/dashboard-js/dashboard.js');
 
 beforeEach(() => {
-  // Reiniciar DOM
+  // Reiniciar DOM con la estructura del modal de usuarios
   document.body.innerHTML = `
-    <input id="idProveedor" value="1"/>
-    <input id="nombreProveedor" value="Proveedor Test"/>
-    <input id="provincia" value="San José"/>
-    <input id="canton" value="Central"/>
-    <input id="distrito" value="Carmen"/>
-    <input id="direccion" value="Calle 123"/>
-    <div id="errorMessage"></div>
-    <select id="selectPageSize">
-      <option value="10" selected>10</option>
-    </select>
-    <select id="estado-filtro">
-      <option value="1" selected>Activo</option>
-    </select>
-    <input id="search-bar" value="proveedor test" />
-    <table>
-      <tbody id="proveedores-body"></tbody>
-    </table>
-    <div id="editarProveedorModal" class="modal">
-      <form id="editarProveedorForm" class="editar-proveedor-form"></form>
+    <div id="editarUsuarioModal" class="modal">
+      <form id="editarUsuarioForm" class="editar-usuario-form">
+        <select id="colaboradorName">
+          <option value="">Seleccione un colaborador</option>
+          <option value="1">Juan Pérez Gómez</option>
+        </select>
+        <input id="nombreUsuario" value="juanperez"/>
+        <input type="password" id="newPassword" value="Password123"/>
+        <input type="password" id="confirmPassword" value="Password123"/>
+        <select id="roleName">
+          <option value="">Selecciona un rol</option>
+          <option value="1">Admin</option>
+        </select>
+        <p id="passwordError" style="display: none;"></p>
+      </form>
     </div>
   `;
 
   // Limpia mocks
   jest.clearAllMocks();
 
-  // Configura el mock de onRespuestaCrearProveedor
+  // Configura el mock de onRespuestaCrearUsuario
   let callbackGuardar;
-  global.window.api.onRespuestaCrearProveedor.mockImplementation((cb) => {
+  global.window.api.onRespuestaCrearUsuario.mockImplementation((cb) => {
     callbackGuardar = cb;
   });
 
-  // Configura el mock de crearProveedor
-  global.window.api.crearProveedor.mockImplementation((data) => {
+  // Configura el mock de crearUsuario
+  global.window.api.crearUsuario.mockImplementation((data) => {
     if (callbackGuardar) {
-      callbackGuardar({ success: true, message: 'Insertado' });
+      callbackGuardar({ success: true, message: 'Usuario creado' });
     }
   });
 });
@@ -81,15 +76,15 @@ function calculatePercentile(arr, percentile) {
   return sorted[index] || 0;
 }
 
-describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
+describe('Pruebas de rendimiento para enviarCreacionUsuario', () => {
   test('debería manejar 150 solicitudes con reportes de tiempo y tasa de error < 1%', async () => {
     // Configura datos iniciales
-    const proveedorData = {
-      nombre: 'Proveedor Test',
-      provincia: 'San José',
-      canton: 'Central',
-      distrito: 'Carmen',
-      direccion: 'Calle 123',
+    const usuarioData = {
+      colaborador: '1',
+      nombreUsuario: 'juanperez',
+      newPassword: 'Password123',
+      confirmPassword: 'Password123',
+      rol: '1',
     };
 
     // Número de solicitudes
@@ -103,18 +98,19 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
     // Ejecuta 150 solicitudes
     for (let i = 0; i < numRequests; i++) {
       // Actualiza los valores de los inputs
-      document.getElementById('nombreProveedor').value = `Proveedor Test ${i}`;
-      document.getElementById('provincia').value = proveedorData.provincia;
-      document.getElementById('canton').value = proveedorData.canton;
-      document.getElementById('distrito').value = proveedorData.distrito;
-      document.getElementById('direccion').value = proveedorData.direccion;
+      document.getElementById('colaboradorName').value = usuarioData.colaborador;
+      document.getElementById('nombreUsuario').value = `juanperez${i}`;
+      document.getElementById('newPassword').value = usuarioData.newPassword;
+      document.getElementById('confirmPassword').value = usuarioData.confirmPassword;
+      document.getElementById('roleName').value = usuarioData.rol;
 
       // Mide el tiempo de la solicitud individual
       const requestStart = performance.now();
       try {
-        enviarCreacionProveedor();
+        const event = { preventDefault: jest.fn() };
+        enviarCreacionUsuario(event);
         await Promise.resolve(); // Espera el .then() de Swal.fire
-        if (!window.api.crearProveedor.mock.calls[i]) {
+        if (!window.api.crearUsuario.mock.calls[i]) {
           errorCount++;
         }
       } catch (error) {
@@ -144,20 +140,19 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
     console.log(`- Tiempo total: ${totalTime.toFixed(2)} ms`);
 
     // Aserciones
-    // Verifica que crearProveedor fue llamado 150 veces
-    expect(window.api.crearProveedor).toHaveBeenCalledTimes(numRequests);
+    // Verifica que crearUsuario fue llamado 150 veces
+    expect(window.api.crearUsuario).toHaveBeenCalledTimes(numRequests);
 
     // Verifica que los datos enviados en la última solicitud son correctos
-    expect(window.api.crearProveedor).toHaveBeenLastCalledWith({
-      nombre: `Proveedor Test ${numRequests - 1}`,
-      provincia: proveedorData.provincia,
-      canton: proveedorData.canton,
-      distrito: proveedorData.distrito,
-      direccion: proveedorData.direccion,
+    expect(window.api.crearUsuario).toHaveBeenLastCalledWith({
+      colaborador: usuarioData.colaborador,
+      nombreUsuario: `juanperez${numRequests - 1}`,
+      newPassword: usuarioData.newPassword,
+      rol: usuarioData.rol,
     });
 
     // Verifica que no se mostraron mensajes de error
-    expect(document.getElementById('errorMessage').textContent).toBe('');
+    expect(document.getElementById('passwordError').textContent).toBe('');
 
     // Verifica que el percentil 95 es menor a 2 segundos (2000 ms)
     expect(percentile95).toBeLessThan(2000);
@@ -171,12 +166,12 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
   test('debería manejar 150 solicitudes con cadenas largas y reportes', async () => {
     // Configura una cadena larga
     const longString = 'A'.repeat(10000);
-    const proveedorData = {
-      nombre: longString,
-      provincia: 'San José',
-      canton: 'Central',
-      distrito: 'Carmen',
-      direccion: 'Calle 123',
+    const usuarioData = {
+      colaborador: '1',
+      nombreUsuario: longString,
+      newPassword: 'Password123',
+      confirmPassword: 'Password123',
+      rol: '1',
     };
 
     // Número de solicitudes
@@ -190,18 +185,19 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
     // Ejecuta 150 solicitudes
     for (let i = 0; i < numRequests; i++) {
       // Actualiza los valores de los inputs
-      document.getElementById('nombreProveedor').value = `${longString}_${i}`;
-      document.getElementById('provincia').value = proveedorData.provincia;
-      document.getElementById('canton').value = proveedorData.canton;
-      document.getElementById('distrito').value = proveedorData.distrito;
-      document.getElementById('direccion').value = proveedorData.direccion;
+      document.getElementById('colaboradorName').value = usuarioData.colaborador;
+      document.getElementById('nombreUsuario').value = `${longString}_${i}`;
+      document.getElementById('newPassword').value = usuarioData.newPassword;
+      document.getElementById('confirmPassword').value = usuarioData.confirmPassword;
+      document.getElementById('roleName').value = usuarioData.rol;
 
       // Mide el tiempo de la solicitud individual
       const requestStart = performance.now();
       try {
-        enviarCreacionProveedor();
-        await Promise.resolve();
-        if (!window.api.crearProveedor.mock.calls[i]) {
+        const event = { preventDefault: jest.fn() };
+        enviarCreacionUsuario(event);
+        await Promise.resolve(); // Espera el .then() de Swal.fire
+        if (!window.api.crearUsuario.mock.calls[i]) {
           errorCount++;
         }
       } catch (error) {
@@ -231,15 +227,14 @@ describe('Pruebas de rendimiento para enviarCreacionProveedor', () => {
     console.log(`- Tiempo total: ${totalTime.toFixed(2)} ms`);
 
     // Aserciones
-    expect(window.api.crearProveedor).toHaveBeenCalledTimes(numRequests);
-    expect(window.api.crearProveedor).toHaveBeenLastCalledWith({
-      nombre: `${longString}_${numRequests - 1}`,
-      provincia: proveedorData.provincia,
-      canton: proveedorData.canton,
-      distrito: proveedorData.distrito,
-      direccion: proveedorData.direccion,
+    expect(window.api.crearUsuario).toHaveBeenCalledTimes(numRequests);
+    expect(window.api.crearUsuario).toHaveBeenLastCalledWith({
+      colaborador: usuarioData.colaborador,
+      nombreUsuario: `${longString}_${numRequests - 1}`,
+      newPassword: usuarioData.newPassword,
+      rol: usuarioData.rol,
     });
-    expect(document.getElementById('errorMessage').textContent).toBe('');
+    expect(document.getElementById('passwordError').textContent).toBe('');
     expect(percentile95).toBeLessThan(2000);
 
     const errorRate = (errorCount / numRequests) * 100;
