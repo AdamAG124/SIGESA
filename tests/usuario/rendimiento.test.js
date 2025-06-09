@@ -29,7 +29,7 @@ global.mostrarToastConfirmacion = jest.fn();
 global.mostrarToastError = jest.fn();
 global.filterTable = jest.fn();
 
-const { enviarCreacionUsuario } = require('C:/Users/pucho/Documents/Ingeniera en Sistemas/Proyecto Hogar de Ancianos/SIGESA/public/js/dashboard-js/dashboard.js');
+const { enviarCreacionUsuario } = require('../../public/js/dashboard-js/dashboard.js');
 
 beforeEach(() => {
   // Reiniciar DOM con la estructura del modal de usuarios
