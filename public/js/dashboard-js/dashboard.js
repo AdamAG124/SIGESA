@@ -1952,16 +1952,29 @@ function agregarPuesto() {
   document.getElementById("crearPuestoModal").style.display = "block";
 }
 
-
 function enviarCreacionPuesto() {
-  const nombre = document.getElementById("nombrePuesto").value.trim();
-  const descripcion = document.getElementById("descripcionPuesto").value.trim();
+  const nombrePuesto = document.getElementById("nombrePuesto");
+  const descripcionPuesto = document.getElementById("descripcionPuesto");
   const errorMessage = document.getElementById("errorMessage");
+
+  const nombre = nombrePuesto.value.trim();
+  const descripcion = descripcionPuesto.value.trim();
 
   // Validar campos vacíos
   const camposVacios = [];
-  if (!nombre) camposVacios.push("Nombre del Puesto");
-  if (!descripcion) camposVacios.push("Descripción");
+  if (!nombre) {
+    camposVacios.push("Nombre del Puesto");
+    nombrePuesto.style.border = "2px solid red"; // Marcar borde rojo
+  } else {
+    nombrePuesto.style.border = ""; // Resetear borde
+  }
+
+  if (!descripcion) {
+    camposVacios.push("Descripción");
+    descripcionPuesto.style.border = "2px solid red"; // Marcar borde rojo
+  } else {
+    descripcionPuesto.style.border = ""; // Resetear borde
+  }
 
   if (camposVacios.length > 0) {
     errorMessage.textContent = `Por favor complete los siguientes campos: ${camposVacios.join(", ")}`;
@@ -3619,4 +3632,4 @@ function enviarCreacionDepartamento() {
 --------------------------------                          -----------------------------------
 */
 
-module.exports = { enviarCreacionProveedor };
+module.exports = { enviarCreacionProveedor,  enviarCreacionPuesto };
